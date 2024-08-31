@@ -1,0 +1,22 @@
+{
+  "type": "record",
+  "namespace": "com.v01.techgear_server.generated",
+  "name": "EmailSchema",
+  "doc": "Email schema is a collection of user email address",
+  "fields": [
+    { "name": "emailId", "type": "long" },
+    { "name": "emailAddress", "type": "string" },
+    { "name": "verificationToken", "type": "string" },
+    { "name": "verified", "type": "boolean" },
+    { "name": "sentAt", "type": ["null", "string"], "default": null }, // Use ISO 8601 string format
+    { "name": "verifiedAt", "type": ["null", "string"], "default": null }, // Use ISO 8601 string format
+    { "name": "recipient", "type": "string" },
+    { "name": "msgBody", "type": "string" },
+    { "name": "subject", "type": "string" },
+    { "name": "attachment", "type": ["null", "string"], "default": null },
+    {
+      "name": "user",
+      "type": "UserSchema"
+    }
+  ]
+}

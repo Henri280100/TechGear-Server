@@ -1,0 +1,30 @@
+{
+  "type": "record",
+  "namespace": "com.v01.techgear_server.generated",
+  "name": "UserSchema",
+  "doc": "User schema is a collection of user information.",
+  "fields": [
+    { "name": "userId", "type": "long" },
+    { "name": "userName", "type": "string" },
+    { "name": "password", "type": "string" },
+    { "name": "phoneNumbers", "type": { "type": "array", "items": "string" } },
+    { "name": "active", "type": "boolean", "default": false },
+    {
+      "name": "addresses",
+      "type": "UserAddressSchema"
+    },
+    {
+      "name": "passwordHistory",
+      "type": { "type": "array", "items": "string" }
+    },
+    { "name": "reviews", "type": { "type": "array", "items": "string" } },
+    {
+      "name": "roles",
+      "type": "RolesSchema"
+    },
+    {
+      "name": "emails",
+      "type": "EmailSchema"
+    }
+  ]
+}

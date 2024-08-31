@@ -1,0 +1,20 @@
+{
+  "type": "record",
+  "namespace": "com.v01.techgear_server.generated",
+  "name": "RolesSchema",
+  "doc": "User roles schema is a collection of user roles.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "long"
+    },
+    {
+      "name": "roleType",
+      "type": {
+        "type": "enum",
+        "name": "Roles",
+        "symbols": ["USER", "ADMIN"]
+      }
+    }
+  ]
+}

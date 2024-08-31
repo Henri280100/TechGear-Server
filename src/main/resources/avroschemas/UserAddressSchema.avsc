@@ -1,0 +1,13 @@
+{
+    "type": "record",
+    "namespace": "com.v01.techgear_server.generated",
+    "name": "UserAddressSchema",
+    "fields": [
+      {"name": "addressId", "type": "long"},
+      {"name": "country", "type": "string"},
+      {"name": "latitude", "type": ["null", "double"], "default": null},
+      {"name": "longitude", "type": ["null", "double"], "default": null},
+      {"name": "addressDetails", "type": ["null", "string"], "default": null}
+    ]
+  }
+  

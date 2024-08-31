@@ -1,0 +1,119 @@
+type Query {
+  getAllProducts: [Product]
+  getProductById(product_id: ID): [Product]
+  getUserById(userId: ID!): User
+}
+
+type Mutation {
+  # Product mutation
+  updateProduct(product_id: ID!, input: ProductInput!): [Product]
+  updateProductPrice(product_id: ID!, price: Float): [Product]
+  # User mutation
+  updateUserName(userId: ID!, userName: String!): User!
+  updateUserPassword(userId: ID!, password: String!): User!
+  updateUserEmail(userId: ID!, newEmail: String!): User!
+  updateUserPhoneNo(userId: ID!, newPhoneNo: String!, newCountryCode: String!): User!
+  updateUserAddress(userId: ID!, newCountry: String, newLatitude: Float, newLongitude: Float, newAddressDetails: String): User!
+}
+
+input ProductInput {
+    name: String
+    price: Float
+    imageId: ID
+    specificationId: ID
+    category: Category
+    reviewIds: [ID!] # IDs of reviews to associate
+    productDetailId: ID
+}
+
+type Product {
+  product_id: ID
+  name: String
+  image: Image
+  price: Float
+  specifications: [ProductSpecification]
+  category: Category
+  reviews: [Review]
+  productDetail: ProductDetail
+}
+
+type User {
+  userId: ID!
+  userName: String!
+  password: String!
+  phoneNumbers: [UserPhoneNo!]!
+  addresses: UserAddress
+  email: [Email!]!
+}
+
+type UserPhoneNo {
+  id: ID!
+  phoneNo: String!
+  countryCode: String!
+}
+
+type UserAddress {
+  addressId: ID!
+  country: String!
+  latitude: Float
+  longitude: Float
+  addressDetails: String
+}
+
+type Email {
+  emailId: ID!
+  emailAddress: String!
+  verificationToken: String!
+  verified: Boolean!
+  sentAt: String
+  verifiedAt: String
+  recipient: String
+  msgBody: String
+  subject: String
+  attachment: String
+}
+
+type ProductSpecification {
+  id: ID!
+  specsName: String
+  icon: String
+}
+
+type Review {
+  id: ID!
+  userName: String
+  comments: String
+  rating: Int
+}
+
+type ProductDetail {
+  id: ID!
+  warranty: String
+  availability: ProductAvailability
+  voucherCode: String
+  technicalSpecifications: String
+  description: String
+}
+
+type Image {
+  id: ID!
+  filename: String
+  contentType: String
+}
+
+enum Category {
+  INTEL
+  AMD
+  BRAND
+  GPU
+  CPU
+  MOTHERBOARD
+  RAM
+  SSD
+}
+
+enum ProductAvailability {
+  INSTOCK
+  OUT_OF_STOCK
+  PRE_ORDER
+}

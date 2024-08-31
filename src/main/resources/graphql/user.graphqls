@@ -1,0 +1,8 @@
+extend type Mutation {
+  deleteUserByName(userName: String!): Boolean!
+}
+
+extend type Query {
+  getAllUsers: [User!]!
+  getUserName(userId: ID!): String!
+}
