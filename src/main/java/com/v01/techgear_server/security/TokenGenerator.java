@@ -33,7 +33,7 @@ public class TokenGenerator {
 
         JwtClaimsSet claimsSet = JwtClaimsSet.builder()
                 .issuer("techgear_server").issuedAt(now).expiresAt(now.plus(5, ChronoUnit.MINUTES))
-                .subject((String) user.getUserId().toString()).build();
+                .subject(user.getId().toString()).build();
 
         return accessTokenEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
     }
@@ -44,7 +44,7 @@ public class TokenGenerator {
 
         JwtClaimsSet claimsSet = JwtClaimsSet.builder()
                 .issuer("techgear_server").issuedAt(now).expiresAt(now.plus(30, ChronoUnit.DAYS))
-                .subject((String) user.getUserId().toString()).build();
+                .subject(user.getId().toString()).build();
 
         return refreshTokenEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
     }
@@ -56,7 +56,12 @@ public class TokenGenerator {
                             authentication.getPrincipal().getClass()));
         }
         TokenDTO tokenDTO = new TokenDTO();
-        tokenDTO.setUserId(user.getUserId().toString());
+
+        if (user.getId() == null) {
+            throw new IllegalArgumentException("User ID is null. The user might not have been saved properly.");
+        }
+
+        tokenDTO.setTokensId(user.getId());
         tokenDTO.setAccessToken(createAccessToken(authentication));
 
         String refreshToken;

@@ -12,6 +12,6 @@ import com.v01.techgear_server.model.Product;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     @Modifying
-    @Query("SELECT name FROM Product")
+    @Query("SELECT p FROM Product p WHERE p.name = :name")
     Optional<Product> findProductName(String name);
 }

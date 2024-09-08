@@ -22,7 +22,7 @@ import lombok.Setter;
 public class Token {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private String userId;
+    private String tokensId;
 
     @Column(name="accessToken")
     private String accessToken;

@@ -15,19 +15,19 @@ public class TokenServiceImpl implements TokenService{
     @Autowired
     private TokenRepository tokenRepository;
 
-    public boolean isTokenValid(String userId) {
-        List<Token> tokens = tokenRepository.findByUserId(userId);
+    public boolean isTokenValid(String tokensId) {
+        List<Token> tokens = tokenRepository.findByTokensId(tokensId);
         if (tokens.isEmpty()) {
-            return false; // No tokens found for the userId
+            return false; // No tokens found for the id
         }
         return tokens.stream().anyMatch(token -> !token.isRevoked());
     }
 
     @Override
-    public void revokeToken(String userId) {
-        List<Token> tokens = tokenRepository.findByUserId(userId);
+    public void revokeToken(String tokensId) {
+        List<Token> tokens = tokenRepository.findByTokensId(tokensId);
         if (tokens.isEmpty()) {
-            throw new IllegalArgumentException("No tokens found for userId: " + userId);
+            throw new IllegalArgumentException("No tokens found for id: " + tokensId);
         }
         for (Token token : tokens) {
             token.setRevoked(true);

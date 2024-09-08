@@ -22,6 +22,7 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -36,6 +37,9 @@ import lombok.extern.slf4j.Slf4j;
 @EnableMethodSecurity(prePostEnabled = true)
 @Slf4j
 public class WebSecurity {
+        @Autowired
+        private JwtAuthenticationFilter jwtAuthenticationFilter;
+
         @Autowired
         JWTtoUserConvertor jwTtoUserConvertor;
 
@@ -52,8 +56,8 @@ public class WebSecurity {
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
                                 .authorizeHttpRequests((authorize) -> authorize
-                                                .requestMatchers("/api/v01/auth/*").hasRole("USER")
-                                                .requestMatchers("/api/v01/admin/auth/*").hasRole("ADMIN")
+                                                .requestMatchers("/api/v01/auth/**").permitAll()
+                                                .requestMatchers("/api/v01/admin/auth/**").permitAll()
                                                 .anyRequest().authenticated())
                                 .csrf(csrf -> csrf.disable())
                                 .cors(cors -> cors.disable())
@@ -65,6 +69,8 @@ public class WebSecurity {
                                 .exceptionHandling((exceptions) -> exceptions
                                                 .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                                                 .accessDeniedHandler(new BearerTokenAccessDeniedHandler()));
+
+                http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
                 return http.build();
         }
 

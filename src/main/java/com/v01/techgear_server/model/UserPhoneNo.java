@@ -11,22 +11,22 @@ import jakarta.validation.constraints.Size;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="userPhoneNos")
+@Table(name = "userPhoneNos")
 public class UserPhoneNo {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @NotBlank
-    @Size(max=10)
-    @Column(name="phoneNo", unique = true, nullable = false)
+    @Size(max = 10)
+    @Column(name = "phoneNo")
     private String phoneNo;
 
-    @Column(name="countryCode", unique = true, nullable = false)
+    @Column(name = "countryCode")
     private String countryCode;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @OneToOne
+    @JoinColumn(name="user_id")
+    private User users;
 
 }

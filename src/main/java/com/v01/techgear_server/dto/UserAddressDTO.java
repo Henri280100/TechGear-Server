@@ -6,5 +6,7 @@ import lombok.Data;
 public class UserAddressDTO {
     private Long addressId;
     private String country;
+    private Double latitude;
+    private Double longitude;
     private String addressDetails;
 }

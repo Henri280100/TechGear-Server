@@ -1,24 +1,17 @@
 package com.v01.techgear_server.exception;
 
-import java.util.*;
-import org.slf4j.*;
-import org.springframework.http.*;
-import org.springframework.integration.handler.advice.RateLimiterRequestHandlerAdvice.RateLimitExceededException;
-import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
         private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
-        @ExceptionHandler(RateLimitExceededException.class)
-        @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
-        @ResponseBody
-        public Map<String, String> handleRateLimitExceededException(RateLimitExceededException ex) {
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", ex.getMessage());
-                return errorResponse;
-        }
 
         /**
          * Handle resource not found exception.

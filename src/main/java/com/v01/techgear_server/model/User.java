@@ -2,11 +2,16 @@ package com.v01.techgear_server.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -22,8 +27,6 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -38,35 +41,52 @@ import lombok.Setter;
 @AllArgsConstructor
 @Table(name = "users")
 public class User implements UserDetails {
+
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long userId;
+  private Long id;
 
-  @NotBlank
-  @Size(max = 20)
-  @Column(name = "userName", unique = true, nullable = false)
-  private String userName;
+  @Column(name = "username")
+  private String username;
 
-  @NotBlank
-  @Size(max = 120)
-  @Column(name = "password", unique = true, nullable = false)
+  @Column(name = "password", nullable = false)
   private String password;
 
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private List<UserPhoneNo> phoneNumbers;
+  @OneToOne(mappedBy = "users", cascade = CascadeType.ALL, orphanRemoval = true)
+  // @JoinColumn(name = "phone_id")
+  private UserPhoneNo phoneNumbers;
 
-  @Column(name="active")
-  private boolean active;
+  @Column(name="email", unique = true)
+  private String email;
 
 
-  public User(@NotBlank @Size(max = 20) String userName, @NotBlank @Size(max = 120) String password) {
-    this.userName = userName;
+  @OneToOne(mappedBy="users", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  // @JoinColumn(name = "address_id")
+  private UserAddress addresses;
+
+  @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+  private Set<Role> roles = new HashSet<>();
+
+  @OneToOne(mappedBy = "users", cascade = CascadeType.ALL)
+  @JsonIgnore
+  private ConfirmationTokens confirmationTokens;
+
+  public User(String username, String password,
+      UserPhoneNo phoneNumbers, UserAddress addresses, String email) {
+
+    super();
+
+    this.username = username;
     this.password = password;
+    this.phoneNumbers = phoneNumbers;
+    this.addresses = addresses;
+
+    this.email = email;
   }
 
-  @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  @JoinColumn(name = "address_id")
-  private UserAddress addresses;
+  @Column(name = "active")
+  private boolean active;
 
   @ElementCollection
   private List<String> passwordHistory = new ArrayList<>();
@@ -74,16 +94,10 @@ public class User implements UserDetails {
   @OneToMany(mappedBy = "user")
   private List<Review> reviews;
 
-  @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-  @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-  private List<Role> roles;
-
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-  private List<Email> email = new ArrayList<>();
-
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return Collections.emptyList();
+    return roles.stream().map(role -> new SimpleGrantedAuthority(role.getRoleType().name()))
+        .collect(Collectors.toList());
   }
 
   public boolean isAccountNonExpired() {
@@ -99,12 +113,12 @@ public class User implements UserDetails {
   }
 
   public boolean isEnabled() {
-    return true;
+    return this.active && this.confirmationTokens != null && this.confirmationTokens.getConfirmedAt() != null;
   }
 
   @Override
   public String getUsername() {
-    return null;
+    return this.username;
   }
 
 }

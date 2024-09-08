@@ -32,13 +32,13 @@ public class UserMutationResolver {
                 User user = userRepository.findById(id)
                         .orElseThrow(() -> new RuntimeException("User not found with id " + id));
 
-                Optional<User> existingUser = userRepository.findByUserName(newName);
+                Optional<User> existingUser = userRepository.findByUsername(newName);
 
-                if (existingUser.isPresent() && !existingUser.get().getUserId().equals(id)) {
+                if (existingUser.isPresent() && !existingUser.get().getId().equals(id)) {
                     throw new RuntimeException("User name '" + newName + "' already exists, please try again.");
                 }
 
-                user.setUserName(newName);
+                user.setUsername(newName);
                 LOGGER.info("Updated user with id: {}", id);
 
                 return userRepository.save(user);
@@ -59,8 +59,10 @@ public class UserMutationResolver {
                 User user = userRepository.findById(id)
                         .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-                if (user.getPassword().equals(newPassword)) {
+                Optional<User> existingUser = userRepository.findByPassword(newPassword);
 
+                if (existingUser.isPresent() && !existingUser.get().getId().equals(id)) {
+                    throw new RuntimeException("User password '" + newPassword + "' already exists, please try again.");
                 }
 
                 user.setPassword(newPassword);

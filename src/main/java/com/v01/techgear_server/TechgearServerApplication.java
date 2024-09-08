@@ -1,3 +1,9 @@
+
+
+
+
+
+
 package com.v01.techgear_server;
 
 import org.modelmapper.ModelMapper;
@@ -5,8 +11,6 @@ import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -15,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 
 @SpringBootApplication
-@EnableAsync
 public class TechgearServerApplication {
 
 	@Bean
