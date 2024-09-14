@@ -1,4 +1,4 @@
-package com.v01.techgear_server.controller.Authentication;
+package com.v01.techgear_server.controller.Users;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,17 +10,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.v01.techgear_server.model.User;
-import com.v01.techgear_server.repo.UserRepository;
+import com.v01.techgear_server.serviceImpls.UserServiceImpl;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v01/users")
 public class UserController {
+    
     @Autowired
-    UserRepository userRepository;
+    private UserServiceImpl userService;
 
     @GetMapping("/{id}")
     @PreAuthorize("#user.id == #id")
     public ResponseEntity<?> getUserEntity(@AuthenticationPrincipal User user, @PathVariable Long id) {
-        return ResponseEntity.ok(userRepository.findById(id).orElseThrow());
+        User foundUser = userService.getUserById(id);
+        return ResponseEntity.ok(foundUser);
     }
 }

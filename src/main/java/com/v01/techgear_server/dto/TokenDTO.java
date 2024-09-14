@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class TokenDTO {
-    private Long tokensId;
+    private Long id;
     private String accessToken;
     private String refreshToken;
 }

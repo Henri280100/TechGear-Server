@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import com.v01.techgear_server.dto.UserDTO;
 import com.v01.techgear_server.model.ConfirmationTokens;
 import com.v01.techgear_server.model.User;
 import com.v01.techgear_server.repo.ConfirmationTokensRepository;
@@ -29,8 +27,9 @@ import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class EmailServiceImpl implements EmailService {
+
     @Autowired
-    private TokenGenerator tokenGenerator;
+    TokenGenerator tokenGenerator;
 
     @Autowired
     private OnStoreCloudDBServiceImpl onStoreCloud;
@@ -47,21 +46,24 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
     private static Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class);
 
     @Override
-    public void sendVerificationEmail(UserDTO userDTO) {
+    public void sendVerificationEmail(User user) {
         try {
-            String email = userDTO.getEmail();
+            String email = user.getEmail();
+            long timeWindowMillis = 10000;
             if (rateLimitExceeded(email)) {
-                LOGGER.error("Rate limit exceeded for sending verification emails to: {}", email);
+                LOGGER.error("Rate limit exceeded for sending verification emails to: ", email);
                 return;
             }
 
-            User user = modelMapper.map(userDTO, User.class);
+            if (rateLimiterService.hasEmailBeenSent(email, timeWindowMillis)) {
+                LOGGER.info("Email has already been sent to: ", email);
+                return;
+            }
+
+            // User user = modelMapper.map(userDTO, User.class);
             ConfirmationTokens confirmToken = generateAndSaveToken(user);
             String verificationUrl = buildVerificationUrl(confirmToken.getConfirmToken());
 
@@ -71,7 +73,7 @@ public class EmailServiceImpl implements EmailService {
             CompletableFuture<Void> firebaseStoreFuture = onStoreCloud.storeData("emails",
                     "email-verification-" + user.getId(), encryptedBody);
 
-            sendEmail(userDTO.getEmail(), "Verify your email", emailBody);
+            sendEmail(user.getEmail(), "Verify your email", emailBody);
 
             firebaseStoreFuture.thenRun(() -> rateLimiterService.recordEmailSent(email))
                     .exceptionally(ex -> {
@@ -82,6 +84,27 @@ public class EmailServiceImpl implements EmailService {
         } catch (Exception e) {
             LOGGER.error("Error while sending verification email: {}", e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void sendResetTokenEmail(String email, String resetToken) {
+        User user = new User();
+        user.setEmail(email);
+        long timeWindowMillis = 10000;
+        if (rateLimitExceeded(email)) {
+            LOGGER.error("Rate limit exceeded for sending reset password emails to: ", email);
+            return;
+        }
+
+        if (rateLimiterService.hasEmailBeenSent(email, timeWindowMillis)) {
+            LOGGER.info("Email has already been sent to: ", email);
+            return;
+        }
+
+        String subject = "Reset password";
+        String emailText = "To reset your password, click the link below:\n" +
+                "http://localhost:8082/api/v01/auth/reset-password?token=" + resetToken;
+        sendEmail(email, subject, emailText);
     }
 
     @Override
@@ -113,8 +136,10 @@ public class EmailServiceImpl implements EmailService {
             Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
                     user, user.getPassword(), user.getAuthorities());
 
+            tokenGenerator.createToken(authentication);
+
             LOGGER.info("Email confirmed for user: {}", user.getUsername());
-            return "Email confirmed successfully!, please return to the login page" + tokenGenerator.createToken(authentication);
+            return "Email confirmed successfully!, please return to the login page";
         } catch (Exception e) {
             LOGGER.error("Cannot verify email please check again", e);
             return "ERROR: cannot verify email";
@@ -131,8 +156,8 @@ public class EmailServiceImpl implements EmailService {
             throw new IllegalStateException("User already confirmed");
         }
 
-        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-        sendVerificationEmail(userDTO);
+        // UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        sendVerificationEmail(user);
     }
 
     private void sendEmail(String to, String subject, String body) {

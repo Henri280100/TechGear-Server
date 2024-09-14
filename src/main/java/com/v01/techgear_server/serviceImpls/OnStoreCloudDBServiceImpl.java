@@ -16,6 +16,7 @@ import com.v01.techgear_server.service.FirebaseService;
 public class OnStoreCloudDBServiceImpl implements FirebaseService {
     private final FirebaseDatabase firebaseDatabase;
 
+    @Autowired
     public OnStoreCloudDBServiceImpl(FirebaseApp firebaseApp) {
         this.firebaseDatabase = FirebaseDatabase.getInstance(firebaseApp);
     }

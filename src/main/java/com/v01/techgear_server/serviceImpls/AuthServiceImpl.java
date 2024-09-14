@@ -1,15 +1,13 @@
 package com.v01.techgear_server.serviceImpls;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,18 +16,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
 
-import com.mapbox.api.geocoding.v5.models.CarmenFeature;
-import com.v01.techgear_server.dto.UserAddressDTO;
 import com.v01.techgear_server.dto.UserDTO;
 import com.v01.techgear_server.dto.UserPhoneNoDTO;
 import com.v01.techgear_server.enums.Roles;
+import com.v01.techgear_server.exception.GenericException;
+import com.v01.techgear_server.model.PasswordResetToken;
 import com.v01.techgear_server.model.Role;
 import com.v01.techgear_server.model.User;
-import com.v01.techgear_server.model.UserAddress;
+import com.v01.techgear_server.repo.PasswordResetTokenRepository;
 import com.v01.techgear_server.repo.RoleRepository;
-import com.v01.techgear_server.repo.UserAddressRepository;
 import com.v01.techgear_server.repo.UserRepository;
-import com.v01.techgear_server.service.MapBoxService;
 import com.v01.techgear_server.utils.PasswordValidation;
 
 @Service
@@ -42,19 +38,19 @@ public class AuthServiceImpl implements UserDetailsManager {
     private UserRepository userRepository;
 
     @Autowired
-    private UserAddressRepository addressRepository;
+    private PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Autowired
     private UserPhoneNoServiceImpl userPhoneNumberService;
     // Service
     @Autowired
-    private MapBoxService mapBoxService;
+    private AddressServiceImpl addressService;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private EmailServiceImpl emailServiceImpl;
+    // @Autowired
+    // EmailServiceImpl emailServiceImpl;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -66,8 +62,8 @@ public class AuthServiceImpl implements UserDetailsManager {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User with username not found: " + username));
 
-        if(!user.isActive()) {
-            throw new IllegalArgumentException("Email not verified for user" + username);
+        if (!user.isActive()) {
+            throw new IllegalArgumentException("Email not verified. Please verify your email.");
         }
 
         return user;
@@ -81,42 +77,46 @@ public class AuthServiceImpl implements UserDetailsManager {
     @Override
     public void createUser(UserDetails user) {
         try {
+            
             // Map UserDetails to UserDTO and User entity
             UserDTO userDTO = modelMapper.map(user, UserDTO.class);
             User users = modelMapper.map(userDTO, User.class);
+
             // Check if the user already exists by username or email
             if (userRepository.existsByUsername(users.getUsername())) {
                 LOGGER.error("Username already exists.");
+                return;
             }
+
             // Validate user existence and password
-            if (!PasswordValidation.isValidPassword(user.getPassword())) {
+            if (!PasswordValidation.isValidPassword(users.getPassword())) {
                 throw new IllegalArgumentException("Password does not meet the security requirements");
             }
 
             if (isPasswordAvailable(user.getPassword())) {
                 LOGGER.error("Password already exists");
+                return;
             }
 
+            if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
+                throw new GenericException("Email " + userDTO.getEmail() + " already exists");
+            }
+            users.setUsername(users.getUsername());
             // Set encoded password
-            users.setPassword(passwordEncoder.encode(user.getPassword()));
+            users.setPassword(PasswordValidation.encodePassword(users.getPassword()));
+            users.setGenders(userDTO.getGenders());
 
             // Assign roles to the user
             Set<Role> roles = assignRoles(userDTO);
             users.setRoles(roles);
 
             // Handle address if present
-            handleUserAddress(userDTO, users);
+            addressService.handleUserAddress(userDTO, users);
 
             // Handle phone number if present
             handleUserPhoneNumbers(userDTO, users);
 
-            // Save user and trigger email verification
-            User saveUser = userRepository.save(users);
-
-            modelMapper.map(saveUser, UserDTO.class);
-            emailServiceImpl.sendVerificationEmail(userDTO);
-
-            LOGGER.info("User created successfully: {}", saveUser);
+            LOGGER.info("User created successfully: {}", users);
         } catch (Exception e) {
             LOGGER.error("Exception occurred while creating user: {}", e.getMessage(), e);
             // ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to
@@ -141,45 +141,6 @@ public class AuthServiceImpl implements UserDetailsManager {
             });
         }
         return roles;
-    }
-
-    private UserAddress handleUserAddress(UserDTO userDTO, User user) {
-        if (userDTO.getAddresses() == null) {
-            return null; // No address provided
-        }
-
-        // Get the address DTO from userDTO
-        UserAddressDTO addressDTO = userDTO.getAddresses();
-
-        // Check if the address already exists in the database
-        Optional<UserAddress> existingAddress = addressRepository.findByAddressDetails(addressDTO.getAddressDetails());
-
-        if (existingAddress.isPresent()) {
-            // If the address exists, return it and set it to the user
-            UserAddress address = existingAddress.get();
-            user.setAddresses(address);
-            return address;
-        }
-
-        // Otherwise, create a new address entity
-        UserAddress newAddress = modelMapper.map(addressDTO, UserAddress.class);
-
-        // Geocode the address if address details are provided
-        if (addressDTO.getAddressDetails() != null && !addressDTO.getAddressDetails().isEmpty()) {
-            CarmenFeature geocodedFeature = mapBoxService.geocodeFeature(addressDTO.getAddressDetails());
-            if (geocodedFeature != null) {
-                newAddress.setLatitude(geocodedFeature.center().latitude());
-                newAddress.setLongitude(geocodedFeature.center().longitude());
-            }
-        }
-
-        // Save the new address to the database
-        UserAddress savedAddress = addressRepository.save(newAddress);
-
-        // Set the saved address to the user
-        user.setAddresses(savedAddress);
-
-        return savedAddress;
     }
 
     private void handleUserPhoneNumbers(UserDTO userDTO, User user) {
@@ -277,12 +238,37 @@ public class AuthServiceImpl implements UserDetailsManager {
             }
 
             userRepository.updatePassword(username, passwordEncoder.encode(newPassword));
-            ResponseEntity.status(HttpStatus.OK).body("Password updated successfully");
         } catch (Exception e) {
             LOGGER.error("Exception occurred while updating password: {}", e.getMessage(), e);
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update password");
         }
 
     }
+
+    public void onPasswordResetToken(UserDTO userDTO, String token) {
+        User user = modelMapper.map(userDTO, User.class);
+        PasswordResetToken passwordResetToken = new PasswordResetToken();
+        passwordResetToken.setToken(token);
+        passwordResetToken.setUser(user);
+        passwordResetToken.setExpiredDate(LocalDateTime.now().plusHours(24)); // Token valid for 24 hours
+        passwordResetTokenRepository.save(passwordResetToken);
+    }
+
+    public UserDTO findUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User's email not found"));
+        return modelMapper.map(user, UserDTO.class);
+    }
+
+    public PasswordResetToken validatePasswordResetToken(String token) {
+        return passwordResetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
+    }
+
+    public void updateUserPassword(User user, String newPassword) {
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    // TODO: Login with a third party such as Google or Facebook
 
 }

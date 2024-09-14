@@ -1,5 +1,6 @@
 package com.v01.techgear_server.config;
 import java.time.Duration;
+
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
@@ -17,11 +18,10 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @SuppressWarnings("deprecation")
-@Configuration
 @EnableCaching
+@Configuration
 public class RedisConfig extends CachingConfigurerSupport{
    
-
     @Bean
     public RedisTemplate<String, Object> redisTemplate() {
         RedisTemplate<String, Object> template = new RedisTemplate<>();

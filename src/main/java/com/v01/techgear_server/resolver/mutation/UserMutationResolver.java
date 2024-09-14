@@ -21,13 +21,13 @@ public class UserMutationResolver {
 
     private static Logger LOGGER = LoggerFactory.getLogger(UserMutationResolver.class);
 
-    public DataFetcher<User> dataFetcherUpdateUserName() {
-        DataFetcher<User> retVal = new DataFetcher<User>() {
+    public DataFetcher<User> dataFetcherUpdateUsername() {
+        DataFetcher<User> retUsernameUpdateVal = new DataFetcher<User>() {
 
             @Override
             public User get(DataFetchingEnvironment environment) throws Exception {
                 Long id = environment.getArgument("id");
-                String newName = environment.getArgument("userName");
+                String newName = environment.getArgument("username");
 
                 User user = userRepository.findById(id)
                         .orElseThrow(() -> new RuntimeException("User not found with id " + id));
@@ -45,38 +45,18 @@ public class UserMutationResolver {
             }
 
         };
-        return retVal;
+        return retUsernameUpdateVal;
     }
 
-    public DataFetcher<User> dataFetcherUpdateUserPassword() {
-        DataFetcher<User> retVal = new DataFetcher<User>() {
-
-            @Override
-            public User get(DataFetchingEnvironment environment) throws Exception {
-                Long id = environment.getArgument("id");
-                String newPassword = environment.getArgument("password");
-
-                User user = userRepository.findById(id)
-                        .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-
-                Optional<User> existingUser = userRepository.findByPassword(newPassword);
-
-                if (existingUser.isPresent() && !existingUser.get().getId().equals(id)) {
-                    throw new RuntimeException("User password '" + newPassword + "' already exists, please try again.");
-                }
-
-                user.setPassword(newPassword);
-
-                LOGGER.info("Successfully updated user password", user.getPassword());
-
-                return userRepository.save(user);
-            }
-
-        };
-        return retVal;
-    }
-
+    
     // public DataFetcher<User> dataFetcherUpdateUserEmail() {
+    //     DataFetcher<User> retUserEmailUpdateVal = new DataFetcher<User>() {
 
+    //         @Override
+    //         public User get(DataFetchingEnvironment environment) throws Exception {
+    //             Long id = environment.getArgument("id");
+    //             String newEmail = environment.getArgument("email");
+    //         }};
+    //     return retUserEmailUpdateVal;
     // }
 }

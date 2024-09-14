@@ -1,7 +1,6 @@
 type Query {
   getAllProducts: [Product]
   getProductById(product_id: ID): [Product]
-  getUserById(userId: ID!): User
 }
 
 type Mutation {
@@ -9,11 +8,13 @@ type Mutation {
   updateProduct(product_id: ID!, input: ProductInput!): [Product]
   updateProductPrice(product_id: ID!, price: Float): [Product]
   # User mutation
-  updateUserName(userId: ID!, userName: String!): User!
-  updateUserPassword(userId: ID!, password: String!): User!
-  updateUserEmail(userId: ID!, newEmail: String!): User!
-  updateUserPhoneNo(userId: ID!, newPhoneNo: String!, newCountryCode: String!): User!
-  updateUserAddress(userId: ID!, newCountry: String, newLatitude: Float, newLongitude: Float, newAddressDetails: String): User!
+  updateUsername(userId: ID!, username: String!): User!
+  
+  updateUserEmail(userId: ID!, email: String!): User!
+
+  updateUserPhoneNo(userId: ID!, phoneNumbers: String!, countryCode: String!): User!
+  
+  updateUserAddress(userId: ID!, country: String, addressDetails: String): User!
 }
 
 input ProductInput {
@@ -39,11 +40,11 @@ type Product {
 
 type User {
   userId: ID!
-  userName: String!
+  username: String!
   password: String!
   phoneNumbers: [UserPhoneNo!]!
-  addresses: UserAddress
-  email: [Email!]!
+  addresses: [UserAddress]
+  email: String!
 }
 
 type UserPhoneNo {
@@ -81,7 +82,7 @@ type ProductSpecification {
 
 type Review {
   id: ID!
-  userName: String
+  username: String
   comments: String
   rating: Int
 }

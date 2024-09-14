@@ -11,18 +11,17 @@ import org.springframework.stereotype.Repository;
 
 import com.v01.techgear_server.model.User;
 
-
 @Repository
 @EnableJpaRepositories
 public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
 
     Optional<User> findByUsername(String username);
-    
 
     @Modifying
     @Query("SELECT u from User u WHERE u.email = :email")
     Optional<User> findByEmail(String email);
+
 
     @Modifying
     @Query("SELECT u FROM User u WHERE u.password = :password")

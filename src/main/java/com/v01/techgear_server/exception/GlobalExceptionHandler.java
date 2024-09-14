@@ -13,6 +13,35 @@ import org.springframework.web.context.request.WebRequest;
 public class GlobalExceptionHandler {
         private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+        @ExceptionHandler(UserAlreadyExistsException.class)
+        @ResponseStatus(value = HttpStatus.CONFLICT)
+        public ResponseEntity<ErrorMessage> handleUserAlreadyExistsException(UserAlreadyExistsException ex,
+                        WebRequest request) {
+                logger.error("User already exists: {}", ex.getMessage());
+
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorMessage(ex.getMessage(),
+                                HttpStatus.CONFLICT.value(), request.getDescription(false)));
+        }
+
+        @ExceptionHandler(GenericException.class)
+        @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+        public ResponseEntity<ErrorMessage> handleGenericException(GenericException ex, WebRequest request) {
+                logger.error("Generic Exception: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(new ErrorMessage(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                                request.getDescription(false)));
+        }
+
+        @ExceptionHandler(UserNotFoundException.class)
+        @ResponseStatus(value = HttpStatus.NOT_FOUND)
+        public ResponseEntity<ErrorMessage> handleUserNotFoundException(UserNotFoundException ex,
+                        WebRequest request) {
+                logger.error("User not found: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(new ErrorMessage(ex.getMessage(), HttpStatus.NOT_FOUND.value(),
+                                                request.getDescription(false)));
+        }
+
         /**
          * Handle resource not found exception.
          *

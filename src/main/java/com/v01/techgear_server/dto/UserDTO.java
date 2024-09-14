@@ -9,6 +9,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.v01.techgear_server.enums.UserGenders;
+
 import lombok.Data;
 
 @Data
@@ -17,12 +19,12 @@ public class UserDTO implements UserDetails{
     private Long id;
     private String username;
     private String password;
+    private UserGenders genders;
     private String email;
     private List<ReviewsDTO> reviews;
     private UserPhoneNoDTO phoneNumbers;
     private boolean active;
     private UserAddressDTO addresses;
-    private List<String> passwordHistory;
     private Set<RolesDTO> roles;
     private ConfirmationTokensDTO confirmationTokensDTO;
 

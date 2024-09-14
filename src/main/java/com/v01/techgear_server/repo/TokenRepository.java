@@ -8,5 +8,7 @@ import com.v01.techgear_server.model.Token;
 
 @Repository
 public interface TokenRepository extends JpaRepository<Token, String> {
-    List<Token> findByTokensId(String tokensId);
+    // List<Token> findById(String id);
+
+	// List<Token> findByTokensId(String tokensId);
 }

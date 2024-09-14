@@ -61,7 +61,7 @@ public class TokenGenerator {
             throw new IllegalArgumentException("User ID is null. The user might not have been saved properly.");
         }
 
-        tokenDTO.setTokensId(user.getId());
+        tokenDTO.setId(user.getId());
         tokenDTO.setAccessToken(createAccessToken(authentication));
 
         String refreshToken;

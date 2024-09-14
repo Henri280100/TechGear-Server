@@ -1,5 +1,7 @@
 package com.v01.techgear_server.model;
 
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -39,4 +42,12 @@ public class UserAddress {
     @OneToOne
     @JoinColumn(name = "user_id") // Ensure the column name matches your database schema
     private User users;
+
+    // Additional fields for MapBox API response
+    @Transient
+    private String type;
+
+    @Transient
+    private List<MapBoxFeature> features;
+
 }

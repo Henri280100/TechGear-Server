@@ -13,13 +13,23 @@ import com.v01.techgear_server.model.User;
 @Component
 public class JWTtoUserConvertor implements Converter<Jwt, UsernamePasswordAuthenticationToken> {
 
-    @SuppressWarnings("unchecked")
     @Override
-    @Nullable
-    public UsernamePasswordAuthenticationToken convert(@SuppressWarnings("null") Jwt source) {
+    public UsernamePasswordAuthenticationToken convert( Jwt source) {
+        if (source == null) {
+            return null; // Handle null JWT case
+        }
+
         User user = new User();
-        user.setId(Long.valueOf(source.getId()));
-        return new UsernamePasswordAuthenticationToken(user, source, Collections.EMPTY_LIST);
+        
+
+            try {
+                user.setId(Long.valueOf(source.getSubject()));
+            } catch (NumberFormatException e) {
+                // Log error or handle exception as necessary
+                throw new IllegalArgumentException("Please check again", e);
+            }
+
+        return new UsernamePasswordAuthenticationToken(user, source, Collections.emptyList());
     }
 
 }

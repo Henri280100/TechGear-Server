@@ -1,13 +1,14 @@
 package com.v01.techgear_server.service;
 
 
-import com.v01.techgear_server.dto.UserDTO;
+import com.v01.techgear_server.model.User;
 
 public interface EmailService {
-    void sendVerificationEmail(UserDTO user);
+    void sendVerificationEmail(User user);
 
     String generateEmailBody(String verificationUrl, String username);
-    // void sendVerificationEmail(EmailDTO email);
+    
+    void sendResetTokenEmail(String email, String resetToken);
 
     String verifyEmail(String urlToken);
 

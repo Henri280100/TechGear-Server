@@ -1,6 +1,5 @@
 package com.v01.techgear_server.model;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -11,12 +10,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.v01.techgear_server.enums.AuthProvider;
+import com.v01.techgear_server.enums.UserGenders;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -52,24 +53,32 @@ public class User implements UserDetails {
   @Column(name = "password", nullable = false)
   private String password;
 
+  @Enumerated(EnumType.STRING)
+  private UserGenders genders;
+
+  @OneToOne(cascade = CascadeType.ALL)
+  @JoinColumn(name="image_id")
+  private Image userAvatar;
+
   @OneToOne(mappedBy = "users", cascade = CascadeType.ALL, orphanRemoval = true)
   // @JoinColumn(name = "phone_id")
   private UserPhoneNo phoneNumbers;
 
-  @Column(name="email", unique = true)
+  @Column(name = "email", unique = true)
   private String email;
 
-
-  @OneToOne(mappedBy="users", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToOne(mappedBy = "users", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
   // @JoinColumn(name = "address_id")
   private UserAddress addresses;
+
+  @Enumerated(EnumType.STRING)
+  private AuthProvider provider; // for storing data in gg or fb
 
   @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
   @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
   private Set<Role> roles = new HashSet<>();
 
   @OneToOne(mappedBy = "users", cascade = CascadeType.ALL)
-  @JsonIgnore
   private ConfirmationTokens confirmationTokens;
 
   public User(String username, String password,
@@ -87,9 +96,6 @@ public class User implements UserDetails {
 
   @Column(name = "active")
   private boolean active;
-
-  @ElementCollection
-  private List<String> passwordHistory = new ArrayList<>();
 
   @OneToMany(mappedBy = "user")
   private List<Review> reviews;
