@@ -29,8 +29,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-/src/main/resources/application.properties
-/src/main/resources/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-a5ee079a6f.json
+
 /src/.env
 ### VS Code ###
 .vscode/
