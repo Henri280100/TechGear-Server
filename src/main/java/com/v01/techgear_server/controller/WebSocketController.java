@@ -6,10 +6,10 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class WebSocketController {
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    // @Autowired
+    // private SimpMessagingTemplate messagingTemplate;
 
-    public void sendProgressUpdate(String taskId, String message) {
-        messagingTemplate.convertAndSend("/topic/progress" + taskId, message);
-    }
+    // public void sendProgressUpdate(String taskId, String message) {
+    //     messagingTemplate.convertAndSend("/topic/progress" + taskId, message);
+    // }
 }
