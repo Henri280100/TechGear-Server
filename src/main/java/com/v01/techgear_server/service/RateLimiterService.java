@@ -1,8 +1,10 @@
 package com.v01.techgear_server.service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -17,7 +19,7 @@ public class RateLimiterService {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
     private static final int MAX_REQUESTS = 100;
     private static final long TIME_WINDOW_MILLIS = 60000;
-
+    
     private static final String RATE_LIMIT_SCRIPT = "local key = KEYS[1] " +
             "local maxRequests = tonumber(ARGV[1]) " +
             "local timeWindowMillis = tonumber(ARGV[2]) " +
@@ -59,5 +61,26 @@ public class RateLimiterService {
                 String.valueOf(TIME_WINDOW_MILLIS));
 
         return isAllowed == null || !isAllowed;
+    }
+
+     /**
+     * Tries to consume a token for a specific user within a rate limit window.
+     * @param key The Redis key (e.g., userId or IP address)
+     * @param rateLimit The maximum allowed requests within the time window
+     * @param duration The time window duration in seconds
+     * @return true if the request is allowed, false if rate limit exceeded
+     */
+    public boolean tryConsume(String key, int rateLimit, Duration duration) {
+        String redisKey = "rate_limiter:" + key;
+
+        // Increment the user's counter and set expiration if the key does not exist
+        Long currentCount = redisTemplate.opsForValue().increment(redisKey, 1);
+        if (currentCount == 1) {
+            // Key did not exist before, set expiration time
+            redisTemplate.expire(redisKey, duration.toSeconds(), TimeUnit.SECONDS);
+        }
+
+        // Check if the current count exceeds the rate limit
+        return currentCount <= rateLimit;
     }
 }

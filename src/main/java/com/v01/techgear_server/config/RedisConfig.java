@@ -1,4 +1,5 @@
 package com.v01.techgear_server.config;
+
 import java.time.Duration;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -20,7 +21,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @SuppressWarnings("deprecation")
 @EnableCaching
 @Configuration
-public class RedisConfig extends CachingConfigurerSupport{
+public class RedisConfig extends CachingConfigurerSupport {
+
    
     @Bean
     public RedisTemplate<String, Object> redisTemplate() {
@@ -47,7 +49,7 @@ public class RedisConfig extends CachingConfigurerSupport{
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(60));  // Set TTL of 1 hour
+                .entryTtl(Duration.ofMinutes(60)); // Set TTL of 1 hour
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(redisCacheConfiguration)
                 .build();

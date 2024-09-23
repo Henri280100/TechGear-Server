@@ -77,7 +77,7 @@ public class ReviewServiceImpl implements ReviewService {
             if (product.getReviews() == null) {
                 product.setReviews(new ArrayList<>());
             }
-            Image image = fileStorageService.storeImage(reviewImage);
+            Image image = fileStorageService.uploadSingleImage(reviewImage);
             // Map ReviewsDTO to Review entity
             Review review = modelMapper.map(reviewsDTO, Review.class);
 

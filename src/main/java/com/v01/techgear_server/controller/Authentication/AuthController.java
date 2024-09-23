@@ -2,6 +2,7 @@ package com.v01.techgear_server.controller.Authentication;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -10,13 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
@@ -39,9 +40,10 @@ import com.v01.techgear_server.model.User;
 import com.v01.techgear_server.repo.UserRepository;
 import com.v01.techgear_server.security.TokenGenerator;
 import com.v01.techgear_server.service.EmailService;
+
+import com.v01.techgear_server.service.TokenService;
 import com.v01.techgear_server.service.UserService;
 import com.v01.techgear_server.serviceImpls.AuthServiceImpl;
-import com.v01.techgear_server.serviceImpls.TokenServiceImpl;
 import com.v01.techgear_server.utils.PasswordValidation;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -76,34 +78,32 @@ public class AuthController {
     JwtAuthenticationProvider refreshTokenAuthProvider;
 
     @Autowired
-    TokenServiceImpl customTokenService;
+    private TokenService customTokenService;
 
     @Autowired
     ModelMapper modelMapper;
 
     private final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
+    @Async
     @PostMapping("/register")
     public ResponseEntity<?> userRegistration(@RequestPart("userDTO") String userDTOJson,
-            @RequestPart("userAvatar") MultipartFile userAvatar) {
+            @RequestPart(value = "userAvatar", required = false) MultipartFile userAvatar) {
         try {
+            User user = new ObjectMapper().readValue(userDTOJson, User.class);
 
-            User user = new ObjectMapper().readValue(userDTOJson.format(userDTOJson, getClass()), User.class);
-
-            // Encode password
             user.setPassword(PasswordValidation.encodePassword(user.getPassword()));
 
             userRepository.save(user);
 
             if (userAvatar != null && !userAvatar.isEmpty()) {
+
                 userService.userUploadAvatarHandler(user.getId(), userAvatar);
             }
 
             userDetailsManager.createUser(user);
 
             emailService.sendVerificationEmail(user);
-
-            LOGGER.info("Successfully register: {}", user);
 
             return ResponseEntity.status(HttpStatus.CREATED).body("Registered successfully");
 

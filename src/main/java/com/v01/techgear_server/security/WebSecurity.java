@@ -11,15 +11,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
@@ -51,7 +46,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Configuration
-@EnableMethodSecurity(prePostEnabled = true)
 @Slf4j
 @EnableWebSecurity
 public class WebSecurity {
@@ -85,22 +79,30 @@ public class WebSecurity {
                 http
                                 .authorizeHttpRequests((authorize) -> {
                                         try {
-                                                authorize
-                                                                .requestMatchers("/api/v01/auth/register")
+                                                authorize.requestMatchers("/api/v01/upload/**").permitAll()
+                                                                .requestMatchers("/api/v01/auth/register",
+                                                                                "/api/v01/auth/login",
+                                                                                "/api/v01/auth/logout")
+                                                                .permitAll()
+                                                                .requestMatchers("/api/v01/auth/verify-email",
+                                                                                "/api/v01/auth/resend-verification-email")
                                                                 .permitAll()
                                                                 .requestMatchers("/api/v01/auth/**")
                                                                 .hasAnyAuthority("USER", "ADMIN")
                                                                 .requestMatchers("/api/v01/admin/auth/**")
-                                                                .hasAnyAuthority("ADMIN")
+                                                                .hasAuthority("ADMIN")
                                                                 .requestMatchers("/api/v01/admin/**")
-                                                                .hasAnyAuthority("ADMIN")
+                                                                .hasAuthority("ADMIN")
                                                                 .anyRequest().authenticated().and()
-                                                                .formLogin(login -> login.loginPage("/api/v01/auth/login")
+                                                                .formLogin(login -> login
+                                                                                .loginPage("/api/v01/auth/login")
                                                                                 .defaultSuccessUrl("/", true)
                                                                                 .permitAll())
                                                                 .logout(logout -> logout
-                                                                                .logoutUrl("/api/v01/auth/logout") // URL to trigger
-                                                                                                      // logout
+                                                                                .logoutUrl("/api/v01/auth/logout") // URL
+                                                                                                                   // to
+                                                                                                                   // trigger
+                                                                                // logout
                                                                                 .logoutSuccessHandler((request,
                                                                                                 response,
                                                                                                 authentication) -> {
@@ -218,5 +220,4 @@ public class WebSecurity {
                 return provider;
         }
 
-       
 }

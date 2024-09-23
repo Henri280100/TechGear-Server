@@ -57,7 +57,7 @@ public class ProductServiceImpl implements ProductService {
             validateProductDTO(productDTO);
 
             // Store the image and get the Image entity
-            Image imageEntity = fileStorageService.storeImage(image);
+            Image imageEntity = fileStorageService.uploadSingleImage(image);
 
             // Map DTO to entity
             Product product = modelMapper.map(productDTO, Product.class);

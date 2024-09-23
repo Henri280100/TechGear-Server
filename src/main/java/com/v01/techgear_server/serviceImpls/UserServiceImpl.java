@@ -1,16 +1,21 @@
 package com.v01.techgear_server.serviceImpls;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.v01.techgear_server.enums.Roles;
 import com.v01.techgear_server.exception.BadRequestException;
 import com.v01.techgear_server.exception.UserNotFoundException;
 import com.v01.techgear_server.model.Image;
+import com.v01.techgear_server.model.Role;
 import com.v01.techgear_server.model.User;
 import com.v01.techgear_server.model.UserAddress;
 import com.v01.techgear_server.model.UserPhoneNo;
@@ -90,8 +95,43 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(Long userId) {
         // Business logic: Find user by ID and throw custom exception if not found
+
         return userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User with ID " + userId + " not found"));
+    }
+
+    @Override
+    public User deleteUserById(Long userId, User currentUser) {
+        isUserAdmin(currentUser.getId(), currentUser.getRoles());
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id " + userId));
+
+        userRepository.deleteById(userId);
+        return user;
+    }
+
+    @Override
+    public User deleteUsername(Long userId, String username, User currentUser) {
+        isUserAdmin(currentUser.getId(), currentUser.getRoles());
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id" + userId));
+        if (!user.getUsername().equals(username)) {
+            throw new BadRequestException("Username does not match the user to be deleted");
+        }
+        userRepository.deleteByUsername(username);
+        return user;
+    }
+
+    @Override
+    public List<User> getAllUsersSorted(String sortBy, String direction, User currentUser) {
+        isUserAdmin(currentUser.getId(), currentUser.getRoles());
+        // Create a Sort object based on the provided field and direction
+        Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        return userRepository.findAll(sort);
     }
 
     @Override
@@ -100,7 +140,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
         try {
 
-            Image imageEntity = fileStorageService.storeImage(userAvatar);
+            Image imageEntity = fileStorageService.uploadSingleImage(userAvatar);
             user.setUserAvatar(imageEntity);
             return userRepository.save(user);
         } catch (BadRequestException e) {
@@ -122,7 +162,7 @@ public class UserServiceImpl implements UserService {
 
         try {
             // Store the image using the fileStorageService
-            Image imageEntity = fileStorageService.storeImage(userAvatar);
+            Image imageEntity = fileStorageService.uploadSingleImage(userAvatar);
 
             // Update the user's avatar
             user.setUserAvatar(imageEntity);
@@ -168,4 +208,17 @@ public class UserServiceImpl implements UserService {
                         || contentType.equals("image/jpg"));
     }
 
+    private User isUserAdmin(Long userId, Set<Role> roles) {
+        // Check if any of the user's roles is ADMIN
+        boolean isAdmin = roles.stream()
+                .anyMatch(role -> role.getRoleType() == Roles.ADMIN);
+
+        if (!isAdmin) {
+            // Throw an exception or handle unauthorized access
+            throw new SecurityException("Access denied. You must be an admin to perform this action.");
+        }
+
+        // Retrieve the user object based on userId
+        return getUserById(userId);
+    }
 }

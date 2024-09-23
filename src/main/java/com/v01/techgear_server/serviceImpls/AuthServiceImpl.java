@@ -83,8 +83,8 @@ public class AuthServiceImpl implements UserDetailsManager {
             User users = modelMapper.map(userDTO, User.class);
 
             // Check if the user already exists by username or email
-            if (userRepository.existsByUsername(users.getUsername())) {
-                LOGGER.error("Username already exists.");
+            if(isUsernameAvailable(users.getUsername())) {
+                LOGGER.error("Username already exists");
                 return;
             }
 
@@ -150,6 +150,11 @@ public class AuthServiceImpl implements UserDetailsManager {
             // UserPhoneNo
             userPhoneNumberService.saveUserPhoneNoDTO(userDTO, phoneNumbers);
         }
+    }
+
+    private boolean isUsernameAvailable(String username) {
+        // Check if the username already exists in the database
+        return userRepository.findByUsername(username).isPresent();
     }
 
     private boolean isPasswordAvailable(String newPassword) {
