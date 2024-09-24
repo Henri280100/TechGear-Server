@@ -1,5 +1,5 @@
 # Start with a base image that has Java 17 installed.
-FROM eclipse-temurin:17-jdk-jammy
+FROM eclipse-temurin:21-jdk-jammy
 
 # Set a default directory inside the container to work from.
 WORKDIR /app
@@ -10,8 +10,11 @@ COPY .mvn/ .mvn
 # Copy only essential Maven files required to download dependencies.
 COPY mvnw pom.xml./
 
+# Build the project and create the executable JAR
+RUN mvn clean install
+
 # Download all the required project dependencies.
-RUN ./mvnw dependency:resolve
+# RUN ./mvnw dependency:resolve
 
 # Copy our actual project files (code, resources, etc.) into the container.
 COPY src./ src
