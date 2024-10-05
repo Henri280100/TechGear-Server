@@ -9,7 +9,7 @@
 ################################################################################
 
 # Create a stage for resolving and downloading dependencies.
-FROM eclipse-temurin:21-jdk-jammy as deps
+FROM eclipse-temurin:21-jdk-jammy AS deps
 
 WORKDIR /build
 
@@ -31,7 +31,7 @@ RUN --mount=type=bind,source=pom.xml,target=pom.xml \
 # jar and instead relies on an application server like Apache Tomcat, you'll need to update this
 # stage with the correct filename of your package and update the base image of the "final" stage
 # use the relevant app server, e.g., using tomcat (https://hub.docker.com/_/tomcat/) as a base image.
-FROM deps as package
+FROM deps AS package
 
 WORKDIR /build
 
@@ -48,7 +48,7 @@ RUN --mount=type=bind,source=pom.xml,target=pom.xml \
 # the packaged application into separate layers that can be copied into the final stage.
 # See Spring's docs for reference:
 # https://docs.spring.io/spring-boot/docs/current/reference/html/container-images.html
-FROM package as extract
+FROM package AS extract
 
 WORKDIR /build
 
@@ -66,19 +66,31 @@ RUN java -Djarmode=layertools -jar target/app.jar extract --destination target/e
 # most recent version of that tag when you build your Dockerfile.
 # If reproducability is important, consider using a specific digest SHA, like
 # eclipse-temurin@sha256:99cede493dfd88720b610eb8077c8688d3cca50003d76d1d539b0efc8cca72b4.
-FROM eclipse-temurin:21-jre-jammy AS final
+FROM maven:3.9.9-eclipse-temurin-21-jammy AS build
+WORKDIR /app
+COPY pom.xml /app/
+COPY src /app/src/
 
+# Run the Maven build to create the jar file
+RUN mvn -f /app/pom.xml clean package -DskipTests
+
+CMD ["mvn spring-boot:run"]
+
+FROM eclipse-temurin:21-jre-jammy AS final
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
+
+
 ARG UID=10001
 RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid "${UID}" \
-    appuser
+--disabled-password \
+--gecos "" \
+--home "/nonexistent" \
+--shell "/sbin/nologin" \
+--no-create-home \
+--uid "${UID}" \
+appuser
+
 USER appuser
 
 # Copy the executable from the "package" stage.
@@ -86,7 +98,20 @@ COPY --from=extract build/target/extracted/dependencies/ ./
 COPY --from=extract build/target/extracted/spring-boot-loader/ ./
 COPY --from=extract build/target/extracted/snapshot-dependencies/ ./
 COPY --from=extract build/target/extracted/application/ ./
+# Copy the app files including the Firebase credentials
+COPY src/main/resources/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-a5ee079a6f.json /app/resources/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-a5ee079a6f.json
+
+COPY src/main/resources /app/src/main/resources
+
+# Make sure the directory exists
+RUN mkdir -p /app/resources/firebase-keys
+# Set the environment variable for Firebase credentials
+ENV GOOGLE_APPLICATION_CREDENTIALS="/app/resources/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-a5ee079a6f.json"
+
+
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8082
 
-ENTRYPOINT [ "java", "org.springframework.boot.loader.launch.JarLauncher" ]
+ENTRYPOINT [ "java", "-jar", "app.jar", "--spring.profiles.active=dev", "org.springframework.boot.loader.launch.JarLauncher" ]

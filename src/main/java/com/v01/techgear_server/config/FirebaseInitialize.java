@@ -1,10 +1,10 @@
 package com.v01.techgear_server.config;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
@@ -15,12 +15,15 @@ public class FirebaseInitialize {
 
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
-        FileInputStream serviceAccount = new FileInputStream(
-                "src/main/resources/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-a5ee079a6f.json");
+        ClassPathResource serviceAccount = new ClassPathResource(
+                "firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-a5ee079a6f.json");
+
+        // FileInputStream serviceAccount = new FileInputStream(
+        // resource.getInputStream());
 
         @SuppressWarnings("deprecation")
         FirebaseOptions options = new FirebaseOptions.Builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                .setCredentials(GoogleCredentials.fromStream(serviceAccount.getInputStream()))
                 .setDatabaseUrl("https://techgearstorage-default-rtdb.firebaseio.com/")
                 .build();
 
