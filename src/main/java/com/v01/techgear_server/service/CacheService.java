@@ -1,26 +1,28 @@
 package com.v01.techgear_server.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@Service
-public class CacheService {
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+public interface CacheService {
+    void put(String key, Object value);
 
-    private static final long CACHE_EXPIRATION = 60; // cache expiration time in seconds
+    void put(String key, Object value, long expireTime, TimeUnit timeUnit);
 
-    public void cacheData(String key, Object data) {
-        redisTemplate.opsForValue().set(key, data, CACHE_EXPIRATION, TimeUnit.SECONDS);
-    }
+    Object get(String key);
 
-    public Object getCacheData(String key) {
-        return redisTemplate.opsForValue().get(key);
-    }
+    void delete(String key);
 
-    public void evictCache(String key) {
-        redisTemplate.delete(key);
-    }
+    void expire(String key, long expireTime, TimeUnit timeUnit);
+
+    // New hash operations
+
+    void hashPut(String key, String hashKey, Object value);
+
+    Object hashGet(String key, String hashKey);
+
+    void hashDelete(String key, String hashKey);
+
+    Set<Object> hashKeys(String key);
+
+    Long hashSize(String key);
 }

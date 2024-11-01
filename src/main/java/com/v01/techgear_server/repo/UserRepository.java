@@ -16,6 +16,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findAllByOrderByUsernameAsc();
     boolean existsByUsername(String username);
 
+    @Query("SELECT u from User u WHERE u.username = :username")
     Optional<User> findByUsername(String username);
 
     @Query("SELECT u from User u WHERE u.email = :email")

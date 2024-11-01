@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.v01.techgear_server.model.ConfirmationTokens;
+import com.v01.techgear_server.model.Token;
 import com.v01.techgear_server.model.User;
 import com.v01.techgear_server.repo.ConfirmationTokensRepository;
 import com.v01.techgear_server.repo.UserRepository;
@@ -43,6 +44,7 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     private ConfirmationTokensRepository confirmationTokensRepository;
 
+
     @Autowired
     private JavaMailSender mailSender;
 
@@ -71,7 +73,7 @@ public class EmailServiceImpl implements EmailService {
             String encryptedBody = EncryptionUtil.encrypt(emailBody);
 
             CompletableFuture<Void> firebaseStoreFuture = onStoreCloud.storeData("emails",
-                    "email-verification-" + user.getId(), encryptedBody);
+                    "email-verification-" + user.getUser_id(), encryptedBody);
 
             sendEmail(user.getEmail(), "Verify your email", emailBody);
 
@@ -136,10 +138,14 @@ public class EmailServiceImpl implements EmailService {
             Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
                     user, user.getPassword(), user.getAuthorities());
 
-            tokenGenerator.createToken(authentication);
+            Token userToken = tokenGenerator.createToken(authentication);
+            
+
+            String accessToken = userToken.getAccessToken();
 
             LOGGER.info("Email confirmed for user: {}", user.getUsername());
-            return "Email confirmed successfully!, please return to the login page";
+
+            return accessToken;
         } catch (Exception e) {
             LOGGER.error("Cannot verify email please check again", e);
             return "ERROR: cannot verify email";

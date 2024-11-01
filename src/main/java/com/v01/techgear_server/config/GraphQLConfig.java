@@ -2,12 +2,15 @@ package com.v01.techgear_server.config;
 
 import java.io.InputStream;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.v01.techgear_server.controller.GraphQLExecutor;
 import com.v01.techgear_server.resolver.mutation.ProductMutationResolver;
 import com.v01.techgear_server.resolver.query.ProductQueryResolver;
 
@@ -73,4 +76,10 @@ public class GraphQLConfig {
         new LongScalar();
         return wiringBuilder -> wiringBuilder.scalar(LongScalar.LONG).build();
     }
+
+    @Bean
+    public GraphQLExecutor graphQLExecutor(GraphQL graphQL, ObjectMapper objectMapper) {
+        return new GraphQLExecutor(this, objectMapper, LoggerFactory.getLogger(GraphQLExecutor.class));
+    }
+
 }

@@ -7,14 +7,7 @@ type Mutation {
   # Product mutation
   updateProduct(product_id: ID!, input: ProductInput!): [Product]
   updateProductPrice(product_id: ID!, price: Float): [Product]
-  # User mutation
-  updateUsername(userId: ID!, username: String!): User!
   
-  updateUserEmail(userId: ID!, email: String!): User!
-
-  updateUserPhoneNo(userId: ID!, phoneNumbers: String!, countryCode: String!): User!
-  
-  updateUserAddress(userId: ID!, country: String, addressDetails: String): User!
 }
 
 input ProductInput {
@@ -36,42 +29,6 @@ type Product {
   category: Category
   reviews: [Review]
   productDetail: ProductDetail
-}
-
-type User {
-  userId: ID!
-  username: String!
-  password: String!
-  phoneNumbers: [UserPhoneNo!]!
-  addresses: [UserAddress]
-  email: String!
-}
-
-type UserPhoneNo {
-  id: ID!
-  phoneNo: String!
-  countryCode: String!
-}
-
-type UserAddress {
-  addressId: ID!
-  country: String!
-  latitude: Float
-  longitude: Float
-  addressDetails: String
-}
-
-type Email {
-  emailId: ID!
-  emailAddress: String!
-  verificationToken: String!
-  verified: Boolean!
-  sentAt: String
-  verifiedAt: String
-  recipient: String
-  msgBody: String
-  subject: String
-  attachment: String
 }
 
 type ProductSpecification {

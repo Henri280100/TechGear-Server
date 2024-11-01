@@ -13,11 +13,42 @@ import org.springframework.web.context.request.WebRequest;
 public class GlobalExceptionHandler {
         private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+        // @ExceptionHandler(GeocodeException.class)
+        // @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+        // public ResponseEntity<ErrorMessage> handleGeocodeException(GeocodeException
+        // ex,
+        // WebRequest request) {
+        // logger.error("Error while uploading file: {}", ex.getMessage());
+        // return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        // .body(new ErrorMessage(ex.getMessage(),
+        // HttpStatus.INTERNAL_SERVER_ERROR.value(),
+        // request.getDescription(false)));
+        // }
+
+        @ExceptionHandler(UserRolesNotFoundException.class)
+        @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+        public ResponseEntity<ErrorMessage> handleUserRolesNotFoundException(UserRolesNotFoundException ex,
+                        WebRequest request) {
+                logger.error("Error while uploading file: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorMessage(ex.getMessage(),
+                                HttpStatus.INTERNAL_SERVER_ERROR.value(), request.getDescription(false)));
+        }
+
         @ExceptionHandler(FileUploadingException.class)
         @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
         public ResponseEntity<ErrorMessage> handleFileUploadingException(FileUploadingException ex,
                         WebRequest request) {
                 logger.error("Error while uploading file: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(new ErrorMessage(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                                request.getDescription(false)));
+        }
+
+        @ExceptionHandler(TokenNotFoundException.class)
+        @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+        public ResponseEntity<ErrorMessage> handleTokenNotFoundException(TokenNotFoundException ex,
+                        WebRequest request) {
+                logger.error("Invalid token: {}", ex.getMessage());
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .body(new ErrorMessage(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
                                                 request.getDescription(false)));

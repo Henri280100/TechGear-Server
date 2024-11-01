@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,8 +19,6 @@ import com.v01.techgear_server.exception.UserNotFoundException;
 import com.v01.techgear_server.model.Image;
 import com.v01.techgear_server.model.Role;
 import com.v01.techgear_server.model.User;
-import com.v01.techgear_server.model.UserAddress;
-import com.v01.techgear_server.model.UserPhoneNo;
 import com.v01.techgear_server.repo.UserRepository;
 import com.v01.techgear_server.service.FileStorageService;
 import com.v01.techgear_server.service.UserService;
@@ -31,115 +31,98 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private FileStorageService fileStorageService;
 
+    @Autowired
+    private UserDetailsManager userDetailsManager;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
     public User updateUsername(Long userId, String username) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found" + username));
-
+                .orElseThrow(() -> new UserNotFoundException("User  not found with username: " + username));
         user.setUsername(username);
-        return userRepository.save(user);
+        
+        return user;
+
     }
 
     @Override
     public User updateUserEmail(Long userId, String email) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
-
+                .orElseThrow(() -> new UserNotFoundException("User  not found with email: " + email));
         user.setEmail(email);
-        return userRepository.save(user);
-    }
+        
+        return user;
 
-    @Override
-    public User updateUserPhoneNo(Long userId, String countryCode, String phoneNo) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-
-        UserPhoneNo phoneNumbers = user.getPhoneNumbers();
-
-        if (phoneNumbers == null) {
-            // If no phone numbers exist, create a new UserPhoneNo entity
-            phoneNumbers = new UserPhoneNo();
-            phoneNumbers.setUsers(user);
-        }
-
-        phoneNumbers.setPhoneNo(phoneNo);
-        phoneNumbers.setCountryCode(countryCode);
-
-        // Set the phone numbers to the user and save
-        user.setPhoneNumbers(phoneNumbers);
-
-        return userRepository.save(user);
-    }
-
-    @Override
-    public User updateUserAddress(Long userId, String country, String addressDetails) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
-
-        UserAddress userAddress = user.getAddresses();
-
-        if (userAddress == null) {
-            userAddress = new UserAddress();
-            userAddress.setUsers(user);
-        }
-
-        userAddress.setCountry(country);
-        userAddress.setAddressDetails(addressDetails);
-
-        user.setAddresses(userAddress);
-
-        return userRepository.save(user);
     }
 
     @Override
     public User getUserById(Long userId) {
-        // Business logic: Find user by ID and throw custom exception if not found
-
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User with ID " + userId + " not found"));
+        try {
+            return userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("User with ID " + userId + " not found"));
+        } catch (UserNotFoundException e) {
+            LOGGER.error("Error retrieving user with ID {}: {}", userId, e.getMessage());
+            throw e;
+        }
     }
 
     @Override
     public User deleteUserById(Long userId, User currentUser) {
-        isUserAdmin(currentUser.getId(), currentUser.getRoles());
-
+        isUserAdmin(currentUser.getUser_id(), currentUser.getRoles());
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id " + userId));
-
+                .orElseThrow(() -> new UserNotFoundException("User  not found with id " + userId));
         userRepository.deleteById(userId);
+        
         return user;
+
     }
 
     @Override
     public User deleteUsername(Long userId, String username, User currentUser) {
-        isUserAdmin(currentUser.getId(), currentUser.getRoles());
+        isUserAdmin(currentUser.getUser_id(), currentUser.getRoles());
+        // Use UserDetailsManager to load the user
+        UserDetails userDetails = userDetailsManager.loadUserByUsername(username);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id" + userId));
-        if (!user.getUsername().equals(username)) {
-            throw new BadRequestException("Username does not match the user to be deleted");
+        // Check if the provided userId matches the loaded user
+        if (!userDetails.getUsername().equals(username) || !userId.equals(userRepository.findByUsername(username).get().getUser_id())) {
+            throw new BadRequestException("Username or User ID does not match the user to be deleted");
         }
-        userRepository.deleteByUsername(username);
-        return user;
+
+        // Delete the user using UserDetailsManager
+        userDetailsManager.deleteUser(username); 
+
+        // You might need to fetch and return the User entity from the repository 
+        // if you need additional information from the entity 
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found with username " + username));
+
     }
 
     @Override
     public List<User> getAllUsersSorted(String sortBy, String direction, User currentUser) {
-        isUserAdmin(currentUser.getId(), currentUser.getRoles());
+        isUserAdmin(currentUser.getUser_id(), currentUser.getRoles());
         // Create a Sort object based on the provided field and direction
         Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
+        List<User> users = userRepository.findAll(sort);
+        
+        return users;
+    }
 
-        return userRepository.findAll(sort);
+    
+
+    @Override
+    public List<User> getAllUsersNoSorted(User currentUser) {
+        isUserAdmin(currentUser.getUser_id(), currentUser.getRoles());
+        List<User> users = userRepository.findAll();
+        return users;
     }
 
     @Override
-    public User userUploadAvatarHandler(Long userId, MultipartFile userAvatar) {
+    public User userUploadAvatarHandler(User user, MultipartFile userAvatar) {
         validateAvatarFile(userAvatar);
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
         try {
-
             Image imageEntity = fileStorageService.uploadSingleImage(userAvatar);
             user.setUserAvatar(imageEntity);
             return userRepository.save(user);
@@ -153,12 +136,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User userUpdateAvatarHandler(Long userId, MultipartFile userAvatar) {
+    public User userUpdateAvatarHandler(User user, MultipartFile userAvatar) {
         // Validate the userAvatar file
         validateAvatarFile(userAvatar);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User with ID " + userId + " not found"));
+        // User user = userRepository.findById(user.getUser_id())
+        // .orElseThrow(() -> new UserNotFoundException("User with ID " +
+        // user.getUser_id() + " not found"));
 
         try {
             // Store the image using the fileStorageService
@@ -211,7 +195,7 @@ public class UserServiceImpl implements UserService {
     private User isUserAdmin(Long userId, Set<Role> roles) {
         // Check if any of the user's roles is ADMIN
         boolean isAdmin = roles.stream()
-                .anyMatch(role -> role.getRoleType() == Roles.ADMIN);
+                .anyMatch(role -> role.getRoleType() == Roles.ROLE_ADMIN);
 
         if (!isAdmin) {
             // Throw an exception or handle unauthorized access

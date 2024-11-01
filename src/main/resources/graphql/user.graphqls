@@ -1,4 +1,0 @@
-
-extend type Query {
-  getUserName(userId: ID!, username: String): User
-}

@@ -11,4 +11,6 @@ import com.v01.techgear_server.model.UserAddress;
 @Repository
 public interface UserAddressRepository extends JpaRepository<UserAddress, Long> {
     Optional<UserAddress> findByAddressDetails(String addressDetails);
+    
+
 }

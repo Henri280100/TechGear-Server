@@ -67,7 +67,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("review not found with id " + id));
 
         // Find the existing User
-        User user = userRepository.findById(reviewsDTO.getUser().getId())
+        User user = userRepository.findById(reviewsDTO.getUser().getUser_id())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found" + id));
 
         try {

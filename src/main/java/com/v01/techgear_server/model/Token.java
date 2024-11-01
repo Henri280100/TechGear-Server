@@ -1,7 +1,13 @@
 package com.v01.techgear_server.model;
 
+import java.time.Instant;
+
+import com.v01.techgear_server.enums.TokenTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,11 +28,20 @@ import lombok.Setter;
 public class Token {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private String id;
+    private Long tokenId;
 
-    @Column(name="accessToken")
+    @Column(name = "user_id")
+    private Long user_id;
+
+    @Enumerated(EnumType.STRING)
+    private TokenTypes tokenTypes;
+
+    @Column(name="accessToken", length = 2088)
     private String accessToken;
-    @Column(name="refreshToken")
+    @Column(name="refreshToken", length = 2088)
     private String refreshToken;
     private boolean revoked;
+
+    private Instant createdAt;
+    private Instant expiresAt;
 }

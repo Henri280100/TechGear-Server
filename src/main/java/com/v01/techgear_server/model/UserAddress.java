@@ -1,22 +1,25 @@
 package com.v01.techgear_server.model;
 
-import java.util.List;
+import java.time.*;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 
 @Data
 @Entity
@@ -27,27 +30,36 @@ import lombok.Setter;
 @Table(name = "user_address")
 public class UserAddress {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long addressId;
 
     @Column(nullable = false)
     private String country;
 
-    private Double latitude;
-    private Double longitude;
-
-    @Column(name = "address_details")
+    @Column(name = "address_details", columnDefinition = "TEXT")
     private String addressDetails;
 
-    @OneToOne
-    @JoinColumn(name = "user_id") // Ensure the column name matches your database schema
-    private User users;
+    @OneToOne(mappedBy = "addresses", cascade = CascadeType.ALL)
+    @JsonBackReference
+    private User user;
+    
+    @Column(name = "created_at")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime createdAt;
 
-    // Additional fields for MapBox API response
-    @Transient
-    private String type;
+    @Column(name = "updated_at")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime updatedAt;
 
-    @Transient
-    private List<MapBoxFeature> features;
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
 }

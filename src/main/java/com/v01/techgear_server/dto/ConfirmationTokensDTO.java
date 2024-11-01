@@ -1,6 +1,6 @@
 package com.v01.techgear_server.dto;
 
-import org.threeten.bp.LocalDateTime;
+import java.time.LocalDateTime;
 
 import lombok.Data;
 

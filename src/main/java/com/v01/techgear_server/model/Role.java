@@ -1,13 +1,19 @@
 package com.v01.techgear_server.model;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.v01.techgear_server.enums.Roles;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -21,11 +27,9 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotNull(message = "There is no role in db, please check again")
     @Enumerated(EnumType.STRING)
-    @Column(length=20)
     private Roles roleType;
 
-    @ManyToMany(mappedBy = "roles")
-    private Set<User> users = new HashSet<>();
+    // @ManyToMany(mappedBy = "roles")
+    // private Set<User> users = new HashSet<>();
 }

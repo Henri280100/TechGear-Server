@@ -7,19 +7,23 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class RateLimiterService {
     @Autowired
     private StringRedisTemplate redisTemplate;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
     private static final int MAX_REQUESTS = 100;
     private static final long TIME_WINDOW_MILLIS = 60000;
-    
+
     private static final String RATE_LIMIT_SCRIPT = "local key = KEYS[1] " +
             "local maxRequests = tonumber(ARGV[1]) " +
             "local timeWindowMillis = tonumber(ARGV[2]) " +
@@ -31,43 +35,68 @@ public class RateLimiterService {
 
     // Check if email has already been sent within a certain time window
     public boolean hasEmailBeenSent(String email, long timeWindowMillis) {
-        String key = "emailSent:" + email;
-        String lastSentTimeStr = redisTemplate.opsForValue().get(key);
+        try {
+            String key = "emailSent:" + email;
+            String lastSentTimeStr = redisTemplate.opsForValue().get(key);
+            if (lastSentTimeStr != null) {
+                LocalDateTime lastSentTime = LocalDateTime.parse(lastSentTimeStr, formatter);
+                LocalDateTime now = LocalDateTime.now();
+                return lastSentTime.plusNanos(timeWindowMillis * 1_000_000).isAfter(now);
+            }
 
-        if (lastSentTimeStr != null) {
-            LocalDateTime lastSentTime = LocalDateTime.parse(lastSentTimeStr, formatter);
-            LocalDateTime now = LocalDateTime.now();
+            return false;
+        } catch (RedisConnectionFailureException e) {
+            log.error("Redis connection failed while checking email sent status", e);
+            return false; // Assume email hasn't been sent if Redis is down
+        } catch (Exception e) {
+            log.error("Unexpected error while checking email sent status", e);
+            return false;
 
-            return lastSentTime.plusNanos(timeWindowMillis * 1_000_000).isAfter(now);
         }
-
-        return false;
     }
 
     // Record the time when the email is sent
     public void recordEmailSent(String email) {
-        String key = "emailSent:" + email;
-        redisTemplate.opsForValue().set(key, LocalDateTime.now().format(formatter));
+        try {
+            String key = "emailSent:" + email;
+            redisTemplate.opsForValue().set(key, LocalDateTime.now().format(formatter));
+
+        } catch (RedisConnectionFailureException e) {
+            log.error("Redis connection failed while recording email sent", e);
+        } catch (Exception e) {
+
+            log.error("Unexpected error while recording email sent", e);
+
+        }
     }
 
     public boolean isRateLimited(String key) {
-        String rateLimitKey = "rate_limit:" + key;
-        RedisScript<Boolean> script = new DefaultRedisScript<>(RATE_LIMIT_SCRIPT, Boolean.class);
+        try {
+            String rateLimitKey = "rate_limit:" + key;
+            RedisScript<Boolean> script = new DefaultRedisScript<>(RATE_LIMIT_SCRIPT, Boolean.class);
 
-        Boolean isAllowed = redisTemplate.execute(
-                script,
-                Collections.singletonList(rateLimitKey),
-                String.valueOf(MAX_REQUESTS),
-                String.valueOf(TIME_WINDOW_MILLIS));
+            Boolean isAllowed = redisTemplate.execute(
+                    script,
+                    Collections.singletonList(rateLimitKey),
+                    String.valueOf(MAX_REQUESTS),
+                    String.valueOf(TIME_WINDOW_MILLIS));
 
-        return isAllowed == null || !isAllowed;
+            return isAllowed == null || !isAllowed;
+        } catch (RedisConnectionFailureException e) {
+            log.error("Redis connection failed while checking rate limit", e);
+            return true; // Assume rate limited if Redis is down
+        } catch (Exception e) {
+            log.error("Unexpected error while checking rate limit", e);
+            return true;
+        }
     }
 
-     /**
+    /**
      * Tries to consume a token for a specific user within a rate limit window.
-     * @param key The Redis key (e.g., userId or IP address)
+     * 
+     * @param key       The Redis key (e.g., userId or IP address)
      * @param rateLimit The maximum allowed requests within the time window
-     * @param duration The time window duration in seconds
+     * @param duration  The time window duration in seconds
      * @return true if the request is allowed, false if rate limit exceeded
      */
     public boolean tryConsume(String key, int rateLimit, Duration duration) {

@@ -16,7 +16,7 @@ public class FirebaseInitialize {
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
         ClassPathResource serviceAccount = new ClassPathResource(
-                "firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-a5ee079a6f.json");
+                "/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-a5ee079a6f.json");
 
         // FileInputStream serviceAccount = new FileInputStream(
         // resource.getInputStream());
