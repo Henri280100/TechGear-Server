@@ -27,20 +27,21 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class ReviewServiceImpl implements ReviewService {
-    @Autowired
-    private ReviewRepository reviewRepository;
+    private final ReviewRepository reviewRepository;
+    private final ProductRepository productRepository;
+    private final UserRepository userRepository;
+    private final FileStorageService fileStorageService;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private FileStorageService fileStorageService;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public ReviewServiceImpl(ReviewRepository reviewRepository, ProductRepository productRepository,
+            UserRepository userRepository, FileStorageService fileStorageService, ModelMapper modelMapper) {
+        this.reviewRepository = reviewRepository;
+        this.productRepository = productRepository;
+        this.userRepository = userRepository;
+        this.fileStorageService = fileStorageService;
+        this.modelMapper = modelMapper;
+    }
 
     private static Logger LOGGER = LoggerFactory.getLogger(ReviewServiceImpl.class);
 
@@ -67,7 +68,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("review not found with id " + id));
 
         // Find the existing User
-        User user = userRepository.findById(reviewsDTO.getUser().getUser_id())
+        User user = userRepository.findById(reviewsDTO.getUser().getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found" + id));
 
         try {

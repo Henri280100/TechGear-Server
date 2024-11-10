@@ -3,7 +3,6 @@ package com.v01.techgear_server.serviceImpls;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.api.core.ApiFuture;
@@ -16,7 +15,6 @@ import com.v01.techgear_server.service.FirebaseService;
 public class OnStoreCloudDBServiceImpl implements FirebaseService {
     private final FirebaseDatabase firebaseDatabase;
 
-    @Autowired
     public OnStoreCloudDBServiceImpl(FirebaseApp firebaseApp) {
         this.firebaseDatabase = FirebaseDatabase.getInstance(firebaseApp);
     }

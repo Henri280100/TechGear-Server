@@ -8,15 +8,15 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -36,44 +36,31 @@ import com.v01.techgear_server.repo.RoleRepository;
 import com.v01.techgear_server.repo.UserRepository;
 import com.v01.techgear_server.service.CacheEvictionService;
 import com.v01.techgear_server.service.CacheService;
+import com.v01.techgear_server.service.RedisConnectionService;
 import com.v01.techgear_server.utils.PasswordValidation;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements UserDetailsManager {
 
     private static final String AUTH_CODES_HASH = "auth_codes";
     private static final int AUTH_CODE_EXPIRATION_MINUTES = 30;
     private static final int MAX_AUTH_CODES = 1000;
 
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Autowired
-    private UserPhoneNoServiceImpl userPhoneNumberService;
-
-    @Autowired
-    private AddressServiceImpl addressService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private CacheService cacheService;
-
-    @Autowired
-    private CacheEvictionService cacheEvictionService;
+    private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final UserPhoneNoServiceImpl userPhoneNumberService;
+    private final AddressServiceImpl addressService;
+    private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
+    private final CacheService cacheService;
+    private final CacheEvictionService cacheEvictionService;
+    private final RedisConnectionService redisConnectionService;
 
     private static Logger LOGGER = LoggerFactory.getLogger(AuthServiceImpl.class);
 
@@ -89,14 +76,6 @@ public class AuthServiceImpl implements UserDetailsManager {
         return user;
     }
 
-    public User loadUserEntityByUsername(String username) throws UsernameNotFoundException {
-
-        return userRepository.findByUsername(username)
-
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-    }
-
     @Override
     public boolean userExists(String username) {
         return userRepository.findByUsername(username).isPresent();
@@ -104,6 +83,7 @@ public class AuthServiceImpl implements UserDetailsManager {
 
     @Override
     public void createUser(UserDetails user) {
+        // redisConnectionService.isRedisConnected();
         try {
             User users = convertToUserEntity(user);
             validateNewUser(users);
@@ -115,13 +95,10 @@ public class AuthServiceImpl implements UserDetailsManager {
             setUserRoles(users);
             handleUserAddressAndPhone(users);
 
-            User savedUser = userRepository.save(users);
-            if (savedUser != null) {
-                storeAuthCode(savedUser);
-            } else {
-                LOGGER.error("Failed to save user: {}", users);
-            }
-            // LOGGER.info("User created successfully: {}", users);
+            Optional<User> savedUserOpt = Optional.ofNullable(userRepository.save(users));
+            savedUserOpt.ifPresentOrElse(
+                    this::storeAuthCode,
+                    () -> LOGGER.error("Failed to save user: {}", users));
         } catch (IllegalArgumentException | UserAlreadyExistsException e) {
             // Log and handle the specific argument errors
             LOGGER.error("User creation error: {}", e.getMessage());
@@ -180,24 +157,31 @@ public class AuthServiceImpl implements UserDetailsManager {
         }
     }
 
-    private void validateNewUser(User user) {
-        // Check if the username is already taken
-        if (!isUsernameAvailable(user.getUsername())) { // NOTE: Logic fixed
+    private void validateNewUser(User user) throws InterruptedException, ExecutionException {
+        CompletableFuture<Boolean> usernameCheck = CompletableFuture
+                .supplyAsync(() -> isUsernameAvailable(user.getUsername()));
+        CompletableFuture<Boolean> emailCheck = CompletableFuture
+                .supplyAsync(() -> isUserEmailAvailable(user.getEmail()));
+        CompletableFuture<Boolean> passwordCheck = CompletableFuture
+                .supplyAsync(() -> isPasswordAvailable(user.getPassword()));
+
+        // Wait for all checks to complete
+        CompletableFuture<Void> allChecks = CompletableFuture.allOf(usernameCheck, emailCheck, passwordCheck);
+
+        allChecks.join(); // Wait until all checks are done
+
+        if (!usernameCheck.get()) {
             LOGGER.error("Username already exists");
             throw new UserAlreadyExistsException("Username already exists");
         }
-        // Check if the email is already taken
-        if (!isUserEmailAvailable(user.getEmail())) { // Logic is negated
+        if (!emailCheck.get()) {
             LOGGER.error("Email {} already exists", user.getEmail());
             throw new UserAlreadyExistsException("Email already taken");
         }
-        // Validate password format
         if (!PasswordValidation.isValidPassword(user.getPassword())) {
             LOGGER.error("Password does not meet security requirements");
             throw new IllegalArgumentException("Password does not meet security requirements");
         }
-
-        // Check if the password has been used before (e.g., reusing old passwords)
         if (isPasswordAvailable(user.getPassword())) {
             LOGGER.error("Password has been used before");
             throw new IllegalArgumentException("Password has been used before");

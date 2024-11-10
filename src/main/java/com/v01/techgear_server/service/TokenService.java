@@ -1,14 +1,19 @@
 package com.v01.techgear_server.service;
 
 import java.time.Instant;
+import java.util.Optional;
+
+import com.v01.techgear_server.dto.TokenDTO;
+import com.v01.techgear_server.model.Token;
 
 public interface TokenService {
-    boolean isTokenValid(String refreshToken);
-    void revokeToken(Long token);
-    void revokeAllUserTokens(Long user_id);
-    Instant getRefreshTokenExpiration(String refreshToken);
-    void storeTokens(Long userId, String accessToken, String refreshToken);
-
-    boolean validateJwtToken(String authToken);
     String getUserNameFromJwtToken(String token);
+    boolean validateJwtToken(String authToken);
+    boolean isTokenValid(String token);
+    void revokeToken(String token);
+    void revokeAllUserTokens(Long userId);
+    Instant getRefreshTokenExpiration(String refreshToken);
+    Optional<Token> findByRefreshToken(String refreshToken);
+    void storeTokens(Long userId, TokenDTO tokenDTO);
+    void cleanupExpiredTokens();
 }

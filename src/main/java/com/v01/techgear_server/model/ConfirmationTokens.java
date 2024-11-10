@@ -40,6 +40,6 @@ public class ConfirmationTokens {
     private LocalDateTime confirmedAt;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "userId")
     private User users;
 }

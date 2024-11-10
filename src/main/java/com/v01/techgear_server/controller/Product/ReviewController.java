@@ -1,9 +1,9 @@
 package com.v01.techgear_server.controller.Product;
 
 import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,8 +18,8 @@ import com.v01.techgear_server.service.ReviewService;
 
 @RestController
 public class ReviewController {
-    @Autowired
-    ReviewService reviewService;
+
+    private final ReviewService reviewService;
 
     private static Logger LOGGER = LoggerFactory.getLogger(ReviewController.class);
 

@@ -1,47 +1,40 @@
 package com.v01.techgear_server.serviceImpls;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.v01.techgear_server.enums.Roles;
 import com.v01.techgear_server.exception.BadRequestException;
 import com.v01.techgear_server.exception.UserNotFoundException;
 import com.v01.techgear_server.model.Image;
-import com.v01.techgear_server.model.Role;
 import com.v01.techgear_server.model.User;
 import com.v01.techgear_server.repo.UserRepository;
 import com.v01.techgear_server.service.FileStorageService;
 import com.v01.techgear_server.service.UserService;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private FileStorageService fileStorageService;
-
-    @Autowired
-    private UserDetailsManager userDetailsManager;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
+    private final UserRepository userRepository;
+    private final FileStorageService fileStorageService;
+    private final UserDetailsManager userDetailsManager;
 
     @Override
     public User updateUsername(Long userId, String username) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User  not found with username: " + username));
         user.setUsername(username);
-        
+
         return user;
 
     }
@@ -51,7 +44,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User  not found with email: " + email));
         user.setEmail(email);
-        
+
         return user;
 
     }
@@ -62,61 +55,72 @@ public class UserServiceImpl implements UserService {
             return userRepository.findById(userId)
                     .orElseThrow(() -> new UserNotFoundException("User with ID " + userId + " not found"));
         } catch (UserNotFoundException e) {
-            LOGGER.error("Error retrieving user with ID {}: {}", userId, e.getMessage());
+            log.error("Error retrieving user with ID {}: {}", userId, e.getMessage());
             throw e;
         }
     }
 
     @Override
-    public User deleteUserById(Long userId, User currentUser) {
-        isUserAdmin(currentUser.getUser_id(), currentUser.getRoles());
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User  not found with id " + userId));
-        userRepository.deleteById(userId);
-        
-        return user;
+    public User deleteUserById(Long userId) {
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("User  not found with id " + userId));
+            userRepository.deleteById(userId);
+
+            return user;
+        } catch (Exception e) {
+            log.error("Error deleting user with ID {}: {}", e);
+            throw new UserNotFoundException("User with ID " + userId + " not found");
+        }
 
     }
 
     @Override
-    public User deleteUsername(Long userId, String username, User currentUser) {
-        isUserAdmin(currentUser.getUser_id(), currentUser.getRoles());
+    public User deleteUsername(Long userId, String username) {
+
         // Use UserDetailsManager to load the user
         UserDetails userDetails = userDetailsManager.loadUserByUsername(username);
 
         // Check if the provided userId matches the loaded user
-        if (!userDetails.getUsername().equals(username) || !userId.equals(userRepository.findByUsername(username).get().getUser_id())) {
+        if (!userDetails.getUsername().equals(username)
+                || !userId.equals(userRepository.findByUsername(username).get().getUserId())) {
             throw new BadRequestException("Username or User ID does not match the user to be deleted");
         }
 
         // Delete the user using UserDetailsManager
-        userDetailsManager.deleteUser(username); 
+        userDetailsManager.deleteUser(username);
 
-        // You might need to fetch and return the User entity from the repository 
-        // if you need additional information from the entity 
+        // You might need to fetch and return the User entity from the repository
+        // if you need additional information from the entity
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found with username " + username));
 
     }
 
     @Override
-    public List<User> getAllUsersSorted(String sortBy, String direction, User currentUser) {
-        isUserAdmin(currentUser.getUser_id(), currentUser.getRoles());
-        // Create a Sort object based on the provided field and direction
-        Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-        List<User> users = userRepository.findAll(sort);
-        
-        return users;
+    public List<User> getAllUsers(String sortBy, String direction) {
+        Sort sort = Sort.unsorted();
+        if (sortBy != null && direction != null) {
+            // Validate sortBy parameter
+            if (!isValidSortField(sortBy)) {
+                throw new IllegalArgumentException("Invalid sort field: " + sortBy);
+            }
+
+            sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name())
+                    ? Sort.by(sortBy).ascending()
+                    : Sort.by(sortBy).descending();
+        }
+
+        return userRepository.findAll(sort);
     }
 
-    
-
-    @Override
-    public List<User> getAllUsersNoSorted(User currentUser) {
-        isUserAdmin(currentUser.getUser_id(), currentUser.getRoles());
-        List<User> users = userRepository.findAll();
-        return users;
+    private boolean isValidSortField(String fieldName) {
+        try {
+            return Arrays.stream(User.class.getDeclaredFields())
+                    .anyMatch(field -> field.getName().equals(fieldName));
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Override
@@ -127,10 +131,10 @@ public class UserServiceImpl implements UserService {
             user.setUserAvatar(imageEntity);
             return userRepository.save(user);
         } catch (BadRequestException e) {
-            LOGGER.error("BadRequestException: {}", e.getMessage());
+            log.error("BadRequestException: {}", e.getMessage());
             throw e;
         } catch (IOException e) {
-            LOGGER.error("Exception occurred while uploading user avatar: {}", e.getMessage());
+            log.error("Exception occurred while uploading user avatar: {}", e.getMessage());
             throw new BadRequestException("Failed to upload user avatar");
         }
     }
@@ -140,9 +144,9 @@ public class UserServiceImpl implements UserService {
         // Validate the userAvatar file
         validateAvatarFile(userAvatar);
 
-        // User user = userRepository.findById(user.getUser_id())
+        // User user = userRepository.findById(user.getUserId())
         // .orElseThrow(() -> new UserNotFoundException("User with ID " +
-        // user.getUser_id() + " not found"));
+        // user.getUserId() + " not found"));
 
         try {
             // Store the image using the fileStorageService
@@ -155,7 +159,7 @@ public class UserServiceImpl implements UserService {
             return userRepository.save(user);
 
         } catch (IOException e) {
-            LOGGER.error("IOException occurred while storing user avatar: {}", e.getMessage());
+            log.error("IOException occurred while storing user avatar: {}", e.getMessage());
             throw new BadRequestException("Failed to upload user avatar. Please try again.");
         }
     }
@@ -168,13 +172,13 @@ public class UserServiceImpl implements UserService {
      */
     private void validateAvatarFile(MultipartFile userAvatar) {
         if (userAvatar == null || userAvatar.isEmpty()) {
-            LOGGER.error("Invalid avatar file: Avatar file is null or empty");
+            log.error("Invalid avatar file: Avatar file is null or empty");
             throw new BadRequestException("Image file is required");
         }
 
         // Optionally: you can add more validation here, such as file size or type check
         if (!isValidImageType(userAvatar)) {
-            LOGGER.error("Invalid avatar file type: {}", userAvatar.getContentType());
+            log.error("Invalid avatar file type: {}", userAvatar.getContentType());
             throw new BadRequestException("Invalid image file type. Only PNG, JPG, and JPEG are allowed.");
         }
     }
@@ -192,17 +196,18 @@ public class UserServiceImpl implements UserService {
                         || contentType.equals("image/jpg"));
     }
 
-    private User isUserAdmin(Long userId, Set<Role> roles) {
-        // Check if any of the user's roles is ADMIN
-        boolean isAdmin = roles.stream()
-                .anyMatch(role -> role.getRoleType() == Roles.ROLE_ADMIN);
+    // private User isUserAdmin(Long userId, Set<Role> roles) {
+    // // Check if any of the user's roles is ADMIN
+    // boolean isAdmin = roles.stream()
+    // .anyMatch(role -> role.getRoleType() == Roles.ROLE_ADMIN);
 
-        if (!isAdmin) {
-            // Throw an exception or handle unauthorized access
-            throw new SecurityException("Access denied. You must be an admin to perform this action.");
-        }
+    // if (!isAdmin) {
+    // // Throw an exception or handle unauthorized access
+    // throw new SecurityException("Access denied. You must be an admin to perform
+    // this action.");
+    // }
 
-        // Retrieve the user object based on userId
-        return getUserById(userId);
-    }
+    // // Retrieve the user object based on userId
+    // return getUserById(userId);
+    // }
 }

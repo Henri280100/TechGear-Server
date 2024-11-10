@@ -28,7 +28,7 @@ public class JWTtoUserConvertor implements Converter<Jwt, UsernamePasswordAuthen
 
         User user = new User();
         try {
-            user.setUser_id(Long.valueOf(jwt.getSubject()));
+            user.setUserId(Long.valueOf(jwt.getSubject()));
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid user ID in JWT", e);
         }
@@ -38,7 +38,7 @@ public class JWTtoUserConvertor implements Converter<Jwt, UsernamePasswordAuthen
         log.info("Roles: {}", roles);
         // Convert roles to GrantedAuthority objects
         Collection<? extends GrantedAuthority> authorities = roles.stream()
-                .map(role -> new SimpleGrantedAuthority(role.toUpperCase())) // Need to add "ROLE_" prefix
+                .map(role -> new SimpleGrantedAuthority(role.toUpperCase()))
                 .collect(Collectors.toList());
 
         log.info("Authorize: {}", authorities);

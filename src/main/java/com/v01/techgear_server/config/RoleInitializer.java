@@ -1,6 +1,5 @@
 package com.v01.techgear_server.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -8,11 +7,13 @@ import com.v01.techgear_server.enums.Roles;
 import com.v01.techgear_server.model.Role;
 import com.v01.techgear_server.repo.RoleRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
 public class RoleInitializer implements CommandLineRunner {
 
-    @Autowired
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -26,6 +27,11 @@ public class RoleInitializer implements CommandLineRunner {
             if (roleRepository.findByRoleType(Roles.ROLE_USER).isEmpty()) {
                 Role userRole = new Role();
                 userRole.setRoleType(Roles.ROLE_USER);
+                roleRepository.save(userRole);
+            }
+            if (roleRepository.findByRoleType(Roles.ROLE_MANAGER).isEmpty()) {
+                Role userRole = new Role();
+                userRole.setRoleType(Roles.ROLE_MANAGER);
                 roleRepository.save(userRole);
             }
         }

@@ -36,7 +36,7 @@ public class UserPhoneNo {
 
 
     @OneToOne
-    @JoinColumn(name="user_id")
+    @JoinColumn(name="userId")
     @JsonIgnore
     private User users;
 

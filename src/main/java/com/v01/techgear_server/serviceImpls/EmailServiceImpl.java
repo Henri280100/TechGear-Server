@@ -13,8 +13,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.v01.techgear_server.dto.TokenDTO;
 import com.v01.techgear_server.model.ConfirmationTokens;
-import com.v01.techgear_server.model.Token;
 import com.v01.techgear_server.model.User;
 import com.v01.techgear_server.repo.ConfirmationTokensRepository;
 import com.v01.techgear_server.repo.UserRepository;
@@ -25,26 +25,17 @@ import com.v01.techgear_server.utils.EncryptionUtil;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
-    @Autowired
-    TokenGenerator tokenGenerator;
-
-    @Autowired
-    private OnStoreCloudDBServiceImpl onStoreCloud;
-
-    @Autowired
-    private RateLimiterService rateLimiterService;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ConfirmationTokensRepository confirmationTokensRepository;
-
-
+    private final TokenGenerator tokenGenerator;
+    private final OnStoreCloudDBServiceImpl onStoreCloud;
+    private final RateLimiterService rateLimiterService;
+    private final UserRepository userRepository;
+    private final ConfirmationTokensRepository confirmationTokensRepository;
     @Autowired
     private JavaMailSender mailSender;
 
@@ -73,7 +64,7 @@ public class EmailServiceImpl implements EmailService {
             String encryptedBody = EncryptionUtil.encrypt(emailBody);
 
             CompletableFuture<Void> firebaseStoreFuture = onStoreCloud.storeData("emails",
-                    "email-verification-" + user.getUser_id(), encryptedBody);
+                    "email-verification-" + user.getUserId(), encryptedBody);
 
             sendEmail(user.getEmail(), "Verify your email", emailBody);
 
@@ -138,8 +129,7 @@ public class EmailServiceImpl implements EmailService {
             Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
                     user, user.getPassword(), user.getAuthorities());
 
-            Token userToken = tokenGenerator.createToken(authentication);
-            
+            TokenDTO userToken = tokenGenerator.generateTokens(authentication);
 
             String accessToken = userToken.getAccessToken();
 
@@ -169,7 +159,9 @@ public class EmailServiceImpl implements EmailService {
     private void sendEmail(String to, String subject, String body) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
+            
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setFrom("phamk883@gmail.com");
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(body, true);

@@ -14,8 +14,12 @@ public class UserPhoneNoServiceImpl implements UserPhoneNoService {
 
     // private PhoneNumberValidator phoneNumberValidator;
 
+    private final UserPhoneNoRepository userPhoneNoRepository;
+
     @Autowired
-    private UserPhoneNoRepository userPhoneNoRepository;
+    public UserPhoneNoServiceImpl(UserPhoneNoRepository userPhoneNoRepository) {
+        this.userPhoneNoRepository = userPhoneNoRepository;
+    }
 
     @Override
     public UserPhoneNo saveUserPhoneNo(User user) {

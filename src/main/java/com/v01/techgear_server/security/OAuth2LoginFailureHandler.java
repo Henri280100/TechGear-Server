@@ -16,8 +16,13 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class OAuth2LoginFailureHandler implements AuthenticationFailureHandler {
 
+    private final RedisLoginAttemptsService loginAttemptService;
+
     @Autowired
-    RedisLoginAttemptsService loginAttemptService;
+    public OAuth2LoginFailureHandler(RedisLoginAttemptsService loginAttemptService) {
+        this.loginAttemptService = loginAttemptService;
+    }
+
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,

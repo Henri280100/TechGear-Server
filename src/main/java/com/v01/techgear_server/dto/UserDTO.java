@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 public class UserDTO {
 
-    private Long user_id;
+    private Long userId;
     private String username;
     private String password;
     private UserGenders genders;

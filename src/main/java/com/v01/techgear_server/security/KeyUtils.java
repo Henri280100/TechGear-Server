@@ -3,7 +3,9 @@ package com.v01.techgear_server.security;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -12,25 +14,25 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.Base64;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Component
 @Slf4j
+@RequiredArgsConstructor
+@Component
 public class KeyUtils {
-    @Autowired
-    Environment environment;
+    private final Environment environment;
 
     @Value("${access-token.private}")
     private String accessTokenPrivateKeyPath;
@@ -44,127 +46,128 @@ public class KeyUtils {
     @Value("${refresh-token.public}")
     private String refreshTokenPublicKeyPath;
 
-    private KeyPair _accessTokenKeyPair;
-    private KeyPair _refreshTokenKeyPair;
+    private KeyPair accessTokenKeyPair;
+    private KeyPair refreshTokenKeyPair;
 
-    /**
-     * Get the access token key pair. The key pair is fetched from the file
-     * system and stored in memory. If the key pair is not found, or if there is
-     * an error while reading the files, an exception is thrown.
-     * 
-     * @return The access token key pair.
-     */
+    private final String keyDir = System.getProperty("user.dir") + "/src/main/resources/access-refresh-token-keys";
+
+    @PostConstruct
+    public void init() {
+        accessTokenKeyPair = getAccessTokenKeyPair();
+        refreshTokenKeyPair = getRefreshTokenKeyPair();
+    }
+
     private KeyPair getAccessTokenKeyPair() {
-        if (Objects.isNull(_accessTokenKeyPair)) {
-            _accessTokenKeyPair = getKeyPair(accessTokenPublicKeyPath, accessTokenPrivateKeyPath);
+        if (accessTokenKeyPair == null) {
+            accessTokenKeyPair = loadOrGenerateKeyPair(
+                keyDir + "/accessToken-public.pem",
+                keyDir + "/accessToken-private.pem"
+            );
         }
-        return _accessTokenKeyPair;
+        return accessTokenKeyPair;
     }
 
-    /**
-     * Get the refresh token key pair. The key pair is fetched from the file
-     * system and stored in memory. If the key pair is not found, or if there is
-     * an error while reading the files, an exception is thrown.
-     * 
-     * @return The refresh token key pair.
-     */
     private KeyPair getRefreshTokenKeyPair() {
-        if (Objects.isNull(_refreshTokenKeyPair)) {
-            _refreshTokenKeyPair = getKeyPair(refreshTokenPublicKeyPath, refreshTokenPrivateKeyPath);
+        if (refreshTokenKeyPair == null) {
+            refreshTokenKeyPair = loadOrGenerateKeyPair(
+                keyDir + "/refreshToken-public.pem",
+                keyDir + "/refreshToken-private.pem"
+            );
         }
-        return _refreshTokenKeyPair;
+        return refreshTokenKeyPair;
     }
 
-    /**
-     * Get a key pair from the file system. If the key pair doesn't exist, generate
-     * a new one
-     * and save it to the file system.
-     * 
-     * @param publicKeyPath  The path to the public key
-     * @param privateKeyPath The path to the private key
-     * @return The key pair
-     */
-    private KeyPair getKeyPair(String publicKeyName, String privateKeyName) {
-        KeyPair keyPair;
-
-        // Construct the paths to the public and private keys inside src/main/resources
-        String keysDirectory = System.getProperty("user.dir") + "/src/main/resources/access-refresh-token-keys";
-
-        // Construct the full paths for the keys
-        String publicKeyPath = keysDirectory + File.separator + publicKeyName;
-        String privateKeyPath = keysDirectory + File.separator + privateKeyName;
-
-        File publicKeyFile = new File(publicKeyPath);
-        File privateKeyFile = new File(privateKeyPath);
-
-        // Check if the public and private key files already exist
-        if (publicKeyFile.exists() && privateKeyFile.exists()) {
-            try {
-                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-
-                byte[] publicKeyBytes = Files.readAllBytes(publicKeyFile.toPath());
-                EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
-                PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
-
-                byte[] privateKeyBytes = Files.readAllBytes(privateKeyFile.toPath());
-                PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
-                PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
-
-                keyPair = new KeyPair(publicKey, privateKey);
-                return keyPair;
-            } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            if (Arrays.stream(environment.getActiveProfiles()).anyMatch(s -> s.equals("prod"))) {
-                throw new RuntimeException("Public and private keys don't exist");
-            }
-        }
-
-        // Ensure the directory exists
-        File directory = new File(keysDirectory);
+    private KeyPair loadOrGenerateKeyPair(String publicKeyPath, String privateKeyPath) {
+        File directory = new File(keyDir);
         if (!directory.exists()) {
             directory.mkdirs();
         }
 
+        File publicKeyFile = new File(publicKeyPath);
+        File privateKeyFile = new File(privateKeyPath);
+
+        if (publicKeyFile.exists() && privateKeyFile.exists()) {
+            try {
+                return loadKeyPair(publicKeyPath, privateKeyPath);
+            } catch (Exception e) {
+                log.error("Error loading key pair: {}", e.getMessage());
+                throw new RuntimeException("Error loading key pair", e);
+            }
+        } else {
+            if (isProductionProfile()) {
+                throw new RuntimeException("Public and private keys must exist in production");
+            }
+            return generateAndSaveKeyPair(publicKeyPath, privateKeyPath);
+        }
+    }
+
+    private KeyPair loadKeyPair(String publicKeyPath, String privateKeyPath) throws Exception {
+        byte[] publicKeyContent = Files.readAllBytes(Paths.get(publicKeyPath));
+        byte[] privateKeyContent = Files.readAllBytes(Paths.get(privateKeyPath));
+
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+
+        // Remove PEM headers and convert to binary
+        byte[] publicKeyBinary = parsePEMKey(publicKeyContent);
+        byte[] privateKeyBinary = parsePEMKey(privateKeyContent);
+
+        PublicKey publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(publicKeyBinary));
+        PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyBinary));
+
+        return new KeyPair(publicKey, privateKey);
+    }
+
+    private byte[] parsePEMKey(byte[] pemContent) {
+        String key = new String(pemContent, StandardCharsets.UTF_8)
+                .replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "")
+                .replace("-----BEGIN PUBLIC KEY-----", "")
+                .replace("-----END PUBLIC KEY-----", "")
+                .replaceAll("\\s", "");
+        return Base64.getDecoder().decode(key);
+    }
+
+    private KeyPair generateAndSaveKeyPair(String publicKeyPath, String privateKeyPath) {
         try {
-            // Generate new public and private keys and save them
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(2048);
-            keyPair = keyPairGenerator.generateKeyPair();
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-            // Save the public key
-            try (FileOutputStream fos = new FileOutputStream(publicKeyPath)) {
-                X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyPair.getPublic().getEncoded());
-                fos.write(keySpec.getEncoded());
-            }
+            // Save public key
+            String publicKeyPEM = "-----BEGIN PUBLIC KEY-----\n" +
+                    Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()) +
+                    "\n-----END PUBLIC KEY-----";
+            Files.write(Paths.get(publicKeyPath), publicKeyPEM.getBytes());
 
-            // Save the private key
-            try (FileOutputStream fos = new FileOutputStream(privateKeyPath)) {
-                PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyPair.getPrivate().getEncoded());
-                fos.write(keySpec.getEncoded());
-            }
+            // Save private key
+            String privateKeyPEM = "-----BEGIN PRIVATE KEY-----\n" +
+                    Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded()) +
+                    "\n-----END PRIVATE KEY-----";
+            Files.write(Paths.get(privateKeyPath), privateKeyPEM.getBytes());
 
-        } catch (NoSuchAlgorithmException | IOException e) {
-            throw new RuntimeException(e);
+            return keyPair;
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating key pair", e);
         }
+    }
 
-        return keyPair;
+    private boolean isProductionProfile() {
+        return Arrays.stream(environment.getActiveProfiles()).anyMatch(s -> s.equals("prod"));
     }
 
     public RSAPublicKey getAccessTokenPublicKey() {
         return (RSAPublicKey) getAccessTokenKeyPair().getPublic();
-    };
+    }
 
     public RSAPrivateKey getAccessTokenPrivateKey() {
         return (RSAPrivateKey) getAccessTokenKeyPair().getPrivate();
-    };
+    }
 
     public RSAPublicKey getRefreshTokenPublicKey() {
         return (RSAPublicKey) getRefreshTokenKeyPair().getPublic();
-    };
+    }
 
     public RSAPrivateKey getRefreshTokenPrivateKey() {
         return (RSAPrivateKey) getRefreshTokenKeyPair().getPrivate();
-    };
+    }
 }

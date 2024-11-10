@@ -1,15 +1,15 @@
 package com.v01.techgear_server.dto;
 
-public class ApiResponse<T> {
+public class ApiResponseDTO<T> {
     private T data; // Use a generic type for data
     private String message;
     private boolean success;
     private String status;
 
-    public ApiResponse() {
+    public ApiResponseDTO() {
     }
 
-    public ApiResponse(T data, String message, boolean success, String status) {
+    public ApiResponseDTO(T data, String message, boolean success, String status) {
         this.data = data;
         this.message = message;
         this.success = success;

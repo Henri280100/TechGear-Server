@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -13,8 +12,11 @@ import com.v01.techgear_server.service.CacheEvictionService;
 
 @Service
 public class CacheEvictionServiceImpl implements CacheEvictionService {
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    public CacheEvictionServiceImpl(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     public void evictLRU(String cacheKey, int maxCacheSize) {
         Set<String> keys = redisTemplate.keys(cacheKey + "*");

@@ -30,6 +30,4 @@ public class Role {
     @Enumerated(EnumType.STRING)
     private Roles roleType;
 
-    // @ManyToMany(mappedBy = "roles")
-    // private Set<User> users = new HashSet<>();
 }

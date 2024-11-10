@@ -33,7 +33,7 @@ public class Review {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "userId")
     private User user;
 
     @Column(name = "comments")

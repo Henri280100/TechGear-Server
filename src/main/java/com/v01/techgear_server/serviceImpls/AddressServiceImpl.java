@@ -1,6 +1,5 @@
 package com.v01.techgear_server.serviceImpls;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.v01.techgear_server.exception.UserNotFoundException;
@@ -15,10 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class AddressServiceImpl implements AddressService {
-    @Autowired
-    private UserAddressRepository addressRepository;
-    @Autowired
-    private UserRepository userRepository;
+    private final UserAddressRepository addressRepository;
+    private final UserRepository userRepository;
+
+    public AddressServiceImpl(UserAddressRepository addressRepository, UserRepository userRepository) {
+        this.addressRepository = addressRepository;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public UserAddress createUserNewAddress(User user) {

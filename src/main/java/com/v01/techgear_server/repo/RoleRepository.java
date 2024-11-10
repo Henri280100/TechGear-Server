@@ -8,6 +8,6 @@ import java.util.Optional;
 import com.v01.techgear_server.enums.Roles;
 
 @Repository
-public interface RoleRepository extends JpaRepository<Role, Long> {
+public interface RoleRepository extends JpaRepository<Role, Integer> {
     Optional<Role> findByRoleType(Roles roleType);
 }

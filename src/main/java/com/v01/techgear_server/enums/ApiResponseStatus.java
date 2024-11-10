@@ -33,6 +33,8 @@ public class ApiResponseStatus {
                         "Reset password successful");
         public static final ApiResponseStatus RETRIEVE_USER_SUCCESS = new ApiResponseStatus("success",
                         "Get User successful");
+        public static final ApiResponseStatus RETRIEVE_ALL_USERS_SUCCESS = new ApiResponseStatus("success",
+                        "Get All Users successful");
 
         public static final ApiResponseStatus REGISTRATION_SUCCESS = new ApiResponseStatus("success",
                         "User registered successfully");
@@ -50,15 +52,24 @@ public class ApiResponseStatus {
                         "Update user successfully");
         public static final ApiResponseStatus DELETE_USER_SUCCESSFULLY = new ApiResponseStatus("success",
                         "Delete user successfully");
+        public static final ApiResponseStatus REFRESH_TOKEN_SUCCESSFUL = new ApiResponseStatus("success",
+                        "Refresh token successful");
+        public static final ApiResponseStatus GENERATE_TOKEN_SUCCESSFUL = new ApiResponseStatus("success",
+                        "Generate token successful");
 
         // SUCCESS RESPONSE END
 
         public static final ApiResponseStatus FAILURE = new ApiResponseStatus("failure", "Error: Operation failed");
 
-        public static final ApiResponseStatus USER_NOT_FOUND = new ApiResponseStatus("failure", "Error: User not found");
-        public static final ApiResponseStatus ERROR_RETRIEVE_USER = new ApiResponseStatus("failure", "Error: while retrieve user information");
+        public static final ApiResponseStatus USER_NOT_FOUND = new ApiResponseStatus("failure",
+                        "Error: User not found");
+        public static final ApiResponseStatus ERROR_RETRIEVE_USER = new ApiResponseStatus("failure",
+                        "Error: while retrieve user information");
 
-        public static final ApiResponseStatus INVALID_REQUEST = new ApiResponseStatus("failure", "Error: Invalid request");
+        public static final ApiResponseStatus INVALID_REQUEST = new ApiResponseStatus("failure",
+                        "Error: Invalid request");
+        public static final ApiResponseStatus INVALID_USER_ID = new ApiResponseStatus("failure",
+                        "Error: Invalid user's ID");
 
         public static final ApiResponseStatus INTERNAL_SERVER_ERROR = new ApiResponseStatus("failure",
                         "Error: Internal server error");
@@ -87,5 +98,17 @@ public class ApiResponseStatus {
                         "Error: verified email");
         public static final ApiResponseStatus USER_ID_NULL = new ApiResponseStatus("failure",
                         "Error: User ID is null");
+        public static final ApiResponseStatus REFRESH_TOKEN_HAS_EXPIRED = new ApiResponseStatus("failure",
+                        "Error: Refresh token has expired");
+        public static final ApiResponseStatus ACCESS_TOKEN_HAS_EXPIRED = new ApiResponseStatus("failure",
+                        "Error: Access token has expired");
+        public static final ApiResponseStatus INVALID_REFRESH_TOKEN = new ApiResponseStatus("failure",
+                        "Error: Invalid or revoked refresh token");
+        public static final ApiResponseStatus ERROR_LOGGING_OUT = new ApiResponseStatus("failure",
+                        "Error: Error logging out");
+        public static final ApiResponseStatus INVALID_INPUT = new ApiResponseStatus("failure",
+                        "Error: Invalid input");
+        public static final ApiResponseStatus INVALID_TOKEN = new ApiResponseStatus("failure",
+                        "Error: Invalid token");
 
 }

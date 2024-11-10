@@ -21,8 +21,12 @@ import com.v01.techgear_server.service.FileStorageService;
 @RequestMapping("/api/v01/upload")
 public class UploadController {
 
+    private final FileStorageService fileStorageService;
+
     @Autowired
-    private FileStorageService fileStorageService;
+    public UploadController(FileStorageService fileStorageService) {
+        this.fileStorageService = fileStorageService;
+    }
 
     @PostMapping("/single-file")
     public ResponseEntity<Image> uploadSingleImage(@RequestParam("file") MultipartFile file) {

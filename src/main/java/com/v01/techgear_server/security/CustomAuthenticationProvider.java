@@ -16,12 +16,15 @@ import com.v01.techgear_server.service.RedisLoginAttemptsService;
 @Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
+
+    private final RedisLoginAttemptsService loginAttemptService;
 
     @Autowired
-    private RedisLoginAttemptsService loginAttemptService;
-
+    public CustomAuthenticationProvider(UserDetailsService userDetailsService, RedisLoginAttemptsService loginAttemptService) {
+        this.userDetailsService = userDetailsService;
+        this.loginAttemptService = loginAttemptService;
+    }
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
        String username = authentication.getName();

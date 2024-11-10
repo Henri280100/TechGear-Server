@@ -25,4 +25,5 @@ public interface CacheService {
     Set<Object> hashKeys(String key);
 
     Long hashSize(String key);
+
 }

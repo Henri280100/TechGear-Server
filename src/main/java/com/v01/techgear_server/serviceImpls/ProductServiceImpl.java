@@ -19,14 +19,16 @@ import com.v01.techgear_server.service.ProductService;
 
 @Service
 public class ProductServiceImpl implements ProductService {
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private final FileStorageService fileStorageService;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    private FileStorageService fileStorageService;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public ProductServiceImpl(ProductRepository productRepository, FileStorageService fileStorageService, ModelMapper modelMapper) {
+        this.productRepository = productRepository;
+        this.fileStorageService = fileStorageService;
+        this.modelMapper = modelMapper;
+    }
 
     private static Logger LOGGER = LoggerFactory.getLogger(ProductServiceImpl.class);
 

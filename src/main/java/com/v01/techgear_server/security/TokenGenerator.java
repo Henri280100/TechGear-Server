@@ -1,114 +1,158 @@
 package com.v01.techgear_server.security;
 
-import java.text.MessageFormat;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
 
+import com.v01.techgear_server.dto.TokenDTO;
+import com.v01.techgear_server.exception.InvalidTokenException;
 import com.v01.techgear_server.model.Token;
 import com.v01.techgear_server.model.User;
+import com.v01.techgear_server.repo.TokenRepository;
+import com.v01.techgear_server.repo.UserRepository;
 
+import io.jsonwebtoken.JwtException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class TokenGenerator {
-    @Autowired
-    JwtEncoder accessTokenEncoder;
+    private final JwtEncoder accessTokenEncoder;
+    private final JwtEncoder refreshTokenEncoder;
+    private final TokenRepository tokenRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    @Qualifier("jwtRefreshTokenEncoder")
-    JwtEncoder refreshTokenEncoder;
+    private static final String ISSUER = "techgear_server";
+    private static final long ACCESS_TOKEN_EXPIRY_MINUTES = 15;
+    private static final long REFRESH_TOKEN_EXPIRY_DAYS = 7;
 
-    /**
-     * Creates a JWT access token for the given authentication object.
-     *
-     * The access token is issued by "techgear_server" and expires in 5 minutes.
-     * The subject of the token is the user ID obtained from the authentication
-     * principal.
-     *
-     * @param authentication the authentication object containing the principal and
-     *                       credentials
-     * @return a JWT access token as a string
-     * @throws ClassCastException if the principal is not of type User
-     */
-    public String createAccessToken(Authentication authentication) {
+    public TokenDTO generateTokens(Authentication authentication) {
+        try {
+            Token token = createToken(authentication);
+            token = tokenRepository.save(token);
+
+            log.info("Generated new tokens for user: {}. Expires at: {}",
+                    token.getUserId(), token.getExpiresAt());
+
+            return TokenDTO.builder()
+                    .accessToken(token.getAccessToken())
+                    .refreshToken(token.getRefreshToken())
+                    .tokenType("Bearer")
+                    .expiresIn(ACCESS_TOKEN_EXPIRY_MINUTES * 60)
+                    .build();
+        } catch (Exception e) {
+            log.error("Error generating tokens: ", e);
+            throw e;
+        }
+    }
+
+    private Token createToken(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         Instant now = Instant.now();
 
-        JwtClaimsSet claimsSet = JwtClaimsSet.builder()
-                .issuer("techgear_server").issuedAt(now).expiresAt(now.plus(5, ChronoUnit.MINUTES))
-                .subject(user.getUser_id().toString()).claim("authorities", authentication.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority).toList())
+        String accessToken = createAccessToken(authentication, now);
+        String refreshToken = createRefreshToken(authentication, now);
+
+        Token token = new Token();
+
+        token.setUserId(user.getUserId());
+
+        token.setAccessToken(accessToken);
+
+        token.setRefreshToken(refreshToken);
+
+        token.setRevoked(false);
+
+        token.setCreatedAt(now);
+
+        token.setExpiresAt(now.plus(REFRESH_TOKEN_EXPIRY_DAYS, ChronoUnit.DAYS));
+        return token;
+    }
+
+    private String createAccessToken(Authentication authentication, Instant now) {
+        User user = (User) authentication.getPrincipal();
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer(ISSUER)
+                .issuedAt(now)
+                .expiresAt(now.plus(ACCESS_TOKEN_EXPIRY_MINUTES, ChronoUnit.MINUTES))
+                .subject(user.getUserId().toString())
+                .claim("type", "access_token")
+                .claim("authorities", authentication.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toList()))
                 .build();
 
-        return accessTokenEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+        return accessTokenEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
-    public String createRefreshToken(Authentication authentication) {
+    private String createRefreshToken(Authentication authentication, Instant now) {
         User user = (User) authentication.getPrincipal();
-        Instant now = Instant.now();
 
-        JwtClaimsSet claimsSet = JwtClaimsSet.builder()
-                .issuer("techgear_server").issuedAt(now).expiresAt(now.plus(7, ChronoUnit.DAYS))
-                .subject(user.getUser_id().toString()).build();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer(ISSUER)
+                .issuedAt(now)
+                .expiresAt(now.plus(REFRESH_TOKEN_EXPIRY_DAYS, ChronoUnit.DAYS))
+                .subject(user.getUserId().toString())
+                .claim("type", "refresh_token")
+                .build();
 
-        return refreshTokenEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+        return refreshTokenEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
-    /**
-     * Creates a new token for the given authentication object.
-     *
-     * If the refresh token is close to expiring (less than 7 days), a new refresh
-     * token is generated.
-     *
-     * @param authentication the authentication object containing the principal and
-     *                       credentials
-     * @return a new TokenDTO containing the access token and refresh token
-     * @throws BadCredentialsException  if the principal is not of type User
-     * @throws IllegalArgumentException if the user ID is null
-     */
-    public Token createToken(Authentication authentication) {
-        if (!(authentication.getPrincipal() instanceof User user)) {
-            throw new BadCredentialsException(
-                    MessageFormat.format("principal {0} is not of User type",
-                            authentication.getPrincipal().getClass()));
-        }
-        Token userToken = new Token();
+    public TokenDTO refreshToken(String refreshToken) {
+        try {
+            Token token = tokenRepository.findLatestValidRefreshToken(refreshToken)
+                    .orElseThrow(() -> {
+                        log.warn("Refresh token not found or revoked: {}", refreshToken);
+                        return new InvalidTokenException("Refresh token not found or revoked");
+                    });
 
-        if (user.getUser_id() == null) {
-            throw new IllegalArgumentException("User ID is null. The user might not have been saved properly.");
-        }
-
-        userToken.setUser_id(user.getUser_id());
-        userToken.setAccessToken(createAccessToken(authentication));
-
-        String refreshToken;
-        if (authentication.getCredentials() instanceof Jwt jwt) {
-            Instant now = Instant.now();
-            Instant expiresAt = jwt.getExpiresAt();
-            Duration duration = Duration.between(now, expiresAt);
-
-            long daysUntilExpired = duration.toDays();
-            if (daysUntilExpired < 7) {
-                refreshToken = createRefreshToken(authentication);
-            } else {
-                refreshToken = jwt.getTokenValue();
+            if (token.getExpiresAt().isBefore(Instant.now())) {
+                log.warn("Refresh token expired for user: {}", token.getUserId());
+                throw new InvalidTokenException("Refresh token has expired");
             }
-        } else {
-            refreshToken = createRefreshToken(authentication);
+
+            log.info("Found valid refresh token for user: {}. Created at: {}, Expires at: {}",
+                    token.getUserId(), token.getCreatedAt(), token.getExpiresAt());
+
+            User user = userRepository.findById(token.getUserId())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    user, null, user.getAuthorities());
+
+            // Generate new tokens
+            Token newToken = createToken(authentication);
+
+            // Revoke old token
+            token.setRevoked(true);
+            tokenRepository.save(token);
+
+            // Save new token
+            newToken = tokenRepository.save(newToken);
+
+            return TokenDTO.builder()
+                    .accessToken(newToken.getAccessToken())
+                    .refreshToken(newToken.getRefreshToken())
+                    .tokenType("Bearer")
+                    .expiresIn(ACCESS_TOKEN_EXPIRY_MINUTES * 60)
+                    .build();
+
+        } catch (JwtException e) {
+            throw new InvalidTokenException("Invalid refresh token");
         }
-        userToken.setRefreshToken(refreshToken);
-
-        return userToken;
     }
-
 }

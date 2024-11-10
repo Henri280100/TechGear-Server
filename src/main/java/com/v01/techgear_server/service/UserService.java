@@ -14,10 +14,9 @@ public interface UserService {
 
     User getUserById(Long userId);
     // User handler (only admin)
-    User deleteUserById(Long userId, User currentUser);
-    User deleteUsername(Long userId, String username, User currentUser);
-    List<User> getAllUsersSorted(String sortBy, String direction, User currentUser);
-    List<User> getAllUsersNoSorted(User currentUser);
+    User deleteUserById(Long userId);
+    User deleteUsername(Long userId, String username);
+    List<User> getAllUsers(String sortBy, String direction);
     
     // END
     User userUploadAvatarHandler(User user, MultipartFile userAvatar);

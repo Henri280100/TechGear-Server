@@ -3,7 +3,6 @@ package com.v01.techgear_server.security;
 import java.io.IOException;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -21,11 +20,13 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
-    @Autowired
-    UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final RedisLoginAttemptsService loginAttemptsService;
 
-    @Autowired
-    private RedisLoginAttemptsService loginAttemptsService;
+    public OAuth2LoginSuccessHandler(UserRepository userRepository, RedisLoginAttemptsService loginAttemptsService) {
+        this.userRepository = userRepository;
+        this.loginAttemptsService = loginAttemptsService;
+    }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,

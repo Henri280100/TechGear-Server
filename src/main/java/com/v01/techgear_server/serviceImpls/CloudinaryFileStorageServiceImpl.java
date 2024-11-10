@@ -20,9 +20,13 @@ import com.v01.techgear_server.service.FileStorageService;
 @Service
 public class CloudinaryFileStorageServiceImpl implements FileStorageService {
 
-    @Autowired
-    private Cloudinary cloudinary;
+    private final Cloudinary cloudinary;
     private static final String CLOUDINARY_FOLDER = "techgear";
+
+    @Autowired
+    public CloudinaryFileStorageServiceImpl(Cloudinary cloudinary) {
+        this.cloudinary = cloudinary;
+    }
 
     @Override
     public Image uploadSingleImage(MultipartFile file) throws IOException {

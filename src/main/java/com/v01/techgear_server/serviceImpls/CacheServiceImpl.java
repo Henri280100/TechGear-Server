@@ -3,16 +3,17 @@ package com.v01.techgear_server.serviceImpls;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.v01.techgear_server.service.CacheService;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class CacheServiceImpl implements CacheService {
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public void put(String key, Object value) {
@@ -92,4 +93,7 @@ public class CacheServiceImpl implements CacheService {
     public Long hashSize(String key) {
         return redisTemplate.opsForHash().size(key);
     }
+
+
+
 }

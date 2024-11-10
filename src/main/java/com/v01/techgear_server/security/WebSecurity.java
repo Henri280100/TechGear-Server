@@ -1,18 +1,19 @@
 package com.v01.techgear_server.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -26,7 +27,6 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
@@ -38,40 +38,31 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.v01.techgear_server.service.CustomOAuth2UserService;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @Slf4j
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@RequiredArgsConstructor
+@EnableMethodSecurity
 public class WebSecurity {
 
-        @Autowired
-        private OAuth2LoginSuccessHandler OAuth2LoginSuccessHandler;
+        private final String[] SWAGGER_WHITELIST = {
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/swagger-resources/**",
+                        "/swagger-resources"
+        };
 
-        @Autowired
-        private OAuth2LoginFailureHandler OAuth2LoginFailureHandler;
-
-        @Autowired
-        UserDetailsService userDetailsService;
-
-        @Autowired
-        JWTtoUserConvertor jwTtoUserConvertor;
-
-        @Autowired
-        KeyUtils keyUtils;
-
-        @Autowired
-        PasswordEncoder passwordEncoder;
-
-        @Autowired
-        UserDetailsManager userDetailsManager;
-
-        @Autowired
-        private CustomAuthenticationProvider authProvider;
-
-        @Autowired
-        private JwtAuthFilter authFilter;
+        private final OAuth2LoginSuccessHandler OAuth2LoginSuccessHandler;
+        private final OAuth2LoginFailureHandler OAuth2LoginFailureHandler;
+        private final JWTtoUserConvertor jwTtoUserConvertor;
+        private final KeyUtils keyUtils;
+        private final PasswordEncoder passwordEncoder;
+        private final UserDetailsManager userDetailsManager;
+        private final CustomAuthenticationProvider authProvider;
+        private final LogoutHandler logoutHandler;
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -79,16 +70,16 @@ public class WebSecurity {
                                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwTtoUserConvertor)))
                                 .csrf(csrf -> csrf.disable())
                                 .authorizeHttpRequests(authorize -> authorize
-                                                .requestMatchers("/api/v01/auth/**").permitAll()
-                                                .requestMatchers("/api/v01/user/**").hasAnyRole("USER", "ADMIN")
-                                                .requestMatchers("/api/v01/admin/**").hasRole("ADMIN")
-                                                .anyRequest().authenticated())
-                                .formLogin(formLogin -> formLogin.loginPage("/api/v01/auth/login")
-                                                .loginProcessingUrl("/api/v01/auth/login"))
+                                        .requestMatchers(SWAGGER_WHITELIST).permitAll()
+                                        .requestMatchers("/api/v01/auth/**").permitAll()
+                                        .requestMatchers("/api/v01/user/**").hasAnyRole("USER", "ADMIN")
+                                        .requestMatchers("/api/v01/admin/**").hasRole("ADMIN")
+                                        .anyRequest().authenticated().and())
+
+                                .formLogin(formLogin -> formLogin.disable())
                                 .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authenticationProvider(daoAuthenticationProvider())
-                                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
                                 .exceptionHandling(exceptions -> exceptions
                                                 .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                                                 .accessDeniedHandler(new BearerTokenAccessDeniedHandler()))
@@ -106,10 +97,27 @@ public class WebSecurity {
                                                 .successHandler(OAuth2LoginSuccessHandler)
                                                 .failureHandler(OAuth2LoginFailureHandler))
                                 .logout(logout -> logout.logoutUrl("/api/v01/auth/logout")
-                                                .addLogoutHandler(customLogoutHandler()).invalidateHttpSession(true)
-                                                .deleteCookies("JSESSIONID"));
+                                                .addLogoutHandler(logoutHandler)
+                                                .logoutSuccessHandler((request, response,
+                                                                authentication) -> SecurityContextHolder
+                                                                                .clearContext())
+                                                .invalidateHttpSession(true)
+                                                .deleteCookies("JSESSIONID", "refreshToken"))
+                                ;
 
                 return http.build();
+        }
+
+        @Bean
+        public PermissionEvaluator permissionEvaluator() {
+                return new CustomPermissionEvaluator();
+        }
+
+        @Bean
+        public DefaultMethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+                DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
+                expressionHandler.setPermissionEvaluator(permissionEvaluator());
+                return expressionHandler;
         }
 
         @Bean
@@ -141,34 +149,40 @@ public class WebSecurity {
         @Primary
         JwtEncoder jwtAccessTokenEncoder() {
                 JWK jwk = new RSAKey.Builder(keyUtils.getAccessTokenPublicKey())
-                                .privateKey(keyUtils.getAccessTokenPrivateKey()).build();
+                                .privateKey(keyUtils.getAccessTokenPrivateKey())
+                                .build();
 
                 JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+
                 return new NimbusJwtEncoder(jwks);
+
         }
 
         @Bean
         @Qualifier("jwtRefreshTokenDecoder")
         JwtDecoder jwtRefreshTokenDecoder() {
+
                 return NimbusJwtDecoder.withPublicKey(keyUtils.getRefreshTokenPublicKey()).build();
+
         }
 
         @Bean
         @Qualifier("jwtRefreshTokenEncoder")
         JwtEncoder jwtRefreshTokenEncoder() {
                 JWK jwk = new RSAKey.Builder(keyUtils.getRefreshTokenPublicKey())
+
                                 .privateKey(keyUtils.getRefreshTokenPrivateKey()).build();
 
                 JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+
                 return new NimbusJwtEncoder(jwks);
+
         }
 
         @Bean
         @Qualifier("jwtRefreshTokenAuthProvider")
-        JwtAuthenticationProvider jwtRefreshTokenAuthProvider() {
-                JwtAuthenticationProvider provider = new JwtAuthenticationProvider(jwtRefreshTokenDecoder());
-                provider.setJwtAuthenticationConverter(jwTtoUserConvertor);
-                return provider;
+        public JwtAuthenticationProvider jwtRefreshTokenAuthProvider(JwtDecoder jwtDecoder) {
+                return new JwtAuthenticationProvider(jwtDecoder);
         }
 
         @Bean
