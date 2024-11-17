@@ -37,4 +37,5 @@ build/
 .vscode/
 
 src/main/resources/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-df7bbe38d8.json
-src/main/resources/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-a5ee079a6f.json
+src/main/resources/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-df7bbe38d8.json
+src/main/resources/access-refresh-token-keys/*
