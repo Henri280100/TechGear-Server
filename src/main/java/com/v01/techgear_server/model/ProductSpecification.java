@@ -13,9 +13,11 @@ import lombok.*;
 public class ProductSpecification {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private Long specId;
+
     @Column(name="specsName")
     private String specsName;
+
     @Column(name="icon")
     private String icon;
 

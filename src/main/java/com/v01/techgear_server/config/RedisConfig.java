@@ -8,7 +8,7 @@ import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -16,18 +16,16 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @SuppressWarnings("deprecation")
-@EnableJpaRepositories(basePackages = "com.v01.techgear_server.repo")
-@EnableRedisRepositories(basePackages = "com.v01.techgear_server.repo")
 @EnableCaching
 @Configuration
 public class RedisConfig extends CachingConfigurerSupport {
 
     @Bean
+    @Lazy
     public RedisTemplate<String, Object> redisTemplate() {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory());
@@ -37,6 +35,7 @@ public class RedisConfig extends CachingConfigurerSupport {
     }
 
     @Bean
+    @Lazy
     public LettucePoolingClientConfiguration lettucePoolConfig() {
         return LettucePoolingClientConfiguration.builder()
                 .poolConfig(new GenericObjectPoolConfig<>())
@@ -44,12 +43,14 @@ public class RedisConfig extends CachingConfigurerSupport {
     }
 
     @Bean
+    @Lazy
     public LettuceConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost", 6379);
         return new LettuceConnectionFactory(standaloneConfig, lettucePoolConfig());
     }
 
     @Bean
+    @Lazy
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(60)); // Set TTL of 1 hour

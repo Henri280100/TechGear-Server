@@ -3,7 +3,9 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+# Add the following line to your .gitignore file
 
+.resources/
 ### STS ###
 .apt_generated
 .classpath
@@ -33,3 +35,6 @@ build/
 /src/.env
 ### VS Code ###
 .vscode/
+
+src/main/resources/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-df7bbe38d8.json
+src/main/resources/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-a5ee079a6f.json

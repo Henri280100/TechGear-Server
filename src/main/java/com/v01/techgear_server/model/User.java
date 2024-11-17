@@ -60,6 +60,9 @@ public class User implements UserDetails {
   @Enumerated(EnumType.STRING)
   private UserGenders genders;
 
+  @Column(name = "dob")
+  private LocalDateTime dateOfBirth;
+
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "image_id")
   private Image userAvatar;
@@ -93,6 +96,15 @@ public class User implements UserDetails {
   @JsonIgnore
   private List<Review> reviews;
 
+  @Column(name = "total_reviews")
+  private int totalReviews;
+
+  @Column(name = "account_age")
+  private Long accountAgeDays;
+
+  @OneToOne(mappedBy = "users", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private UserDetails userDetails;
+
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     Set<GrantedAuthority> authorities = this.roles.stream()
@@ -106,12 +118,10 @@ public class User implements UserDetails {
   @CreationTimestamp
   @Column(updatable = false, name = "created_at")
   private LocalDateTime createdAt;
-  
+
   @UpdateTimestamp
   @Column(updatable = false, name = "updated_at")
   private LocalDateTime updatedAt;
-
-
 
   @Override
   public String getPassword() {

@@ -11,7 +11,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -83,7 +82,7 @@ public class AuthServiceImpl implements UserDetailsManager {
 
     @Override
     public void createUser(UserDetails user) {
-        // redisConnectionService.isRedisConnected();
+        redisConnectionService.isRedisConnected();
         try {
             User users = convertToUserEntity(user);
             validateNewUser(users);

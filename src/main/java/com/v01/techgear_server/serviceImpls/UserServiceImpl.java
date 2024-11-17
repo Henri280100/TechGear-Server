@@ -1,15 +1,22 @@
 package com.v01.techgear_server.serviceImpls;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.v01.techgear_server.dto.UserSearchCriteria;
+import com.v01.techgear_server.enums.UserStatus;
 import com.v01.techgear_server.exception.BadRequestException;
 import com.v01.techgear_server.exception.UserNotFoundException;
 import com.v01.techgear_server.model.Image;
@@ -17,7 +24,9 @@ import com.v01.techgear_server.model.User;
 import com.v01.techgear_server.repo.UserRepository;
 import com.v01.techgear_server.service.FileStorageService;
 import com.v01.techgear_server.service.UserService;
+import com.v01.techgear_server.service.UserSpecifications;
 
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,32 +37,33 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
     private final UserDetailsManager userDetailsManager;
+    private final ExecutorService executorService;
 
     @Override
-    public User updateUsername(Long userId, String username) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User  not found with username: " + username));
-        user.setUsername(username);
-
-        return user;
-
+    public CompletableFuture<User> updateUsername(Long userId, String username) {
+        return CompletableFuture.supplyAsync(() -> {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+            user.setUsername(username);
+            return userRepository.save(user);
+        }, executorService);
     }
 
     @Override
-    public User updateUserEmail(Long userId, String email) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User  not found with email: " + email));
-        user.setEmail(email);
-
-        return user;
-
+    public CompletableFuture<User> updateUserEmail(Long userId, String email) {
+        return CompletableFuture.supplyAsync(() -> {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("User  not found with email: " + email));
+            user.setEmail(email);
+            return userRepository.save(user);
+        }, executorService);
     }
 
     @Override
-    public User getUserById(Long userId) {
+    public CompletableFuture<User> getUserById(Long userId) {
         try {
-            return userRepository.findById(userId)
-                    .orElseThrow(() -> new UserNotFoundException("User with ID " + userId + " not found"));
+            return CompletableFuture.supplyAsync(() -> userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("User with ID " + userId + " not found")));
         } catch (UserNotFoundException e) {
             log.error("Error retrieving user with ID {}: {}", userId, e.getMessage());
             throw e;
@@ -61,22 +71,59 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User deleteUserById(Long userId) {
-        try {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new UserNotFoundException("User  not found with id " + userId));
-            userRepository.deleteById(userId);
+    public CompletableFuture<User> findUserByUsernameOrEmail(String username, String email) {
+        return CompletableFuture.supplyAsync(() -> {
+            // Validate inputs
+            validateInputs(username, email);
 
-            return user;
-        } catch (Exception e) {
-            log.error("Error deleting user with ID {}: {}", e);
-            throw new UserNotFoundException("User with ID " + userId + " not found");
+            // Determine the identifier to use
+            String identifier = determineIdentifier(username, email);
+
+            // Use the repository method to find the user
+            return userRepository.findByUsernameOrEmail(identifier)
+                    .orElseThrow(() -> new UserNotFoundException(
+                            "User not found with username: " + username + " or email: " + email));
+        }, executorService);
+    }
+
+    // Comprehensive input validation
+    private void validateInputs(String username, String email) {
+        if ((username == null || username.isEmpty()) &&
+                (email == null || email.isEmpty())) {
+            throw new IllegalArgumentException("Both username and email cannot be null or empty");
+        }
+    }
+
+    // Determine the most appropriate identifier
+    private String determineIdentifier(String username, String email) {
+        // Prioritize non-null input
+        if (username != null && !username.isEmpty()) {
+            return username;
+        }
+        if (email != null && !email.isEmpty()) {
+            return email;
         }
 
+        throw new IllegalArgumentException("No valid identifier provided");
     }
 
     @Override
-    public User deleteUsername(Long userId, String username) {
+    public CompletableFuture<User> deleteUserById(Long userId) {
+        return CompletableFuture.supplyAsync(() -> {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("User  not found with id " + userId));
+
+            userRepository.deleteById(userId);
+
+            return user;
+        }).exceptionally(throwable -> {
+            log.error("Error deleting user with ID {}: {}", userId, throwable.getMessage());
+            throw new UserNotFoundException("User with ID " + userId + " not found", throwable);
+        });
+    }
+
+    @Override
+    public CompletableFuture<User> deleteUsername(Long userId, String username) {
 
         // Use UserDetailsManager to load the user
         UserDetails userDetails = userDetailsManager.loadUserByUsername(username);
@@ -92,39 +139,147 @@ public class UserServiceImpl implements UserService {
 
         // You might need to fetch and return the User entity from the repository
         // if you need additional information from the entity
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("User not found with username " + username));
+        return CompletableFuture.supplyAsync(() -> userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found with username " + username)));
 
     }
 
     @Override
-    public List<User> getAllUsers(String sortBy, String direction) {
-        Sort sort = Sort.unsorted();
-        if (sortBy != null && direction != null) {
-            // Validate sortBy parameter
-            if (!isValidSortField(sortBy)) {
-                throw new IllegalArgumentException("Invalid sort field: " + sortBy);
+    public CompletableFuture<Page<User>> getAllUsers(UserSearchCriteria userSearchCriteria) {
+        // Validate criteria
+        userSearchCriteria.validate();
+
+        // Create specification for dynamic filtering
+        Specification<User> spec = createComprehensiveSpecification(userSearchCriteria);
+
+        // Async execution with custom executor
+        return CompletableFuture.supplyAsync(() -> userRepository.findAll(spec, userSearchCriteria.toPageable()),
+                executorService);
+    }
+
+    @Override
+    public CompletableFuture<Page<User>> searchUsers(UserSearchCriteria userSearchCriteria) {
+        // Validate criteria
+        userSearchCriteria.validate();
+
+        // Create specification for search
+        Specification<User> spec = createSearchSpecification(userSearchCriteria);
+
+        // Async execution with custom executor
+        return CompletableFuture.supplyAsync(() -> userRepository.findAll(spec, userSearchCriteria.toPageable()),
+                executorService);
+    }
+
+    // Comprehensive specification for getAllUsers
+    private Specification<User> createComprehensiveSpecification(UserSearchCriteria criteria) {
+        Specification<User> spec = Specification.where(null);
+
+        // Add roles specification
+        if (criteria.getRoles() != null && !criteria.getRoles().isEmpty()) {
+            spec = spec.and(UserSpecifications.hasRoles(criteria.getRoles()));
+        }
+
+        // Add status specification
+        if (criteria.getStatus() != null) {
+            spec = spec.and(createStatusSpecification(criteria.getStatus()));
+        }
+
+        // Add created at range specification
+        if (criteria.getMinCreatedAt() != null || criteria.getMaxCreatedAt() != null) {
+            spec = spec.and(createCreatedAtSpecification(
+                    criteria.getMinCreatedAt(),
+                    criteria.getMaxCreatedAt()));
+        }
+
+        return spec;
+    }
+
+    // Search specification with more comprehensive search
+    private Specification<User> createSearchSpecification(UserSearchCriteria criteria) {
+        Specification<User> spec = Specification.where(null);
+
+        // Add search query specification (more comprehensive search)
+        if (StringUtils.hasText(criteria.getSearchQuery())) {
+            spec = spec.and(createAdvancedSearchSpecification(criteria.getSearchQuery()));
+        }
+
+        // Add roles specification
+        if (criteria.getRoles() != null && !criteria.getRoles().isEmpty()) {
+            spec = spec.and(UserSpecifications.hasRoles(criteria.getRoles()));
+        }
+
+        // Add permissions specification
+        if (criteria.getPermissions() != null && !criteria.getPermissions().isEmpty()) {
+            spec = spec.and(UserSpecifications.hasPermissions(criteria.getPermissions()));
+        }
+
+        // Add status specification
+        if (criteria.getStatus() != null) {
+            spec = spec.and(createStatusSpecification(criteria.getStatus()));
+        }
+
+        // Add created at range specification
+        if (criteria.getMinCreatedAt() != null || criteria.getMaxCreatedAt() != null) {
+            spec = spec.and(createCreatedAtSpecification(
+                    criteria.getMinCreatedAt(),
+                    criteria.getMaxCreatedAt()));
+        }
+
+        return spec;
+    }
+
+    // Advanced search specification
+    private Specification<User> createAdvancedSearchSpecification(String searchQuery) {
+        return (root, query, criteriaBuilder) -> {
+            if (!StringUtils.hasText(searchQuery)) {
+                return criteriaBuilder.conjunction();
             }
 
-            sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name())
-                    ? Sort.by(sortBy).ascending()
-                    : Sort.by(sortBy).descending();
-        }
+            String likePattern = "%" + searchQuery.toLowerCase() + "%";
 
-        return userRepository.findAll(sort);
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Search across multiple fields
+            predicates.add(criteriaBuilder.or(
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("username")), likePattern),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), likePattern),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("firstName")), likePattern),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")), likePattern)));
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
     }
 
-    private boolean isValidSortField(String fieldName) {
-        try {
-            return Arrays.stream(User.class.getDeclaredFields())
-                    .anyMatch(field -> field.getName().equals(fieldName));
-        } catch (Exception e) {
-            return false;
-        }
+    // Status specification
+    private Specification<User> createStatusSpecification(UserStatus status) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("status"), status);
+    }
+
+    // Created at range specification
+    private Specification<User> createCreatedAtSpecification(
+            LocalDateTime minCreatedAt,
+            LocalDateTime maxCreatedAt) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (minCreatedAt != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(
+                        root.get("createdAt"),
+                        minCreatedAt));
+            }
+
+            if (maxCreatedAt != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(
+                        root.get("createdAt"),
+                        maxCreatedAt));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
     }
 
     @Override
-    public User userUploadAvatarHandler(User user, MultipartFile userAvatar) {
+    public User userUploadAvatar(User user, MultipartFile userAvatar) {
         validateAvatarFile(userAvatar);
         try {
             Image imageEntity = fileStorageService.uploadSingleImage(userAvatar);
@@ -140,7 +295,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User userUpdateAvatarHandler(User user, MultipartFile userAvatar) {
+    public User userUpdateAvatar(User user, MultipartFile userAvatar) {
         // Validate the userAvatar file
         validateAvatarFile(userAvatar);
 
@@ -196,18 +351,4 @@ public class UserServiceImpl implements UserService {
                         || contentType.equals("image/jpg"));
     }
 
-    // private User isUserAdmin(Long userId, Set<Role> roles) {
-    // // Check if any of the user's roles is ADMIN
-    // boolean isAdmin = roles.stream()
-    // .anyMatch(role -> role.getRoleType() == Roles.ROLE_ADMIN);
-
-    // if (!isAdmin) {
-    // // Throw an exception or handle unauthorized access
-    // throw new SecurityException("Access denied. You must be an admin to perform
-    // this action.");
-    // }
-
-    // // Retrieve the user object based on userId
-    // return getUserById(userId);
-    // }
 }

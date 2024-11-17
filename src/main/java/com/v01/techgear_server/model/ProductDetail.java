@@ -25,6 +25,10 @@ public class ProductDetail {
     @Column(name = "product_availability")
     private ProductAvailability availability;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "specification_id")
+    private ProductSpecification specifications;
+
     @Column(name="voucherCode")
     private String voucherCode;
 

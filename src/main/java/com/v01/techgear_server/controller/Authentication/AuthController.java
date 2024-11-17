@@ -36,10 +36,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.v01.techgear_server.dto.ApiResponseDTO;
-import com.v01.techgear_server.dto.EmailVerificationRequestDTO;
 import com.v01.techgear_server.dto.TokenDTO;
 import com.v01.techgear_server.enums.ApiResponseStatus;
-import com.v01.techgear_server.exception.InvalidTokenException;
 import com.v01.techgear_server.model.PasswordResetToken;
 import com.v01.techgear_server.model.Token;
 import com.v01.techgear_server.model.User;
@@ -109,7 +107,7 @@ public class AuthController {
         // Use CompletableFuture to handle tasks asynchronously
         CompletableFuture<Void> userCreationFuture = CompletableFuture.runAsync(() -> {
             userDetailsManager.createUser(user);
-            userService.userUploadAvatarHandler(user, userAvatar);
+            userService.userUploadAvatar(user, userAvatar);
             emailService.sendVerificationEmail(user);
         });
 

@@ -48,13 +48,6 @@ public class Product {
     @Column(name = "price")
     private double price;
 
-    // @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    // private List<ProductSpecification> specifications = new ArrayList<>();
-    
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "specification_id")
-    private ProductSpecification specifications;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "category")
     private Category category;
@@ -65,5 +58,6 @@ public class Product {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "product")
     private ProductDetail productDetail;
 
-   
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InvoiceDetails> invoiceDetails = new ArrayList<>();
 }

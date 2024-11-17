@@ -2,7 +2,6 @@ package com.v01.techgear_server.security;
 
 import java.io.IOException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
@@ -12,16 +11,14 @@ import com.v01.techgear_server.service.RedisLoginAttemptsService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class OAuth2LoginFailureHandler implements AuthenticationFailureHandler {
 
     private final RedisLoginAttemptsService loginAttemptService;
 
-    @Autowired
-    public OAuth2LoginFailureHandler(RedisLoginAttemptsService loginAttemptService) {
-        this.loginAttemptService = loginAttemptService;
-    }
 
 
     @Override

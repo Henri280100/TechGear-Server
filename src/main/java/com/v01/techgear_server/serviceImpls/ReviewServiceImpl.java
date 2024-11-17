@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,8 +23,10 @@ import com.v01.techgear_server.service.FileStorageService;
 import com.v01.techgear_server.service.ReviewService;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
@@ -33,15 +34,6 @@ public class ReviewServiceImpl implements ReviewService {
     private final FileStorageService fileStorageService;
     private final ModelMapper modelMapper;
 
-    @Autowired
-    public ReviewServiceImpl(ReviewRepository reviewRepository, ProductRepository productRepository,
-            UserRepository userRepository, FileStorageService fileStorageService, ModelMapper modelMapper) {
-        this.reviewRepository = reviewRepository;
-        this.productRepository = productRepository;
-        this.userRepository = userRepository;
-        this.fileStorageService = fileStorageService;
-        this.modelMapper = modelMapper;
-    }
 
     private static Logger LOGGER = LoggerFactory.getLogger(ReviewServiceImpl.class);
 

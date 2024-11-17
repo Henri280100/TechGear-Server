@@ -3,7 +3,6 @@ package com.v01.techgear_server.serviceImpls;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,18 +16,14 @@ import com.v01.techgear_server.repo.ProductRepository;
 import com.v01.techgear_server.service.FileStorageService;
 import com.v01.techgear_server.service.ProductService;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final FileStorageService fileStorageService;
     private final ModelMapper modelMapper;
-
-    @Autowired
-    public ProductServiceImpl(ProductRepository productRepository, FileStorageService fileStorageService, ModelMapper modelMapper) {
-        this.productRepository = productRepository;
-        this.fileStorageService = fileStorageService;
-        this.modelMapper = modelMapper;
-    }
 
     private static Logger LOGGER = LoggerFactory.getLogger(ProductServiceImpl.class);
 

@@ -56,6 +56,8 @@ public class ApiResponseStatus {
                         "Refresh token successful");
         public static final ApiResponseStatus GENERATE_TOKEN_SUCCESSFUL = new ApiResponseStatus("success",
                         "Generate token successful");
+        public static final ApiResponseStatus RETRIEVE_SEARCH_USERS_SUCCESS = new ApiResponseStatus("success",
+                        "Get Search Users successful");
 
         // SUCCESS RESPONSE END
 
@@ -110,5 +112,13 @@ public class ApiResponseStatus {
                         "Error: Invalid input");
         public static final ApiResponseStatus INVALID_TOKEN = new ApiResponseStatus("failure",
                         "Error: Invalid token");
+        public static final ApiResponseStatus UNEXPECTED_ERROR = new ApiResponseStatus("failure",
+                        "Error: An unexpected error occurred");
+        public static final ApiResponseStatus ACCESS_DENIED = new ApiResponseStatus("failure",
+                        "Error: User does not have permission to access this resource");
+        public static final ApiResponseStatus INVALID_PARAMETERS = new ApiResponseStatus("failure",
+                        "Error: Provided parameters are invalid");
+        public static final ApiResponseStatus USERNAME_EMAIL_NOT_FOUND = new ApiResponseStatus("failure",
+                        "Error: User name or email not found");
 
 }

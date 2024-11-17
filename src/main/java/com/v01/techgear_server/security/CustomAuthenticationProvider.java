@@ -1,6 +1,5 @@
 package com.v01.techgear_server.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,18 +12,15 @@ import org.springframework.stereotype.Component;
 
 import com.v01.techgear_server.service.RedisLoginAttemptsService;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     private final UserDetailsService userDetailsService;
 
     private final RedisLoginAttemptsService loginAttemptService;
-
-    @Autowired
-    public CustomAuthenticationProvider(UserDetailsService userDetailsService, RedisLoginAttemptsService loginAttemptService) {
-        this.userDetailsService = userDetailsService;
-        this.loginAttemptService = loginAttemptService;
-    }
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
        String username = authentication.getName();

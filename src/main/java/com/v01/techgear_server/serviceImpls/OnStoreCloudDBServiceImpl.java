@@ -11,6 +11,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.v01.techgear_server.service.FirebaseService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class OnStoreCloudDBServiceImpl implements FirebaseService {
     private final FirebaseDatabase firebaseDatabase;
@@ -26,7 +29,9 @@ public class OnStoreCloudDBServiceImpl implements FirebaseService {
             ApiFuture<Void> future = reference.setValueAsync(data);
             try {
                 future.get(); // Wait for the operation to complete
+                log.info("Stored data at path: {}/{}", path, key);
             } catch (Exception e) {
+                log.error("Error storing data at path: {}/{}", path, key, e);
                 throw new CompletionException(e);
             }
         });

@@ -1,19 +1,20 @@
 package com.v01.techgear_server.model;
 
-import java.time.*;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.v01.techgear_server.enums.AddressTypes;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,11 +34,31 @@ public class UserAddress {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long addressId;
 
-    @Column(nullable = false)
+    
+    @Column(name = "address_line_1")
+    private String addressLineOne;
+    
+    @Column(name="address_line_2")
+    private String addressLineTwo;
+    
+    @Column(name="city", nullable = false)
+    private String city;
+    
+    @Column(name="state_province")
+    private String stateProvince;
+
+    @Column(name="country" ,nullable = false)
     private String country;
 
-    @Column(name = "address_details", columnDefinition = "TEXT")
-    private String addressDetails;
+    @Column(name="zipPostalCode")
+    private String zipPostalCode;
+    
+    @Column(name="addressType")
+    @Enumerated(EnumType.STRING)
+    private AddressTypes addressType;
+    
+    @Column(name="is_address_primary")
+    private boolean primaryAddress;
 
     @OneToOne(mappedBy = "addresses", cascade = CascadeType.ALL)
     @JsonBackReference
@@ -50,16 +71,5 @@ public class UserAddress {
     @Column(name = "updated_at")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
 }

@@ -1,115 +1,141 @@
 package com.v01.techgear_server.serviceImpls;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.v01.techgear_server.dto.ImageDTO;
+import com.v01.techgear_server.dto.UserDTO;
+import com.v01.techgear_server.enums.ImageTypes;
 import com.v01.techgear_server.exception.FileUploadingException;
-import com.v01.techgear_server.model.Image;
 import com.v01.techgear_server.model.Media;
 import com.v01.techgear_server.service.FileStorageService;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class CloudinaryFileStorageServiceImpl implements FileStorageService {
 
     private final Cloudinary cloudinary;
     private static final String CLOUDINARY_FOLDER = "techgear";
 
-    @Autowired
-    public CloudinaryFileStorageServiceImpl(Cloudinary cloudinary) {
-        this.cloudinary = cloudinary;
-    }
-
     @Override
-    public Image uploadSingleImage(MultipartFile file) throws IOException {
-        try {
-            validateFiles(file);
+    public CompletableFuture<ImageDTO> uploadSingleImage(MultipartFile file, UserDTO userDTO) throws IOException {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                    ObjectUtils.asMap("folder", CLOUDINARY_FOLDER,
-                            "resource_type", "image",
-                            "quality", "auto:good", // Auto quality based on eco mode
-                            "fetch_format", "auto", // Automatically optimize the image format
-                            "width", 1024, // Resize image to have a max width of 1024px
-                            "crop", "limit" // Limit cropping to avoid exceeding width
-                    ));
+                validateFiles(file);
 
-            String url = (String) uploadResult.get("url");
-            String publicId = (String) uploadResult.get("public_id");
-            String contentType = file.getContentType();
+                @SuppressWarnings("unchecked")
+                Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                        ObjectUtils.asMap("folder", CLOUDINARY_FOLDER,
+                                "resource_type", "image",
+                                "quality", "auto:good", // Auto quality based on eco mode
+                                "fetch_format", "auto", // Automatically optimize the image format
+                                "width", 1024, // Resize image to have a max width of 1024px
+                                "crop", "limit" // Limit cropping to avoid exceeding width
+                ));
 
-            Image image = new Image();
-            image.setFilename(publicId);
-            image.setContentType(contentType);
-            image.setData(url.getBytes()); // Store URL as bytes if needed
-            // getImage(url, publicId, contentType);
+                String url = (String) uploadResult.get("url");
+                String publicId = (String) uploadResult.get("public_id");
+                String contentType = file.getContentType();
+                Long fileSize = file.getSize();
+                Integer width = (Integer) uploadResult.get("width");
+                Integer height = (Integer) uploadResult.get("height");
 
-            return image;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to upload multiple files");
-        }
+                ImageDTO imageDTO = new ImageDTO();
+                imageDTO.setFileName(publicId);
+                imageDTO.setContentType(contentType);
+                imageDTO.setImageUrl(url); // Set the image URL
+                imageDTO.setData(url.getBytes()); // Store URL as bytes if needed
+                imageDTO.setFileSize(fileSize);
+                imageDTO.setWidth(width);
+                imageDTO.setHeight(height);
+                imageDTO.setCreatedAt(LocalDateTime.now()); // Set creation timestamp
+                imageDTO.setUploadedBy(userDTO.getUsername()); // Set the uploader, replace with actual user if
+                                                               // available
+                imageDTO.setImageTypes(ImageTypes.GENERIC);
+
+                return imageDTO;
+            } catch (Exception e) {
+                throw new FileUploadingException("Unexpected error during image upload", e);
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<Image> uploadMultipleImage(List<MultipartFile> files) throws IOException {
-        List<Image> uploadedImages = new ArrayList<>();
+    public CompletableFuture<List<ImageDTO>> uploadMultipleImage(List<MultipartFile> files, UserDTO userDTO)
+            throws IOException {
+        return CompletableFuture.supplyAsync(() -> {
 
-        // Validate and filter non-empty files
-        List<MultipartFile> validFiles = files.stream()
-                .filter(file -> !file.isEmpty())
-                .collect(Collectors.toList());
+            List<ImageDTO> uploadedImages = new ArrayList<>();
 
-        if (validFiles.isEmpty()) {
-            throw new IllegalArgumentException("No valid files to upload");
-        }
+            // Validate and filter non-empty files
+            List<MultipartFile> validFiles = files.stream()
+                    .filter(file -> !file.isEmpty())
+                    .collect(Collectors.toList());
 
-        try {
-            for (MultipartFile file : validFiles) {
-                validateFiles(file); // Validate image file
-
-                // Upload image to Cloudinary
-                Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                        ObjectUtils.asMap(
-                                "folder", CLOUDINARY_FOLDER,
-                                "resource_type", "image",
-                                "quality", "auto:good", // Auto quality
-                                "fetch_format", "auto", // Auto format
-                                "width", 1024, // Resize width
-                                "crop", "limit" // Crop limit
-                        ));
-
-                // Extract details from Cloudinary response
-                String url = (String) uploadResult.get("secure_url"); // Use secure URL
-                String publicId = (String) uploadResult.get("public_id");
-                String contentType = file.getContentType();
-
-                // Create Image object
-                Image image = new Image();
-                // getImage(url, publicId, contentType);
-                image.setFilename(publicId);
-                image.setContentType(contentType);
-                image.setData(url.getBytes());
-                // Add the uploaded image to the list
-                uploadedImages.add(image);
+            if (validFiles.isEmpty()) {
+                throw new IllegalArgumentException("No valid files to upload");
             }
 
-        } catch (IOException e) {
-            throw new IOException("Failed to upload files due to I/O error", e);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to upload multiple files", e);
-        }
+            try {
+                for (MultipartFile file : validFiles) {
+                    validateFiles(file); // Validate image file
 
-        return uploadedImages;
+                    // Upload image to Cloudinary
+                    Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                            ObjectUtils.asMap(
+                                    "folder", CLOUDINARY_FOLDER,
+                                    "resource_type", "image",
+                                    "quality", "auto:good", // Auto quality
+                                    "fetch_format", "auto", // Auto format
+                                    "width", 1024, // Resize width
+                                    "crop", "limit" // Crop limit
+                    ));
+
+                    String url = (String) uploadResult.get("url");
+                    String publicId = (String) uploadResult.get("public_id");
+                    String contentType = file.getContentType();
+                    Long fileSize = file.getSize();
+                    Integer width = (Integer) uploadResult.get("width");
+                    Integer height = (Integer) uploadResult.get("height");
+
+                    ImageDTO imageDTO = new ImageDTO();
+                    imageDTO.setFileName(publicId);
+                    imageDTO.setContentType(contentType);
+                    imageDTO.setImageUrl(url); // Set the image URL
+                    imageDTO.setData(url.getBytes()); // Store URL as bytes if needed
+                    imageDTO.setFileSize(fileSize);
+                    imageDTO.setWidth(width);
+                    imageDTO.setHeight(height);
+                    imageDTO.setCreatedAt(LocalDateTime.now()); // Set creation timestamp
+                    imageDTO.setUploadedBy(userDTO.getUsername()); // Set the uploader, replace with actual user if
+                                                                   // available
+                    imageDTO.setImageTypes(ImageTypes.GENERIC);
+                    // Add the uploaded image to the list
+                    uploadedImages.add(imageDTO);
+                }
+
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Failed to upload multiple files", e);
+            }
+
+            return uploadedImages;
+        });
 
     }
 
@@ -143,7 +169,7 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
             media.setMediaFilename(publicId);
             media.setMediaContentType(contentType);
             media.setData(url.getBytes()); // Optional: Store URL as bytes if needed
-            
+
             return media;
         } catch (IOException e) {
             throw new IOException("Failed to upload media due to I/O error", e);
@@ -202,6 +228,5 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
             throw new FileUploadingException("Cannot upload an empty file");
         }
     }
-
 
 }

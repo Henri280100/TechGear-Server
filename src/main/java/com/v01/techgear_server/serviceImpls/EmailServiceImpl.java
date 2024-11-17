@@ -68,11 +68,13 @@ public class EmailServiceImpl implements EmailService {
 
             sendEmail(user.getEmail(), "Verify your email", emailBody);
 
-            firebaseStoreFuture.thenRun(() -> rateLimiterService.recordEmailSent(email))
-                    .exceptionally(ex -> {
-                        LOGGER.error("Error storing email body in Firebase: {}", ex.getMessage(), ex);
-                        return null;
-                    });
+            firebaseStoreFuture.thenRun(() -> {
+                rateLimiterService.recordEmailSent(email);
+                LOGGER.info("Email sent and recorded successfully for: {}", email);
+            }).exceptionally(ex -> {
+                LOGGER.error("Error storing email body in Firebase: {}", ex.getMessage(), ex);
+                return null;
+            });
 
         } catch (Exception e) {
             LOGGER.error("Error while sending verification email: {}", e.getMessage(), e);
@@ -159,7 +161,7 @@ public class EmailServiceImpl implements EmailService {
     private void sendEmail(String to, String subject, String body) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            
+
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setFrom("phamk883@gmail.com");
             helper.setTo(to);

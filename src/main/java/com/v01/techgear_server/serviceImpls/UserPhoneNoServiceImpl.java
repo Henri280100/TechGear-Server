@@ -1,6 +1,5 @@
 package com.v01.techgear_server.serviceImpls;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.v01.techgear_server.model.User;
@@ -9,17 +8,15 @@ import com.v01.techgear_server.repo.UserPhoneNoRepository;
 import com.v01.techgear_server.service.UserPhoneNoService;
 import com.v01.techgear_server.utils.PhoneNumberValidator;
 
+import lombok.RequiredArgsConstructor;
 @Service
+@RequiredArgsConstructor
 public class UserPhoneNoServiceImpl implements UserPhoneNoService {
 
     // private PhoneNumberValidator phoneNumberValidator;
 
     private final UserPhoneNoRepository userPhoneNoRepository;
 
-    @Autowired
-    public UserPhoneNoServiceImpl(UserPhoneNoRepository userPhoneNoRepository) {
-        this.userPhoneNoRepository = userPhoneNoRepository;
-    }
 
     @Override
     public UserPhoneNo saveUserPhoneNo(User user) {
