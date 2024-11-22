@@ -15,11 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.v01.techgear_server.dto.ImageDTO;
+import com.v01.techgear_server.dto.UserDTO;
 import com.v01.techgear_server.dto.UserSearchCriteria;
 import com.v01.techgear_server.enums.UserStatus;
 import com.v01.techgear_server.exception.BadRequestException;
 import com.v01.techgear_server.exception.UserNotFoundException;
-import com.v01.techgear_server.model.Image;
 import com.v01.techgear_server.model.User;
 import com.v01.techgear_server.repo.UserRepository;
 import com.v01.techgear_server.service.FileStorageService;
@@ -38,6 +39,168 @@ public class UserServiceImpl implements UserService {
     private final FileStorageService fileStorageService;
     private final UserDetailsManager userDetailsManager;
     private final ExecutorService executorService;
+
+    @Override
+    public CompletableFuture<User> addUserConnection(Long userId, Long connectionUserId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<User> assignRole(Long userId, String roleName) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<List<User>> bulkCreateUsers(List<User> users) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> bulkDeleteUsers(List<Long> userIds) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<List<User>> bulkUpdateUsers(List<User> users) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<User> deactivateUser(Long userId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteUserAvatar(Long userId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<List<User>> findInactiveUsers(int days) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<List<User>> findPotentialConnections(Long userId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<List<User>> findRecentlyRegisteredUsers(int days) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<List<User>> findUsersByAgeRange(int minAge, int maxAge) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<List<User>> findUsersByCountry(String country) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<List<User>> findUsersByRole(String roleName) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<List<User>> getUserConnections(Long userId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<UserDTO> getUserDetails(Long userId) {
+
+        return CompletableFuture.supplyAsync(() -> {
+            return userRepository.findById(userId)
+                    .map(user -> {
+                        UserDTO userDTO = new UserDTO();
+                        userDTO.setUserId(user.getUserId());
+                        userDTO.setUsername(user.getUsername());
+                        userDTO.setEmail(user.getEmail());
+                        userDTO.calculateAccountAge(); // Assuming this method populates account age
+                        return userDTO;
+                    })
+                    .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+        });
+
+    }
+
+    @Override
+    public CompletableFuture<Boolean> hasRole(Long userId, String roleName) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> isUserLocked(Long userId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<User> lockUser(Long userId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<User> mergeUserProfiles(Long sourceUserId, Long targetUserId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<User> reactivateUser(Long userId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<User> removeRole(Long userId, String roleName) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> removeUserConnection(Long userId, Long connectionUserId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<User> unlockUser(Long userId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<User> updateUser(User user) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> verifyUserConsent(Long userId, String consentType) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
     @Override
     public CompletableFuture<User> updateUsername(Long userId, String username) {
@@ -123,7 +286,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public CompletableFuture<User> deleteUsername(Long userId, String username) {
+    public CompletableFuture<User> deleteByUsername(Long userId, String username) {
 
         // Use UserDetailsManager to load the user
         UserDetails userDetails = userDetailsManager.loadUserByUsername(username);
@@ -279,44 +442,52 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User userUploadAvatar(User user, MultipartFile userAvatar) {
+    public CompletableFuture<ImageDTO> uploadUserAvatar(MultipartFile userAvatar, UserDTO userDTO) {
         validateAvatarFile(userAvatar);
-        try {
-            Image imageEntity = fileStorageService.uploadSingleImage(userAvatar);
-            user.setUserAvatar(imageEntity);
-            return userRepository.save(user);
-        } catch (BadRequestException e) {
-            log.error("BadRequestException: {}", e.getMessage());
-            throw e;
-        } catch (IOException e) {
-            log.error("Exception occurred while uploading user avatar: {}", e.getMessage());
-            throw new BadRequestException("Failed to upload user avatar");
-        }
+
+        return CompletableFuture.supplyAsync(() -> {
+            User user = userRepository.findById(userDTO.getUserId())
+                    .orElseThrow(
+                            () -> new UserNotFoundException("User  with ID " + userDTO.getUserId() + " not found"));
+
+            return user; // Return the user object for further processing
+        }, executorService).thenCompose(user -> {
+            // Now we can upload the image asynchronously
+            try {
+                return fileStorageService.uploadSingleImage(userAvatar, userDTO)
+                        .thenApply(imageDTO -> {
+                            // Set the user avatar and save the user
+                            user.setUserAvatar(imageDTO.toEntity());
+                            userRepository.save(user);
+                            return imageDTO; // Return the ImageDTO
+                        });
+            } catch (IOException e) {
+                throw new BadRequestException("Failed to upload user avatar. Please try again.", e.getCause());
+            }
+        });
     }
 
     @Override
-    public User userUpdateAvatar(User user, MultipartFile userAvatar) {
+    public CompletableFuture<ImageDTO> updateUserAvatar(Long userId, MultipartFile newUserAvatar, UserDTO userDTO) {
         // Validate the userAvatar file
-        validateAvatarFile(userAvatar);
-
-        // User user = userRepository.findById(user.getUserId())
-        // .orElseThrow(() -> new UserNotFoundException("User with ID " +
-        // user.getUserId() + " not found"));
-
-        try {
-            // Store the image using the fileStorageService
-            Image imageEntity = fileStorageService.uploadSingleImage(userAvatar);
-
-            // Update the user's avatar
-            user.setUserAvatar(imageEntity);
-
-            // Save and return the updated user entity
-            return userRepository.save(user);
-
-        } catch (IOException e) {
-            log.error("IOException occurred while storing user avatar: {}", e.getMessage());
-            throw new BadRequestException("Failed to upload user avatar. Please try again.");
-        }
+        validateAvatarFile(newUserAvatar);
+        return CompletableFuture.supplyAsync(() -> {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("USer with ID " + userId + " not found."));
+            return user;
+        }, executorService).thenCompose(user -> {
+            try {
+                return fileStorageService.updateUserImage(userId, newUserAvatar, userDTO)
+                        .thenApply(imageDTO -> {
+                            // Set the user avatar and save the user
+                            user.setUserAvatar(imageDTO.toEntity());
+                            userRepository.save(user);
+                            return imageDTO; // Return the ImageDTO
+                        });
+            } catch (IOException e) {
+                throw new BadRequestException("Failed to update user avatar. Please try again.", e.getCause());
+            }
+        });
     }
 
     /**

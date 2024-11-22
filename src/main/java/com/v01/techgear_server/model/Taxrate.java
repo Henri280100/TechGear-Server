@@ -1,5 +1,7 @@
 package com.v01.techgear_server.model;
 
+import java.math.BigDecimal;
+import java.util.*;
 import lombok.*;
 import jakarta.persistence.*;
 
@@ -9,15 +11,18 @@ import jakarta.persistence.*;
 @AllArgsConstructor
 @Getter
 @Setter
-@Table(name="taxrate")
+@Table(name = "taxrate")
 public class Taxrate {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long taxrateId;
 
-    @Column(name="tax_name")
+    @Column(name = "tax_name")
     private String taxName;
 
-    @Column(name="rate")
-    private Integer Rate;
+    @Column(name = "rate", columnDefinition = "DECIMAL(5,2)")
+    private BigDecimal Rate;
+
+    @OneToMany(mappedBy = "taxrate", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<InvoiceDetails> invoiceDetails = new ArrayList<InvoiceDetails>();
 }

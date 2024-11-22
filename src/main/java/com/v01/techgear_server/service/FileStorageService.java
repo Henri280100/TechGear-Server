@@ -13,6 +13,11 @@ import com.v01.techgear_server.model.Media;
 public interface FileStorageService {
     CompletableFuture<ImageDTO> uploadSingleImage(MultipartFile file, UserDTO userDTO) throws IOException;
     CompletableFuture<List<ImageDTO>> uploadMultipleImage(List<MultipartFile> files, UserDTO userDTO) throws IOException;
+
+    CompletableFuture<ImageDTO> updateUserImage(Long userId, MultipartFile newImageFile, UserDTO userDTO) throws IOException;
+
     Media uploadMedia(MultipartFile mediaFile) throws IOException;
     List<Media> uploadMultipleMedia(List<MultipartFile> mediaFile) throws IOException;
+
+
 }

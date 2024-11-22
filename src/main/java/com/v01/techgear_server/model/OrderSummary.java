@@ -6,18 +6,22 @@ import java.math.BigDecimal;
 
 import jakarta.persistence.*;
 
-@Embeddable
+
 @Data
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name="order_summary")
 public class OrderSummary {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer orderId;
+    
     @Column(name="subtotal")
     private BigDecimal subtotal;
-
-    // @Column(name="discount")
-    // private BigDecimal discount;
-
-    // @Column(name="tax")
-    // private BigDecimal tax;
-
-    @Column(name="shipping_cost")
-    private BigDecimal shippingCost;
+    
+    
 }

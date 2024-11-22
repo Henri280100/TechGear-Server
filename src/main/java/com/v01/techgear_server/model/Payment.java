@@ -1,5 +1,9 @@
 package com.v01.techgear_server.model;
 
+import java.util.*;
+
+import com.v01.techgear_server.enums.PaymentStatus;
+
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -28,7 +32,17 @@ public class Payment {
     @Column(name="payment_date")
     private LocalDateTime paymentDate;
 
+    @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<PaymentLogs> paymentsLogs = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
+
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_method_id", referencedColumnName = "paymentMethodId")
     private PaymentMethod paymentMethod;
 
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_details_id", referencedColumnName = "accountDetailsId")
+    private AccountDetails accountDetails;
 }

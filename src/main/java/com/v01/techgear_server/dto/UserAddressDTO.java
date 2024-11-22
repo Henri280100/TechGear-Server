@@ -31,8 +31,10 @@ public class UserAddressDTO {
 
     @Schema(description = "State/Province", example = "NY")
     private String stateProvince;
+
     @Schema(description = "Zip/Postal Code", example = "10001")
     private String zipPostalCode;
+    
     @Schema(description = "Country", example = "USA")
     private String country;
 

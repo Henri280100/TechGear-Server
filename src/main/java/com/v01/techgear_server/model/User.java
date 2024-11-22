@@ -82,6 +82,9 @@ public class User implements UserDetails {
   private UserAddress addresses;
 
   @OneToOne(mappedBy = "users", cascade = CascadeType.ALL)
+  private AccountDetails accountDetails;
+
+  @OneToOne(mappedBy = "users", cascade = CascadeType.ALL)
   @JsonIgnore
   private ConfirmationTokens confirmationTokens;
 

@@ -88,6 +88,7 @@ public class ImageDTO {
         image.setLastModifiedAt(this.lastModifiedAt);
         image.setUploadedBy(this.uploadedBy);
         image.setImageTypes(this.imageTypes);
+
         return image;
     }
 

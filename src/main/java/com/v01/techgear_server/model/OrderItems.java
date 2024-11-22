@@ -25,8 +25,8 @@ public class OrderItems {
     private OrderHistory orderHistory;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @JoinColumn(name = "invoice_id")
+    private Invoice invoice;
 
     @Column(name="quantity")
     private Integer quantity;

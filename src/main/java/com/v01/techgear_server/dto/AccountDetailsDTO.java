@@ -1,6 +1,7 @@
 package com.v01.techgear_server.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.v01.techgear_server.enums.UserTypes;
 
@@ -15,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "Account Details")
+@Schema(description = "Account Details Data Transfer Object")
 public class AccountDetailsDTO {
     @Schema(description = "Account ID")
     @Positive(message = "Account ID must be a positive number")
@@ -33,11 +34,11 @@ public class AccountDetailsDTO {
     @Schema(description="Account last updated timestamp")
     private LocalDateTime accountUpdatedTime;
 
+    @Schema(description="last_login_timestamp")
+    private LocalDateTime lastLoginTimeStamp;
+
     @Schema(description = "two factor authentication enabled")
     private boolean twoFactorAuthEnabled;
-
-    @Schema(description="Tax id")
-    private String taxId;
 
     @Schema(description = "User Types")
     private UserTypes userTypes;
@@ -46,5 +47,11 @@ public class AccountDetailsDTO {
     private UserDTO user;
 
     @Schema(description="Billing information")
-    private BillingInformationDTO billingInformation;
+    private List<BillingInformationDTO> billingInformation;
+
+    @Schema(description="Payment associated with the account details")
+    private PaymentDTO payment;
+    
+    @Schema(description="Bank accounts associated with the account details")
+    private List<BankAccountDTO> bankAccount;
 }

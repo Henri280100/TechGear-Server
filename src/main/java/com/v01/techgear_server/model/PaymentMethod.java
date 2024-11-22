@@ -1,6 +1,8 @@
 package com.v01.techgear_server.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.v01.techgear_server.enums.PaymentCardNetwork;
 import com.v01.techgear_server.enums.PaymentMethodType;
@@ -12,8 +14,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,10 +33,6 @@ public class PaymentMethod {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer paymentMethodId;
-
-    @ManyToOne
-    @JoinColumn(name = "billing_info_id")
-    private BillingInformation billingInformation;
 
     @Enumerated(EnumType.STRING)
     private PaymentMethodType paymentMethodType;
@@ -60,6 +57,9 @@ public class PaymentMethod {
 
     @Column(name = "token")
     private String paymentToken;
+
+    @OneToMany(mappedBy = "paymentMethod")
+    private List<Payment> payments = new ArrayList<>();
 
     private LocalDateTime lastUsed;
 

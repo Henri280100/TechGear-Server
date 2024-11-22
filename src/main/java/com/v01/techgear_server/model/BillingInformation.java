@@ -17,33 +17,23 @@ public class BillingInformation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer billingId;
-    
-    // User Association
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "accountDetailsId", nullable = false)
-    private AccountDetails accountDetail;
 
-    // Personal Information Relationship
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "accountDetailsId")
-    private AccountDetails accountDetails;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "invoiceId")
+    private Invoice invoice;
 
     // Billing Address Relationship
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "billing_address_id")
     private BillingAddress billingAddress;
 
-    // Payment Methods
-    @OneToMany(mappedBy = "billingInformation", 
-               cascade = CascadeType.ALL, 
-               fetch = FetchType.LAZY)
-    private List<PaymentMethod> paymentMethods;
-
     // Billing Preferences
     private boolean isPrimaryBillingInfo;
     private boolean isVerified;
 
-    // Audit Fields
+    @Column(name="created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name="updated_at", updatable = false)
     private LocalDateTime updatedAt;
 }

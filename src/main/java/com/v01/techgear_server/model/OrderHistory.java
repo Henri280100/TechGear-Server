@@ -42,8 +42,9 @@ public class OrderHistory {
 
     @Embedded
     private OrderSummary orderSummary;
-
-    @Embedded
+    
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "shippingDetailsId")
     private ShippingDetails shippingDetails;
 
     @Enumerated(EnumType.STRING)

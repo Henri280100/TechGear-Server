@@ -34,36 +34,35 @@ public class UserAddress {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long addressId;
 
-    
     @Column(name = "address_line_1")
     private String addressLineOne;
-    
-    @Column(name="address_line_2")
+
+    @Column(name = "address_line_2")
     private String addressLineTwo;
-    
-    @Column(name="city", nullable = false)
+
+    @Column(name = "city", nullable = false)
     private String city;
-    
-    @Column(name="state_province")
+
+    @Column(name = "state_province")
     private String stateProvince;
 
-    @Column(name="country" ,nullable = false)
+    @Column(name = "country", nullable = false)
     private String country;
 
-    @Column(name="zipPostalCode")
+    @Column(name = "zipPostalCode")
     private String zipPostalCode;
-    
-    @Column(name="addressType")
+
+    @Column(name = "addressType")
     @Enumerated(EnumType.STRING)
     private AddressTypes addressType;
-    
-    @Column(name="is_address_primary")
+
+    @Column(name = "is_address_primary")
     private boolean primaryAddress;
 
     @OneToOne(mappedBy = "addresses", cascade = CascadeType.ALL)
     @JsonBackReference
     private User user;
-    
+
     @Column(name = "created_at")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;

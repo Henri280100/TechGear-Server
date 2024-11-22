@@ -12,19 +12,19 @@ import jakarta.persistence.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name="payment_logs")
+@Table(name = "payment_logs")
 public class PaymentLogs {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer logId;
 
-    @Column(name="payment_log_message")
+    @Column(name = "payment_log_message")
     private String paymentLogMessage;
 
-    @Column(name="logs_timestamp")
+    @Column(name = "logs_timestamp")
     private LocalDateTime logsTimestamp;
 
-    @OneToOne
-    @JoinColumn(name="payment_id", referencedColumnName = "payment_id")
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_id", referencedColumnName = "payment_id")
     private Payment payment;
 }

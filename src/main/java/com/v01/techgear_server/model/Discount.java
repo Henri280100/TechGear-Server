@@ -1,10 +1,26 @@
 package com.v01.techgear_server.model;
 
-import lombok.*;
+import java.util.List;
 
 import com.v01.techgear_server.enums.DiscountType;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Data
 @Entity
@@ -48,4 +64,10 @@ public class Discount {
 
     @Column(name = "expiry_date")
     private String expiryDate;
+
+    @JoinTable(name = "product_discount", joinColumns = @JoinColumn(name = "discount_id"), inverseJoinColumns = @JoinColumn(name = "product_id"))
+    private List<Product> products; // Relationship with Product
+
+    @OneToMany(mappedBy = "discount", cascade = CascadeType.ALL)
+    private List<InvoiceDetails> invoiceDetails;
 }

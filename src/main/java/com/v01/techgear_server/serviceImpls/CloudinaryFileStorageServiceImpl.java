@@ -17,7 +17,10 @@ import com.v01.techgear_server.dto.ImageDTO;
 import com.v01.techgear_server.dto.UserDTO;
 import com.v01.techgear_server.enums.ImageTypes;
 import com.v01.techgear_server.exception.FileUploadingException;
+import com.v01.techgear_server.exception.UserNotFoundException;
 import com.v01.techgear_server.model.Media;
+import com.v01.techgear_server.model.User;
+import com.v01.techgear_server.repo.UserRepository;
 import com.v01.techgear_server.service.FileStorageService;
 
 import lombok.RequiredArgsConstructor;
@@ -30,6 +33,30 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
 
     private final Cloudinary cloudinary;
     private static final String CLOUDINARY_FOLDER = "techgear";
+    private final UserRepository userRepository;
+
+
+    @Override
+    public CompletableFuture<ImageDTO> updateUserImage(Long userId, MultipartFile newImageFile, UserDTO userDTO)
+            throws IOException {
+        return CompletableFuture.supplyAsync(() -> {
+            User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User  with ID " + userId + " not found"));
+
+        try {
+            // Upload the new image file
+            ImageDTO newImageDTO = uploadSingleImage(newImageFile, userDTO).join(); // Using join to wait for the upload result
+
+            // Update the user's avatar
+            user.setUserAvatar(newImageDTO.toEntity());
+            userRepository.save(user); // Save the updated user
+
+            return newImageDTO; // Return the new ImageDTO
+            } catch (IOException e) {
+                throw new RuntimeException("Unexpected error while updating user's image");
+            }
+        });
+    }
 
     @Override
     public CompletableFuture<ImageDTO> uploadSingleImage(MultipartFile file, UserDTO userDTO) throws IOException {

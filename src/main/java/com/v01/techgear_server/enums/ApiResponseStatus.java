@@ -58,6 +58,10 @@ public class ApiResponseStatus {
                         "Generate token successful");
         public static final ApiResponseStatus RETRIEVE_SEARCH_USERS_SUCCESS = new ApiResponseStatus("success",
                         "Get Search Users successful");
+        public static final ApiResponseStatus UPDATE_USER_ADDRESS_SUCCESSFULLY = new ApiResponseStatus("success",
+                        "Update user address successfully");
+        public static final ApiResponseStatus AVATAR_UPDATED = new ApiResponseStatus("success",
+                        "Update user's avatar successfully");
 
         // SUCCESS RESPONSE END
 

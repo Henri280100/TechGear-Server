@@ -1,8 +1,6 @@
 package com.v01.techgear_server.controller.Users;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -29,7 +27,6 @@ import com.v01.techgear_server.enums.Roles;
 import com.v01.techgear_server.enums.UserStatus;
 import com.v01.techgear_server.exception.UserNotFoundException;
 import com.v01.techgear_server.model.User;
-import com.v01.techgear_server.repo.UserRepository;
 import com.v01.techgear_server.service.UserService;
 import com.v01.techgear_server.utils.ApiResponseBuilder;
 
@@ -331,7 +328,7 @@ public class AdminController {
                         // Pre-processing or additional validation can be done here
                         validateUser(userId, username);
 
-                        return userService.deleteUsername(userId, username);
+                        return userService.deleteByUsername(userId, username);
                 })
                                 .thenCompose(Function.identity()) // Flatten the CompletableFuture
                                 .thenApply(user -> ResponseEntity.status(HttpStatus.OK)

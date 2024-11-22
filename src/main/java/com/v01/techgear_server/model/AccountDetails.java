@@ -47,9 +47,6 @@ public class AccountDetails {
     @OneToMany(mappedBy = "accountDetails", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<BillingInformation> billingInformationList;
 
-    @Column(name="tax_id")
-    private String taxId;
-
     @Column(name="userTypes")
     @Enumerated(EnumType.STRING)
     private UserTypes userTypes;
@@ -59,8 +56,14 @@ public class AccountDetails {
     private User users;
 
     // Bidirectional relationship with BillingInformation
-    @OneToOne(mappedBy = "personalDetails")
+    @OneToOne(mappedBy = "accountDetails", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private BillingInformation billingInformation;
+
+    @OneToMany(mappedBy = "accountDetails", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Payment payment;
+
+    @OneToMany(mappedBy = "accountDetails", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<BankAccount> bankAccounts = new ArrayList<>();
 
     @PrePersist
     public void onCreate() {
