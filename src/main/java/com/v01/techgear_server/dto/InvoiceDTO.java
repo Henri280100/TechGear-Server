@@ -30,7 +30,7 @@ public class InvoiceDTO {
     private List<PaymentDTO> payments;
 
     @Schema(description="User associated with invoice")
-    private UserDTO userDTO
+    private UserDTO userDTO;
 
     @Schema(description="Invoice date")
     private String invoiceDate;

@@ -21,7 +21,7 @@ public class OrderItemsDTO {
     private Long orderItemId;
 
     @Schema(description = "Order history associated with the Order item")
-    private der orderHistoryDTO;
+    private OrderHistoryDTO orderHistoryDTO;
 
     @Schema(description = "Product associated with the Order item")
     private InvoiceDTO invoiceDTO;

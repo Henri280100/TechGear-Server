@@ -4,7 +4,6 @@ import java.util.*;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -61,9 +61,6 @@ public class ShippingDetails {
     @Column(name = "shipping_email")
     private String email;
 
-    @Column(name = "shipping_instructions")
-    private String specialInstructions;
-
     @Column(name = "shipping_date")
     private LocalDateTime shippingDate;
 
@@ -74,9 +71,6 @@ public class ShippingDetails {
     @JoinColumn(name = "shippingMethodId")
     private ShippingMethod shippingMethod;
 
-    @OneToMany(mappedBy = "shippingDetails", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<Invoice> invoice= new ArrayList<>();
-
-    @OneToOne(mappedBy = "shippingDetails", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private OrderHistory orderHistory;
+    @OneToOne(mappedBy = "shippingDetail")
+    private Order order;
 }

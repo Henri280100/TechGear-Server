@@ -44,10 +44,7 @@ public class AccountDetails {
     @Column(name = "two_factor_auth_enabled")
     private boolean twoFactorAuthEnabled;
 
-    @OneToMany(mappedBy = "accountDetails", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<BillingInformation> billingInformationList;
-
-    @Column(name="userTypes")
+    @Column(name = "userTypes")
     @Enumerated(EnumType.STRING)
     private UserTypes userTypes;
 
@@ -59,11 +56,20 @@ public class AccountDetails {
     @OneToOne(mappedBy = "accountDetails", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private BillingInformation billingInformation;
 
-    @OneToMany(mappedBy = "accountDetails", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Payment payment;
+    @OneToMany(mappedBy = "account_details")
+    private List<Review> reviews;
 
-    @OneToMany(mappedBy = "accountDetails", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<BankAccount> bankAccounts = new ArrayList<>();
+    @OneToMany(mappedBy = "account_details")
+    private List<Wishlist> wishlists;
+
+    @OneToMany(mappedBy = "account_details", cascade = CascadeType.ALL)
+    private List<Order> order;
+
+    @OneToMany(mappedBy = "account_details")
+    private List<PaymentMethod> paymentMethods;
+
+    @OneToMany(mappedBy = "account_details")
+    private List<Invoice> invoices;
 
     @PrePersist
     public void onCreate() {
@@ -72,7 +78,7 @@ public class AccountDetails {
         lastLoginTime = LocalDateTime.now();
         lastUpdatedTimestamp = LocalDateTime.now();
     }
-    
+
     @PreUpdate
     public void onUpdate() {
         accountUpdatedTime = LocalDateTime.now();

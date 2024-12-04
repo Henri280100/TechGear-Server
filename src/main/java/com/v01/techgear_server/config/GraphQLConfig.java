@@ -11,7 +11,6 @@ import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.v01.techgear_server.controller.GraphQLExecutor;
-import com.v01.techgear_server.resolver.mutation.ProductMutationResolver;
 import com.v01.techgear_server.resolver.query.ProductQueryResolver;
 
 import graphql.GraphQL;
@@ -26,11 +25,10 @@ import io.jsonwebtoken.io.IOException;
 public class GraphQLConfig {
 
     private final ProductQueryResolver productQueryResolver;
-    private final ProductMutationResolver productMutationResolver;
 
-    public GraphQLConfig(ProductQueryResolver productQueryResolver, ProductMutationResolver productMutationResolver) {
+    public GraphQLConfig(ProductQueryResolver productQueryResolver) {
         this.productQueryResolver = productQueryResolver;
-        this.productMutationResolver = productMutationResolver;
+
     }
 
     @Bean
@@ -65,9 +63,6 @@ public class GraphQLConfig {
                 .type("Query", builder -> builder
                         .dataFetcher("getAllProducts", productQueryResolver)
                         .dataFetcher("getProductById", productQueryResolver))
-                .type("Mutation", builder -> builder
-                        .dataFetcher("updateProduct", productMutationResolver.dataFetcherUpdateAllProduct())
-                        .dataFetcher("updateProductPrice", productMutationResolver.dateFetcherUpdateProductPrice()))
                 .build();
     }
 

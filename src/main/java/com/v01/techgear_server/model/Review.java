@@ -45,6 +45,10 @@ public class Review {
     @Column(name="reviewDate")
     private LocalDateTime reviewDate;
 
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "accountDetailsId")
+    private AccountDetails accountDetails;
+
     @OneToOne(cascade=CascadeType.ALL)
     @JoinColumn(name="image_id")
     private Image reviewImage;

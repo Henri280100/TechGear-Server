@@ -15,12 +15,19 @@ public class ProductSpecification {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long specId;
 
-    @Column(name="specsName")
+    @Column(name="spec_name")
     private String specsName;
+
+    @Column(name="spec_value")
+    private String specValue;
+
+    @Column(name="spec_image")
+    private Image specImage;
 
     @Column(name="icon")
     private String icon;
 
-    @OneToOne(mappedBy = "specifications")
-    private Product product;
+    @ManyToOne
+    @JoinColumn(name = "product_details_id")
+    private ProductDetail productDetails;
 }

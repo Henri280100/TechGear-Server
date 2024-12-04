@@ -12,7 +12,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -41,6 +41,9 @@ public class Product {
     @Column(name = "name", unique = true)
     private String name;
 
+    @Column(name = "product_description", unique = true)
+    private String productDescription;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "image_id")
     private Image image;
@@ -48,16 +51,22 @@ public class Product {
     @Column(name = "price")
     private double price;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "category")
-    private Category category;
+    @Column(name = "sku")
+    private String sku;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> reviews = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    private Category category;
 
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "product")
     private ProductDetail productDetail;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<InvoiceDetails> invoiceDetails = new ArrayList<>();
+    @OneToMany(mappedBy = "product")
+    private List<Review> reviews;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<OrderItems> orderItems = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<WishlistItems> wishlistItems = new ArrayList<>();
+
 }

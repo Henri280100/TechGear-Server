@@ -39,10 +39,6 @@ public class Payment {
     private PaymentStatus paymentStatus;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_method_id", referencedColumnName = "paymentMethodId")
-    private PaymentMethod paymentMethod;
-
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "account_details_id", referencedColumnName = "accountDetailsId")
     private AccountDetails accountDetails;
 }

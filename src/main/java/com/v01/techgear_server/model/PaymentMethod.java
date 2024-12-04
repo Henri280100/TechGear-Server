@@ -14,6 +14,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -58,8 +60,13 @@ public class PaymentMethod {
     @Column(name = "token")
     private String paymentToken;
 
-    @OneToMany(mappedBy = "paymentMethod")
-    private List<Payment> payments = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn(name = "account_details_id")
+    private AccountDetails accountDetails;
+
+    @ManyToOne
+    @JoinColumn(name = "bank_id")
+    private BankAccount bank;
 
     private LocalDateTime lastUsed;
 

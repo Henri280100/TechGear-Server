@@ -2,6 +2,9 @@ package com.v01.techgear_server.model;
 
 import java.time.LocalDateTime;
 import java.util.*;
+
+import com.v01.techgear_server.enums.InvoiceStatus;
+
 import lombok.*;
 import jakarta.persistence.*;
 
@@ -17,25 +20,18 @@ public class Invoice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long invoiceId;
 
-    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<InvoiceDetails> invoiceDetails = new ArrayList<>();
+    @OneToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
 
-    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<OrderItems> orderItems = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    private InvoiceStatus stauts;
 
-    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<BillingInformation> billingInformation = new ArrayList<>();
+    @Column(name = "invoice_number")
+    private String invoiceNumber;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "accountDetailsId")
-    private AccountDetails accountDetails;
-
-    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<Payment> payments = new ArrayList<>();
-
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId")
-    private User user;
+    @Column(name = "issue_date")
+    private String issueDate;
 
     /**
      * Represents the date of the invoice.
@@ -49,8 +45,11 @@ public class Invoice {
     @Column(name = "total_amount")
     private Integer totalAmount;
 
-    @OneToMany
-    @JoinColumn(name = "paymentId")
-    private Payment payment;
+    @ManyToOne
+    @JoinColumn(name = "account_details_id", nullable = false)
+    private AccountDetails accountDetails;
+
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<InvoiceDetails> invoiceDetails = new ArrayList<>();
 
 }

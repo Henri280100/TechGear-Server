@@ -42,10 +42,6 @@ public class BankAccount {
     @Column(name = "status", nullable = false)
     private String status; // e.g., "Active", "Inactive"
 
-    @ManyToOne
-    @JoinColumn(name = "account_details_id", nullable = false)
-    private AccountDetails accountDetails; // Assuming you have a User entity
-
     @OneToMany(mappedBy = "bankAccount", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentMethod> paymentMethods = new ArrayList<>();
 }

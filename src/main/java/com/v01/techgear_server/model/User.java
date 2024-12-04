@@ -3,7 +3,6 @@ package com.v01.techgear_server.model;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,11 +29,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -70,6 +67,12 @@ public class User implements UserDetails {
   @Column(name = "email", unique = true)
   private String email;
 
+  @Column(name = "total_reviews")
+  private int totalReviews;
+
+  @Column(name = "account_age")
+  private Long accountAgeDays;
+
   @Enumerated(EnumType.STRING)
   private AuthProvider provider; // for storing data in gg or fb
 
@@ -94,19 +97,6 @@ public class User implements UserDetails {
 
   @Column(name = "active")
   private boolean active;
-
-  @OneToMany(mappedBy = "user")
-  @JsonIgnore
-  private List<Review> reviews;
-
-  @Column(name = "total_reviews")
-  private int totalReviews;
-
-  @Column(name = "account_age")
-  private Long accountAgeDays;
-
-  @OneToOne(mappedBy = "users", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private UserDetails userDetails;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -2,7 +2,7 @@ package com.v01.techgear_server.dto;
 
 import java.util.ArrayList;
 
-import com.v01.techgear_server.enums.Category;
+import com.v01.techgear_server.model.Category;
 
 import lombok.Data;
 

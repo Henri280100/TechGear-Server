@@ -27,6 +27,9 @@ public class BillingInformation {
     @JoinColumn(name = "billing_address_id")
     private BillingAddress billingAddress;
 
+    @OneToOne
+    @JoinColumn(name = "account_details_id")
+    private AccountDetails accountDetails;
     // Billing Preferences
     private boolean isPrimaryBillingInfo;
     private boolean isVerified;

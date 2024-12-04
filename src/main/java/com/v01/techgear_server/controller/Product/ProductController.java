@@ -3,7 +3,6 @@ package com.v01.techgear_server.controller.Product;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -91,27 +90,6 @@ public class ProductController {
         LOGGER.info("Successfully deleted product with id: {}", id);
         return new ResponseEntity<>("Product deleted successfully", HttpStatus.NO_CONTENT);
 
-    }
-
-    // Should consider about the update all the product method
-    // If update all the data in the product,
-    // maybe it's not a good idea to rewrite all the data
-    @PostMapping(value = "/update")
-    @MutationMapping(name = "updateProduct")
-    public String updateProduct(@RequestBody String queryVal) throws IOException, java.io.IOException {
-        return executor.executeGraphQLQuery(queryVal);
-    }
-
-    @PostMapping(value = "/update/product-name")
-    @MutationMapping(name = "updateProductName")
-    public String updateProductName(@RequestBody String queryVal) throws IOException, java.io.IOException {
-        return executor.executeGraphQLQuery(queryVal);
-    }
-
-    @PostMapping(value = "/price")
-    @MutationMapping(name = "updateProductPrice")
-    public String updateProductPrice(@RequestBody String queryVal) throws IOException, java.io.IOException {
-        return executor.executeGraphQLQuery(queryVal);
     }
 
     /**

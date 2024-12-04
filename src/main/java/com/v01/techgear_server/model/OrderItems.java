@@ -2,8 +2,6 @@ package com.v01.techgear_server.model;
 
 import lombok.*;
 
-import java.math.BigDecimal;
-
 import com.v01.techgear_server.enums.OrderItemStatus;
 
 import jakarta.persistence.*;
@@ -20,19 +18,16 @@ public class OrderItems {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer OrderItemsId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    private int quantity;
+    private double price;
+
+    @ManyToOne
     @JoinColumn(name = "order_id")
-    private OrderHistory orderHistory;
+    private Order order;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "invoice_id")
-    private Invoice invoice;
-
-    @Column(name="quantity")
-    private Integer quantity;
-
-    @Column(name="unit_price")
-    private BigDecimal unitPrice;
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
 
     @Enumerated(EnumType.STRING)
     private OrderItemStatus orderItemStatus;

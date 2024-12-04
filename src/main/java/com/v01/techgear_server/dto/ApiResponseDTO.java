@@ -17,7 +17,7 @@ public class ApiResponseDTO<T> {
     }
 
     public T getData() {
-        return data;
+    return data;
     }
 
     public void setData(T data) {
