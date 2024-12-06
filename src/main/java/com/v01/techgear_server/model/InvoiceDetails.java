@@ -2,6 +2,7 @@ package com.v01.techgear_server.model;
 
 import lombok.*;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 import jakarta.persistence.*;
@@ -13,7 +14,7 @@ import jakarta.persistence.*;
 @Getter
 @Setter
 @Table(name="invoice_details")
-public class InvoiceDetails {
+public class InvoiceDetails implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer invoiceDetailsId;
@@ -21,10 +22,6 @@ public class InvoiceDetails {
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name="invoice_id")
     private Invoice invoice;
-
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name="taxrate_id")
-    private Taxrate taxrate;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch=FetchType.LAZY)
     @JoinColumn(name="product_id")

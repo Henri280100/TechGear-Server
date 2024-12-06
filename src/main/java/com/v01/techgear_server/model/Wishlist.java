@@ -3,6 +3,8 @@ package com.v01.techgear_server.model;
 import java.util.*;
 import lombok.*;
 import jakarta.persistence.*;
+
+import java.io.Serializable;
 import java.time.*;
 
 @Data
@@ -12,7 +14,7 @@ import java.time.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "wishlist")
-public class Wishlist {
+public class Wishlist implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long wishlistId;

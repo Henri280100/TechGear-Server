@@ -1,5 +1,6 @@
 package com.v01.techgear_server.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.CascadeType;
@@ -22,7 +23,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name="confirmation_tokens")
-public class ConfirmationTokens {
+public class ConfirmationTokens implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long confirmationTokensId;

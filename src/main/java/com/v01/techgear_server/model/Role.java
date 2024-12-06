@@ -1,5 +1,7 @@
 package com.v01.techgear_server.model;
 
+import java.io.Serializable;
+
 import com.v01.techgear_server.enums.Roles;
 
 import jakarta.persistence.Entity;
@@ -22,7 +24,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "roles")
-public class Role {
+public class Role implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

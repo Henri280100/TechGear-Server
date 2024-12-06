@@ -2,6 +2,8 @@ package com.v01.techgear_server.model;
 
 import lombok.*;
 
+import java.io.Serializable;
+
 import com.v01.techgear_server.enums.OrderItemStatus;
 
 import jakarta.persistence.*;
@@ -13,10 +15,10 @@ import jakarta.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name="order_items")
-public class OrderItems {
+public class OrderItems implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer OrderItemsId;
+    private Integer orderItemsId;
 
     private int quantity;
     private double price;

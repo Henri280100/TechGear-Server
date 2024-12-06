@@ -1,5 +1,6 @@
 package com.v01.techgear_server.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,7 +35,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "userPhoneNos", uniqueConstraints = { @UniqueConstraint(columnNames = { "phoneNo", "countryCode" }) })
-public class UserPhoneNo {
+public class UserPhoneNo implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -65,19 +66,24 @@ public class UserPhoneNo {
     @Column(name = "marketing_consent")
     private boolean marketingConsent;
 
-    @Column(name="two_factor_auth_enabled")
+    @Column(name = "two_factor_auth_enabled")
     private boolean twoFactorAuthEnabled;
-
+    
     @Column(name = "communication_preference")
     @Enumerated(EnumType.STRING)
     private CommunicationPreference communicationPreference;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "accountDetailsId")
+    @JsonIgnore
+    private AccountDetails accountDetails;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
+    
     @Column(name = "marketingConsentAt")
     private LocalDateTime marketingConsentAt;
 
@@ -114,9 +120,5 @@ public class UserPhoneNo {
         return countryCode + " ****" + phoneNo.substring(phoneNo.length() - 4);
     }
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId")
-    @JsonIgnore
-    private User users;
 
 }

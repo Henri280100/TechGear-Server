@@ -1,6 +1,7 @@
 package com.v01.techgear_server.model;
 
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -20,7 +21,7 @@ import lombok.Data;
 
 @Data
 @Entity
-public class Image {
+public class Image implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

@@ -1,7 +1,5 @@
 package com.v01.techgear_server.model;
 
-import java.util.*;
-
 import java.time.LocalDateTime;
 
 import jakarta.persistence.CascadeType;
@@ -13,7 +11,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -32,7 +29,7 @@ import lombok.Setter;
 public class ShippingDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer shippingDetailsId;
+    private Long shippingDetailsId;
 
     @Column(name = "shipping_username")
     private String username;

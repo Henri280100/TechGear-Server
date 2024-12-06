@@ -1,5 +1,6 @@
 package com.v01.techgear_server.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -15,7 +16,7 @@ import jakarta.persistence.*;
 @Getter
 @Setter
 @Table(name = "invoice")
-public class Invoice {
+public class Invoice implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long invoiceId;

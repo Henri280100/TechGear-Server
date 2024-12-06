@@ -1,8 +1,8 @@
 package com.v01.techgear_server.model;
 
+import java.io.Serializable;
 import jakarta.persistence.*;
 import lombok.*;
-
 
 @Data
 @Entity
@@ -10,22 +10,22 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name="wishlist_items")
-public class WishlistItems {
+@Table(name = "wishlist_items")
+public class WishlistItems implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="product_name", nullable = false, unique = true)
+    @Column(name = "product_name", nullable = false, unique = true)
     private String productName; // Name of the product
 
-    @Column(name="price", nullable = false, unique = true)
+    @Column(name = "price", nullable = false, unique = true)
     private Double price; // Price of the product
 
-    @Column(name="image_url", nullable = false, unique = true)
+    @Column(name = "image_url", nullable = false, unique = true)
     private Image imageUrl; // Image URL of the product
 
-    @Column(name="notes")
+    @Column(name = "notes")
     private String notes; // Any additional notes about the item
 
     @ManyToOne

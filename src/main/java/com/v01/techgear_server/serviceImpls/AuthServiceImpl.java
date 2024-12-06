@@ -89,7 +89,6 @@ public class AuthServiceImpl implements UserDetailsManager {
 
             users.setPassword(PasswordValidation.encodePassword(users.getPassword()));
             users.setUsername(users.getUsername());
-            users.setGenders(users.getGenders());
 
             setUserRoles(users);
             handleUserAddressAndPhone(users);
@@ -101,10 +100,8 @@ public class AuthServiceImpl implements UserDetailsManager {
         } catch (IllegalArgumentException | UserAlreadyExistsException e) {
             // Log and handle the specific argument errors
             LOGGER.error("User creation error: {}", e.getMessage());
-            throw e; // Re-throwing to be caught in the controller
         } catch (Exception e) {
             LOGGER.error("Unexpected error during user creation: ", e);
-            throw new RuntimeException("Failed to create user", e);
         }
     }
 

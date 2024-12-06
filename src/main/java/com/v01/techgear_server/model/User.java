@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -13,9 +15,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.v01.techgear_server.enums.AuthProvider;
-import com.v01.techgear_server.enums.UserGenders;
+import com.v01.techgear_server.enums.UserStatus;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -46,7 +47,7 @@ public class User implements UserDetails {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long userId;
+  private UUID userId;
 
   @Column(name = "username")
   private String username;
@@ -54,35 +55,11 @@ public class User implements UserDetails {
   @Column(name = "password")
   private String password;
 
-  @Enumerated(EnumType.STRING)
-  private UserGenders genders;
-
-  @Column(name = "dob")
-  private LocalDateTime dateOfBirth;
-
-  @OneToOne(cascade = CascadeType.ALL)
-  @JoinColumn(name = "image_id")
-  private Image userAvatar;
-
   @Column(name = "email", unique = true)
   private String email;
 
-  @Column(name = "total_reviews")
-  private int totalReviews;
-
-  @Column(name = "account_age")
-  private Long accountAgeDays;
-
   @Enumerated(EnumType.STRING)
   private AuthProvider provider; // for storing data in gg or fb
-
-  @OneToOne(mappedBy = "users", cascade = CascadeType.ALL)
-  private UserPhoneNo phoneNumbers;
-
-  @OneToOne(cascade = CascadeType.ALL)
-  @JoinColumn(name = "address_id", referencedColumnName = "addressId")
-  @JsonManagedReference
-  private UserAddress addresses;
 
   @OneToOne(mappedBy = "users", cascade = CascadeType.ALL)
   private AccountDetails accountDetails;
@@ -98,14 +75,21 @@ public class User implements UserDetails {
   @Column(name = "active")
   private boolean active;
 
+  @Column(name = "login_attempts")
+  private int loginAttempts;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "user_status")
+  private UserStatus userStatus;
+
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    Set<GrantedAuthority> authorities = this.roles.stream()
-        .map(role -> new SimpleGrantedAuthority(role.getRoleType().name()))
+    return this.roles.stream()
+        .flatMap(role -> Stream.concat(
+            Stream.of(new SimpleGrantedAuthority(role.getRoleType().name())),
+            role.getRoleType().getPermissions().stream()
+                .map(permission -> new SimpleGrantedAuthority(permission.name()))))
         .collect(Collectors.toSet());
-    authorities.addAll(this.roles.stream().flatMap(role -> role.getRoleType().getPermissions().stream())
-        .map(permission -> new SimpleGrantedAuthority(permission.name())).collect(Collectors.toSet()));
-    return authorities;
   }
 
   @CreationTimestamp
@@ -143,7 +127,20 @@ public class User implements UserDetails {
 
   @Override
   public boolean isEnabled() {
-    return this.active && this.confirmationTokens != null && this.confirmationTokens.getConfirmedAt() != null;
+    return active &&
+        confirmationTokens != null &&
+        confirmationTokens.getConfirmedAt() != null;
   }
 
+  public int getLoginAttempts() {
+    return loginAttempts;
+  }
+
+  public void incrementLoginAttempts() {
+    this.loginAttempts++;
+  }
+
+  public void resetLoginAttempts() {
+    this.loginAttempts = 0;
+  }
 }

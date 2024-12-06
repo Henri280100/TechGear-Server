@@ -1,5 +1,7 @@
 package com.v01.techgear_server.model;
 
+import java.io.Serializable;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "specification")
-public class ProductSpecification {
+public class ProductSpecification implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long specId;

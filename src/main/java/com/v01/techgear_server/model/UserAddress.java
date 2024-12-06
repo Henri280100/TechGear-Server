@@ -1,5 +1,6 @@
 package com.v01.techgear_server.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -29,7 +30,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "user_address")
-public class UserAddress {
+public class UserAddress implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long addressId;
@@ -61,7 +62,7 @@ public class UserAddress {
 
     @OneToOne(mappedBy = "addresses", cascade = CascadeType.ALL)
     @JsonBackReference
-    private User user;
+    private AccountDetails accountDetails;
 
     @Column(name = "created_at")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")

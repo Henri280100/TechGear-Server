@@ -1,5 +1,6 @@
 package com.v01.techgear_server.model;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.v01.techgear_server.enums.DiscountType;
@@ -29,7 +30,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "discounts")
-public class Discount {
+public class Discount implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long discountId;
