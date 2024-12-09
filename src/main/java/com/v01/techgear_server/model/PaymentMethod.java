@@ -2,7 +2,6 @@ package com.v01.techgear_server.model;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.v01.techgear_server.enums.PaymentStatus;
@@ -36,7 +35,7 @@ public class PaymentMethod implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private UUID id;
+    private Long id;
 
     @Column(nullable = false)
     private String stripePaymentMethodId;

@@ -20,8 +20,11 @@ public class OrderItems implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer orderItemsId;
 
-    private int quantity;
-    private double price;
+    @Column(name="quantity")
+    private Integer quantity;
+    
+    @Column(name="price")
+    private Double price;
 
     @ManyToOne
     @JoinColumn(name = "order_id")

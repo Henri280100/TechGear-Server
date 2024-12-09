@@ -53,7 +53,7 @@ public class RedisConfig extends CachingConfigurerSupport {
     @Lazy
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(60)); // Set TTL of 1 hour
+                .entryTtl(Duration.ofHours(1)); // Set TTL of 1 hour
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(redisCacheConfiguration)
                 .build();

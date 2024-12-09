@@ -1,12 +1,13 @@
 package com.v01.techgear_server.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.*;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Positive;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -20,9 +21,6 @@ public class InvoiceDetailsDTO {
 
     @Schema(description="Invoice associated with the invoice details")
     private InvoiceDTO invoiceDTO;
-
-    @Schema(description="Taxrate associated with the invoice details")
-    private TaxrateDTO taxrateDTO;
 
     @Schema(description="Product associated with the invoice details")
     private ProductDTO productDTO;

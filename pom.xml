@@ -30,7 +30,7 @@
 	<properties>
 		<java.version>21</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
+		<org.mapstruct.version>1.6.3</org.mapstruct.version>
 		<maven.deploy.skip>true</maven.deploy.skip>
 	</properties>
 
@@ -202,6 +202,13 @@
 			<artifactId>modelmapper</artifactId>
 			<version>3.2.1</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${org.mapstruct.version}</version>
+		</dependency>
+
 		<!-- https://mvnrepository.com/artifact/com.cloudinary/cloudinary-http44 -->
 		<dependency>
 			<groupId>com.cloudinary</groupId>
@@ -259,6 +266,12 @@
 			<groupId>com.stripe</groupId>
 			<artifactId>stripe-java</artifactId>
 			<version>28.1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.algolia</groupId>
+			<artifactId>algoliasearch</artifactId>
+			<version>4.5.4</version>
 		</dependency>
 
 		<dependency>
@@ -325,8 +338,15 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>${org.mapstruct.version}</version>
+						</path>
+						<!-- other annotation processors -->
+					</annotationProcessorPaths>
 				</configuration>
-
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -487,11 +507,7 @@
 				<artifactId>zstd-jni</artifactId>
 				<version>1.5.6-4</version>
 			</dependency>
-			<!-- <dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-stream</artifactId>
-				<version>4.1.2</version>
-			</dependency> -->
+
 			<dependency>
 				<groupId>net.java.dev.jna</groupId>
 				<artifactId>jna</artifactId>

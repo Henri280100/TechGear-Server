@@ -3,11 +3,13 @@ package com.v01.techgear_server.dto;
 import java.time.LocalDateTime;
 
 import com.v01.techgear_server.enums.ImageTypes;
-import com.v01.techgear_server.model.Image;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Positive;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -53,50 +55,21 @@ public class ImageDTO {
     @Schema(name = "Image type")
     private ImageTypes imageTypes;
 
-    public static ImageDTO fromEntity(Image entity) {
-        if (entity == null) {
-            return null;
-        }
+    @Schema(description = "Account details associated with the image")
+    private AccountDetailsDTO accountDetailsDTO;
 
-        return ImageDTO.builder()
-                .id(entity.getId())
-                .imageUrl(entity.getImageUrl())
-                .fileName(entity.getFileName())
-                .contentType(entity.getContentType())
-                .data(entity.getData())
-                .fileSize(entity.getFileSize())
-                .width(entity.getWidth())
-                .height(entity.getHeight())
-                .createdAt(entity.getCreatedAt())
-                .lastModifiedAt(entity.getLastModifiedAt())
-                .uploadedBy(entity.getUploadedBy())
-                .imageTypes(entity.getImageTypes())
-                .build();
-    }
+    @Schema(description = "Product associated with the image")
+    private ProductDTO productDTO;
 
-    public Image toEntity() {
-        Image image = new Image();
-        image.setId(this.id);
-        image.setImageUrl(this.imageUrl);
-        image.setFileName(this.fileName);
-        image.setContentType(this.contentType);
-        image.setData(this.data);
-        image.setFileSize(this.fileSize);
-        image.setWidth(this.width);
-        image.setHeight(this.height);
-        image.setCreatedAt(this.createdAt);
-        image.setLastModifiedAt(this.lastModifiedAt);
-        image.setUploadedBy(this.uploadedBy);
-        image.setImageTypes(this.imageTypes);
+    @Schema(description = "Product rating associated with the image")
+    private ProductRatingDTO productRatingDTO;
 
-        return image;
-    }
+    @Schema(description = "Product specification associated with the image")
+    private ProductSpecificationDTO productSpecificationDTO;
 
-    public static ImageDTO fromBytes(byte[] data) {
-        ImageDTO imageDTO = ImageDTO.builder()
-                .data(data)
-                .build();
+    @Schema(description = "Wishlist associated with the image")
+    private WishlistDTO wishlistDTO;
 
-        return imageDTO;
-    }
+    @Schema(description = "Wishlist item associated with the image")
+    private WishlistItemsDTO wishlistItemsDTO;
 }

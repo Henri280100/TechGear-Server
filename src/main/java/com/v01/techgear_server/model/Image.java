@@ -9,13 +9,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import com.v01.techgear_server.enums.ImageTypes;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
@@ -69,5 +63,23 @@ public class Image implements Serializable{
     @Enumerated(EnumType.STRING)
     @Column(name = "image_type")
     private ImageTypes imageTypes;
+
+    @OneToOne(mappedBy="image", cascade = CascadeType.ALL)
+    private AccountDetails accountDetails;
+
+    @OneToOne(mappedBy="image", cascade = CascadeType.ALL)
+    private Product product;
+
+    @OneToOne(mappedBy="image", cascade = CascadeType.ALL)
+    private ProductRating productRating;
+
+    @OneToOne(mappedBy="image", cascade = CascadeType.ALL)
+    private ProductSpecification productSpecification;
+
+    @OneToOne(mappedBy="image", cascade = CascadeType.ALL)
+    private Wishlist wishlist;
+
+    @OneToOne(mappedBy="image", cascade = CascadeType.ALL)
+    private WishlistItems wishlistItems;
 }
 
