@@ -25,12 +25,6 @@ public class ProductRatingDTO {
     @Schema(description = "Rating Date", example = "2021-01-01T00:00:00")
     private LocalDateTime ratingDate;
 
-    @Schema(description = "Review Image")
-    private ImageDTO reviewImage;
-
-    @Schema(description = "Account Details")
-    private AccountDetailsDTO accountDetails;
-
     @Schema(description = "Product")
     private ProductDTO product;
 }

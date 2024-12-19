@@ -1,14 +1,15 @@
 package com.v01.techgear_server.dto;
 
-import java.time.*;
-import java.util.*;
+import java.time.LocalDateTime;
 
 import com.v01.techgear_server.enums.OrderStatus;
 
-import lombok.*;
-import jakarta.persistence.*;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.math.*;
+import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -17,35 +18,16 @@ import java.math.*;
 @Schema(description = "Order DTO")
 public class OrderDTO {
 
-    @Schema(description = "Order ID", example = "123")
+    @Schema(description = "Unique identifier of the order")
+    @Positive(message = "Order ID must be a positive number")
     private Long orderId;
 
-    @Schema(description = "Total amount of the order")
-    private BigDecimal totalAmount;
+    @Schema(description = "Status of the order")
+    private OrderStatus orderStatus;
 
-    @Enumerated(EnumType.STRING)
-    @Schema(description = "Order status")
-    private OrderStatus status;
-
-    @Schema(description = "Order date")
+    @Schema(description = "Date and time when the order was placed")
     private LocalDateTime orderDate;
 
-    @Schema(description = "Order items associated with the order")
-    private List<OrderItemsDTO> orderItems;
-
-    @Schema(description = "Payment associated with the order")
-    private PaymentDTO payment;
-
-    @Schema(description = "Shipper associated with the order")
-    private ShipperDTO shipper;
-
-    @Schema(description = "Shipping details associated with the order")
-    private ShippingDetailsDTO shippingDetail;
-
-    @Schema(description = "Invoice associated with the order")
-    private InvoiceDTO invoice;
-
-    @Schema(description = "Account details associated with the order")
+    @Schema(description = "Details of the account associated with the order")
     private AccountDetailsDTO accountDetails;
-
 }

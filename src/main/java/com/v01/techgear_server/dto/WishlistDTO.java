@@ -1,9 +1,12 @@
 package com.v01.techgear_server.dto;
-import java.time.*;
-import java.util.*;
-import lombok.*;
-import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -30,15 +33,9 @@ public class WishlistDTO {
     @Schema(description = "Priority of the wishlist")
     private Integer priority;
 
-    @Schema(description = "Image associated with the wishlist")
-    private ImageDTO wishlistImage;
-
     @Schema(description = "Notify sale")
     private boolean notifySale;
 
     @Schema(description = "Wishlist items DTO")
     private List<WishlistItemsDTO> items;
-
-    @Schema(description = "Account details associated with the wishlist")
-    private AccountDetailsDTO accountDetails;
 }

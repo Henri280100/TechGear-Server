@@ -68,7 +68,6 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
     @Qualifier("jwtRefreshTokenAuthProvider")
-    @Autowired
     JwtAuthenticationProvider refreshTokenAuthProvider;
 
     private final UserDetailsManager userDetailsManager;
@@ -92,7 +91,7 @@ public class AuthController {
     public ResponseEntity<ApiResponseDTO<User>> userRegistration(
             @Parameter(description = "User  details in JSON Format", required = true) @RequestPart("user") String userJson,
             @Parameter(description = "User  avatar file", required = true) @RequestPart(value = "userAvatar") MultipartFile userAvatar)
-            throws JsonMappingException, JsonProcessingException {
+            throws  JsonProcessingException {
 
         // Deserialize the JSON string to a User object
         User user;
@@ -315,8 +314,7 @@ public class AuthController {
     private TokenDTO generateAndStoreToken(Authentication authentication, HttpServletResponse response, User user) {
         TokenDTO token = tokenGenerator.generateTokens(authentication);
         setRefreshTokenCookie(response, token);
-        // Uncomment if needed: customTokenService.storeTokens(user.getUser Id(),
-        // token);
+        
         return token;
     }
 
@@ -359,7 +357,7 @@ public class AuthController {
                     ApiResponseBuilder.createSuccessResponse(newPassword, ApiResponseStatus.UPDATE_PASSWORD_SUCCESS));
 
         } catch (Exception e) {
-            LOGGER.error("Failed to update password", e.getMessage(), e);
+            LOGGER.error("Failed to update password", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponseBuilder.createErrorResponse(ApiResponseStatus.ERROR_UPDATING_PASSWORD));
         }
@@ -371,7 +369,7 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "Password reset token sent to the email", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json"))
     })
-    public ResponseEntity<?> forgotPassword(
+    public ResponseEntity<String> forgotPassword(
             @Parameter(description = "Email of the user", required = true) @RequestParam("email") String email) {
         // Find the user by email
         User user = userDetailsServiceImpl.findUserByEmail(email);

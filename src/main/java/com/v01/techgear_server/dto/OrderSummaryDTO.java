@@ -16,37 +16,18 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class OrderSummaryDTO {
 
-    @Schema(description = "Order Summary ID")
+    @Schema(description = "Unique identifier of the order summary", example = "1")
     private Long orderSummaryId;
 
-    @Schema(description = "Sub total")
-    private BigDecimal subTotal;
-
-    @Schema(description = "Shipping cost")
-    private BigDecimal shippingCost;
-
-    @Schema(description = "Total amount")
+    @Schema(description = "Total amount of the order", example = "110.00")
     private BigDecimal totalAmount;
 
-    @Schema(description = "Order date")
+    @Schema(description = "Date and time when the order was placed", example = "2023-10-01T12:00:00")
     private LocalDateTime orderDate;
 
-    @Schema(description = "Order status")
+    @Schema(description = "Current status of the order", example = "PENDING")
     private OrderStatus orderStatus;
 
-    @Schema(description = "Notes")
-    private String notes;
-
-    @Schema(description = "Currency")
+    @Schema(description = "Currency used for the order", example = "USD")
     private String currency;
-
-    @Schema(description = "Created at")
-    private LocalDateTime createdAt;
-
-    @Schema(description = "Updated at")
-    private LocalDateTime updatedAt;
-
-    @Schema(description = "Account details associated with the order summary")
-    private AccountDetailsDTO accountDetails;
-
 }

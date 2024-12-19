@@ -22,54 +22,25 @@ public class ImageDTO {
     @Positive(message = "Image ID must be a positive number")
     private Long id;
 
-    @Schema(description = "Image URL", example = "https://example.com/image.jpg")
+    @Schema(description = "Image URL")
     private String imageUrl;
 
-    @Schema(description = "Image file name")
+    @Schema(description = "Image display name")
     private String fileName;
 
-    @Schema(description = "Image content type")
-    private String contentType;
+    @Schema(description = "Image type")
+    private ImageTypes imageType;
 
-    @Schema(description = "Image data")
-    private byte[] data;
+    @Schema(description = "Image dimensions")
+    private ImageDimensions dimensions;
 
-    @Schema(description = "Image file size")
-    private Long fileSize;
+    @Data
+    @Builder
+    public static class ImageDimensions {
+        private Integer width;
+        private Integer height;
+    }
 
-    @Schema(description = "Image width")
-    private Integer width;
-
-    @Schema(description = "Image height")
-    private Integer height;
-
-    @Schema(description = "Image creation timestamp")
+    @Schema(description = "Creation timestamp")
     private LocalDateTime createdAt;
-
-    @Schema(description = "Image last modified timestamp")
-    private LocalDateTime lastModifiedAt;
-
-    @Schema(description = "Image uploaded by")
-    private String uploadedBy;
-
-    @Schema(name = "Image type")
-    private ImageTypes imageTypes;
-
-    @Schema(description = "Account details associated with the image")
-    private AccountDetailsDTO accountDetailsDTO;
-
-    @Schema(description = "Product associated with the image")
-    private ProductDTO productDTO;
-
-    @Schema(description = "Product rating associated with the image")
-    private ProductRatingDTO productRatingDTO;
-
-    @Schema(description = "Product specification associated with the image")
-    private ProductSpecificationDTO productSpecificationDTO;
-
-    @Schema(description = "Wishlist associated with the image")
-    private WishlistDTO wishlistDTO;
-
-    @Schema(description = "Wishlist item associated with the image")
-    private WishlistItemsDTO wishlistItemsDTO;
 }

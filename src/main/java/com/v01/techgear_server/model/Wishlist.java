@@ -35,6 +35,7 @@ public class Wishlist implements Serializable{
     private Integer priority;
 
     @Column(name="wishlist_image")
+    @JoinColumn(name="image_id")
     private Image wishlistImage;
 
     @Column(name="notification")

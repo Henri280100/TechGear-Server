@@ -2,7 +2,6 @@ package com.v01.techgear_server.security;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.stream.Collectors;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -36,6 +35,8 @@ public class TokenGenerator {
     private static final String ISSUER = "techgear_server";
     private static final long ACCESS_TOKEN_EXPIRY_MINUTES = 15;
     private static final long REFRESH_TOKEN_EXPIRY_DAYS = 7;
+
+    //Store
 
     public TokenDTO generateTokens(Authentication authentication) {
         try {
@@ -91,7 +92,7 @@ public class TokenGenerator {
                 .claim("type", "access_token")
                 .claim("authorities", authentication.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList()))
+                        .toList())
                 .build();
 
         return accessTokenEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();

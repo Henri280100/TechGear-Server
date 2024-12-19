@@ -6,6 +6,5 @@ import com.v01.techgear_server.enums.Roles;
 @lombok.AllArgsConstructor
 @lombok.NoArgsConstructor
 public class RoleDTO {
-    private Integer id;
     private Roles roles;
 }

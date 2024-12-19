@@ -19,7 +19,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Schema(description = "Payment Data Transfer Object")
 public class PaymentDTO {
-
     @Schema(description = "Payment ID", example = "123")
     private Long paymentId;
 

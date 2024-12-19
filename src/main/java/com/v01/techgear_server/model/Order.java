@@ -27,7 +27,7 @@ public class Order implements Serializable {
     private BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    private OrderStatus orderStatus;
 
     @Column(nullable = false)
     private LocalDateTime orderDate;

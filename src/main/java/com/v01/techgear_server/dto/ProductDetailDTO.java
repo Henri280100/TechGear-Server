@@ -1,9 +1,8 @@
 package com.v01.techgear_server.dto;
 
-import java.util.*;
+import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,28 +13,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDetailDTO {
-    @Schema(description = "Product detail ID", example = "1")
-    @Positive(message = "Product detail ID must be a positive number")
+    @Schema(description = "Public product detail identifier")
     private Long id;
-    
-    @Schema(description = "Warranty")
+
+    @Schema(description = "Warranty details")
     private String warranty;
-    
-    @Schema(description = "Voucher code")
-    private String voucherCode;
-    
-    @Schema(description = "Technical specifications")
-    private String technicalSpecifications;
-    
-    @Schema(description = "Description")
+
+    @Schema(description = "Product description")
     private String description;
-    
-    @Schema(description = "Product")
+
+    @Schema(description = "Technical specifications")
+    private String technicalSpecs;
+
+    @Schema(description = "Product reference")
     private ProductDTO product;
-    
-    @Schema(description = "Invoice details")
-    private List<InvoiceDetailsDTO> invoiceDetails;
-    
-    @Schema(description = "Product specifications")
-    private List<ProductSpecificationDTO> specifications;
+
+    @Schema(description = "Key specifications")
+    private List<String> specifications;
 }

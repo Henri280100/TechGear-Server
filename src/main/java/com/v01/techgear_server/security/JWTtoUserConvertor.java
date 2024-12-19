@@ -39,7 +39,7 @@ public class JWTtoUserConvertor implements Converter<Jwt, UsernamePasswordAuthen
         // Convert roles to GrantedAuthority objects
         Collection<? extends GrantedAuthority> authorities = roles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.toUpperCase()))
-                .collect(Collectors.toList());
+                .toList();
 
         log.info("Authorize: {}", authorities);
         // Create the Authentication object with roles/authorities
@@ -54,7 +54,7 @@ public class JWTtoUserConvertor implements Converter<Jwt, UsernamePasswordAuthen
         if (authoritiesClaim instanceof Collection) {
             return ((Collection<?>) authoritiesClaim).stream()
                     .map(Object::toString)
-                    .collect(Collectors.toList());
+                    .toList();
         } else {
             // Handle cases where "authorities" is not a collection (log a warning?)
             return Collections.emptyList();

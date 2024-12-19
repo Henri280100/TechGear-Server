@@ -28,10 +28,10 @@ public class OrderItemsDTO {
     private Double unitPrice;
 
     @Schema(description = "Order associated with the Order item")
-    private OrderDTO orderDTO;
+    private Integer orderId;
 
     @Schema(description = "Product associated with the Order item")
-    private ProductDTO productDTO;
+    private Integer productId;
 
     @Schema(description="Order item status")
     @Enumerated(EnumType.STRING)

@@ -100,11 +100,23 @@ public class AuthServiceImpl implements UserDetailsManager {
         } catch (IllegalArgumentException | UserAlreadyExistsException e) {
             // Log and handle the specific argument errors
             LOGGER.error("User creation error: {}", e.getMessage());
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // Preserve interrupt status
             LOGGER.error("Unexpected error during user creation: ", e);
+        } catch (ExecutionException e) {
+            LOGGER.error("Execution error: ", e);
         }
     }
 
+    /**
+     * Stores a unique authentication code for the given user in the cache.
+     * The code is generated using the {@link #generateAuthCode(User)} method.
+     * The code is associated with the user's username and stored in the cache with a specified expiration time.
+     * If the cache reaches the maximum number of entries, the least recently used entry is evicted using the
+     * {@link CacheEvictionService#evictLRU(String, int)} method.
+     *
+     * @param user The user for whom the authentication code is being stored.
+     */
     private void storeAuthCode(User user) {
         String authCode = generateAuthCode(user);
         cacheService.hashPut(AUTH_CODES_HASH, user.getUsername(), authCode);
@@ -112,6 +124,15 @@ public class AuthServiceImpl implements UserDetailsManager {
         cacheEvictionService.evictLRU(AUTH_CODES_HASH, MAX_AUTH_CODES);
     }
 
+
+    /**
+     * Generates a unique authentication code for the given user.
+     * The code is generated using the SHA-256 hashing algorithm.
+     * If SHA-256 is not available, the code falls back to a UUID.
+     *
+     * @param user The user for whom the authentication code is being generated.
+     * @return A unique authentication code as a string.
+     */
     private String generateAuthCode(User user) {
         String baseString = user.getUsername() + user.getEmail() + System.currentTimeMillis();
         try {
@@ -135,6 +156,7 @@ public class AuthServiceImpl implements UserDetailsManager {
             return UUID.randomUUID().toString();
         }
     }
+
 
     private void setUserRoles(User user) {
         Set<Role> roles = assignRoles(user);

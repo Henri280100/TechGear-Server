@@ -10,46 +10,49 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * User Data Transfer Object
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "User Data Transfer Object")
 public class UserAddressDTO {
-    @Schema(description = "User Address ID", example = "123")
+
+    @Schema(description = "Unique identifier of the address", example = "1")
     private Long addressId;
 
-    @Schema(description = "Address Line 1", example = "123 Main Street")
+    @Schema(description = "First line of the address", example = "123 Main St")
     private String addressLineOne;
 
-    @Schema(description = "Address Line 2", example = "Apt 4B")
+    @Schema(description = "Second line of the address", example = "Apt 4B")
     private String addressLineTwo;
 
-    @Schema(description = "City", example = "New York")
+    @Schema(description = "City of the address", example = "New York")
     private String city;
 
-    @Schema(description = "State/Province", example = "NY")
+    @Schema(description = "State or province of the address", example = "NY")
     private String stateProvince;
 
-    @Schema(description = "Zip/Postal Code", example = "10001")
+    @Schema(description = "ZIP or postal code of the address", example = "10001")
     private String zipPostalCode;
 
-    @Schema(description = "Country", example = "USA")
+    @Schema(description = "Country of the address", example = "USA")
     private String country;
 
-    @Schema(description = "Address Type", example = "HOME")
+    @Schema(description = "Type of the address", example = "HOME")
     private AddressTypes type;
 
-    @Schema(description = "Is Address Primary", example = "true")
+    @Schema(description = "Indicates if this is the primary address", example = "true")
     private boolean primaryAddress;
 
     @Schema(description = "Account details associated with the address")
     private AccountDetailsDTO accountDetails;
 
-    @Schema(description = "Creation Timestamp")
+    @Schema(description = "Timestamp when the address was created", example = "2023-01-01T12:00:00")
     private LocalDateTime createdAt;
 
-    @Schema(description = "Last Update Timestamp")
+    @Schema(description = "Timestamp when the address was last updated", example = "2023-01-02T12:00:00")
     private LocalDateTime updatedAt;
-
 }

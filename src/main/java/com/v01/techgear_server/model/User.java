@@ -92,12 +92,12 @@ public class User implements UserDetails {
   }
 
   @CreationTimestamp
-  @Column(updatable = false, name = "created_at")
-  private LocalDateTime createdAt;
+  @Column(updatable = false, name = "createdDate")
+  private LocalDateTime createdDate;
 
   @UpdateTimestamp
-  @Column(updatable = false, name = "updated_at")
-  private LocalDateTime updatedAt;
+  @Column(name = "updatedDate")
+  private LocalDateTime updatedDate;
 
   @Override
   public String getPassword() {

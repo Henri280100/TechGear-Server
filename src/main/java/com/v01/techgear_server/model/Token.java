@@ -29,15 +29,21 @@ public class Token {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long tokenId;
 
-    @Column(name = "userId")
+    @Column(name = "userId", nullable = false)
     private Long userId;
 
-    @Column(name = "accessToken", length = 1000)
+    @Column(name = "accessToken", length = 1000, nullable = false)
     private String accessToken;
-    @Column(name = "refreshToken", length = 1000)
+
+    @Column(name = "refreshToken", length = 1000, nullable = false)
     private String refreshToken;
+
+    @Column(nullable = false)
     private boolean revoked;
 
+    @Column(nullable = false)
     private Instant createdAt;
+
+    @Column(nullable = false)
     private Instant expiresAt;
 }

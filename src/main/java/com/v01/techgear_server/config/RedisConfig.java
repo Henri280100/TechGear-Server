@@ -18,6 +18,7 @@ import org.springframework.data.redis.connection.lettuce.LettucePoolingClientCon
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 
 @SuppressWarnings("deprecation")
 @EnableCaching
@@ -51,10 +52,13 @@ public class RedisConfig extends CachingConfigurerSupport {
 
     @Bean
     @Lazy
-    public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
+    public CacheManager cacheManager(RedisTemplate<String, Object> redisTemplate) {
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(1)); // Set TTL of 1 hour
-        return RedisCacheManager.builder(redisConnectionFactory)
+                .entryTtl(Duration.ofHours(1))
+                .serializeValuesWith(SerializationPair.fromSerializer(redisTemplate.getValueSerializer())); // Set TTL
+                                                                                                            // of 1 hour
+
+        return RedisCacheManager.builder(redisTemplate.getConnectionFactory())
                 .cacheDefaults(redisCacheConfiguration)
                 .build();
     }

@@ -173,7 +173,7 @@ public class TokenServiceImpl implements TokenService {
             log.info("New tokens stored for user: {}", userId);
         } catch (Exception e) {
             log.error("Error storing tokens: {}", e.getMessage());
-            throw new RuntimeException("Failed to store tokens", e);
+            throw new IllegalArgumentException("Failed to store tokens", e);
         }
     }
 

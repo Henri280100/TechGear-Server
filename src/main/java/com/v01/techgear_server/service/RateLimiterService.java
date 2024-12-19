@@ -13,12 +13,13 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class RateLimiterService {
-    @Autowired
     private StringRedisTemplate redisTemplate;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
     private static final int MAX_REQUESTS = 100;

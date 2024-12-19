@@ -1,4 +1,4 @@
-package com.v01.techgear_server.controller;
+package com.v01.techgear_server.event;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

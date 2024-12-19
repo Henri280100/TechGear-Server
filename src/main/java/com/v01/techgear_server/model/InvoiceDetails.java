@@ -20,17 +20,17 @@ public class InvoiceDetails implements Serializable {
     private Integer invoiceDetailsId;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name="invoice_id")
+    @JoinColumn(name="invoiceId")
     private Invoice invoice;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch=FetchType.LAZY)
-    @JoinColumn(name="product_id")
+    @JoinColumn(name="productId")
     private Product product;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch=FetchType.LAZY)
-    @JoinColumn(name="discount_id")
+    @JoinColumn(name="discountId")
     private Discount discount;
 
-    @Column(name="line_total", columnDefinition = "DECIMAL(10,2)")
+    @Column(name="lineTotal", columnDefinition = "DECIMAL(10,2)")
     private BigDecimal lineTotal;
 }

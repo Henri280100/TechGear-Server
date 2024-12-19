@@ -1,7 +1,5 @@
 package com.v01.techgear_server.dto;
 
-import java.util.List;
-
 import com.v01.techgear_server.enums.DiscountType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,29 +27,14 @@ public class DiscountDTO {
     private String discountName;
 
     @Schema(description = "Is discount active", example = "true")
-    private String isDiscountActive;
+    private Boolean isDiscountActive;
 
     @Schema(description = "Discount type", example = "PERCENTAGE")
     private DiscountType discountType;
-
-    @Schema(description = "Discount description", example = "Summer 2022 Discount description")
-    private String discountDescription;
-
-    @Schema(description = "Discount status", example = "ACTIVE")
-    private String discountStatus;
-
-    @Schema(description = "Discount limit", example = "100")
-    private Integer discountLimit;
 
     @Schema(description = "Start date of the discount", example = "2022-05-01")
     private String startDate;
 
     @Schema(description = "Expiry date of the discount", example = "2022-08-31")
     private String expiryDate;
-
-    @Schema(description = "Products associated with the discount")
-    private List<ProductDTO> products;
-
-    @Schema(description = "Invoice details associated with the discount")
-    private List<InvoiceDetailsDTO> invoiceDetails;
 }
