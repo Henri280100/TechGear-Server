@@ -39,6 +39,10 @@ public class ShipperRating implements Serializable {
     private LocalDateTime ratingDateTime;
 
     @ManyToOne
+    @JoinColumn(name = "shipper_id")
+    private transient Shipper shipper;
+
+    @ManyToOne
     @JoinColumn(name = "accountDetailsId")
     private AccountDetails accountDetails;
 }

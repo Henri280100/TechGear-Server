@@ -22,4 +22,7 @@ public class Shipper {
 
     @OneToMany(mappedBy = "shipper", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Order> orders = new ArrayList<>();
+
+    @OneToMany(mappedBy = "shipper", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<ShipperRating> shipperRatings = new ArrayList<>();
 }

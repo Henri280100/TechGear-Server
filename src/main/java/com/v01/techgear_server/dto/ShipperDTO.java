@@ -17,6 +17,9 @@ public class ShipperDTO {
     @Schema(description = "Shipper Name", example = "UPS")
     private String shipperName;
 
+    @Schema(description="Shipper rating", example = "4.5")
+    private List<ShipperRatingDTO> shipperRatings;
+
     @Schema(description = "List of Orders")
     private List<OrderDTO> orders;
 }

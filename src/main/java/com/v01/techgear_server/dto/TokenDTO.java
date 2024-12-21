@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import com.v01.techgear_server.enums.TokenTypes;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Data
@@ -19,7 +22,7 @@ public class TokenDTO {
     private String refreshToken;
 
     @Schema(description = "Token type", example = "Bearer")
-    private String tokenType;
+    private TokenTypes tokenType;
 
     @Schema(description = "Expiration time in seconds", example = "3600")
     private long expiresIn;

@@ -24,6 +24,9 @@ public class ShipperRatingDTO {
     @Schema(description = "Rating Date", example = "2021-01-01T00:00:00")
     private LocalDateTime ratingDateTime;
 
+    @Schema(description = "Shipper")
+    private ShipperDTO shipper;
+
     @Schema(description = "Account Details")
     private AccountDetailsDTO accountDetails;
 }

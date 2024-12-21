@@ -38,6 +38,9 @@ public class PaymentDTO {
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
 
+    @Schema(description = "Payment method")
+    private PaymentMethodDTO paymentMethod;
+
     @Schema(description = "Account details associated with the payment")
     private AccountDetailsDTO accountDetails;
 

@@ -91,7 +91,7 @@ public class AuthController {
     public ResponseEntity<ApiResponseDTO<User>> userRegistration(
             @Parameter(description = "User  details in JSON Format", required = true) @RequestPart("user") String userJson,
             @Parameter(description = "User  avatar file", required = true) @RequestPart(value = "userAvatar") MultipartFile userAvatar)
-            throws  JsonProcessingException {
+            throws JsonProcessingException {
 
         // Deserialize the JSON string to a User object
         User user;
@@ -156,7 +156,9 @@ public class AuthController {
             String verificationResult = emailService.verifyEmail(token);
 
             // Log successful verification with masked token
-            LOGGER.info("Email verification successful for token: {}", maskToken(token));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Email verification successful for token: {}", maskToken(token));
+            }
 
             // Return successful response
             return ResponseEntity.status(HttpStatus.CREATED)
@@ -314,7 +316,7 @@ public class AuthController {
     private TokenDTO generateAndStoreToken(Authentication authentication, HttpServletResponse response, User user) {
         TokenDTO token = tokenGenerator.generateTokens(authentication);
         setRefreshTokenCookie(response, token);
-        
+
         return token;
     }
 
@@ -369,12 +371,12 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "Password reset token sent to the email", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json"))
     })
-    public ResponseEntity<String> forgotPassword(
+    public ResponseEntity<ApiResponseDTO<String>> forgotPassword(
             @Parameter(description = "Email of the user", required = true) @RequestParam("email") String email) {
         // Find the user by email
         User user = userDetailsServiceImpl.findUserByEmail(email);
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseStatus.INVALID_EMAIL);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseBuilder.createErrorResponse(ApiResponseStatus.EMAIL_NOT_FOUND));
         }
 
         // Generate the password reset token
@@ -386,7 +388,7 @@ public class AuthController {
         // Send email with the reset token (link to reset password)
         emailService.sendResetTokenEmail(user.getEmail(), token);
 
-        return ResponseEntity.ok("Password reset token sent to your email.");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseBuilder.createSuccessResponse(token, ApiResponseStatus.PASSWORD_RESET_SENT_EMAIL));
     }
 
     @PostMapping("/reset-password")
@@ -398,18 +400,18 @@ public class AuthController {
     public ResponseEntity<ApiResponseDTO<String>> resetPassword(
             @Parameter(description = "Password reset token", required = true) @RequestParam("token") String token,
             @RequestParam("newPassword") String newPassword) {
-        // Verify if the token is valid and not expired
+        // Validate the password reset token
         PasswordResetToken passwordResetToken = userDetailsServiceImpl.validatePasswordResetToken(token);
         if (passwordResetToken == null || passwordResetToken.isExpired()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponseBuilder.createErrorResponse(ApiResponseStatus.INVALID_CREDENTIALS));
+                .body(ApiResponseBuilder.createErrorResponse(ApiResponseStatus.INVALID_CREDENTIALS));
         }
 
-        // Reset the user's password
+        // Update the user's password
         userDetailsServiceImpl.updateUserPassword(passwordResetToken.getUser(), newPassword);
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(ApiResponseBuilder.createSuccessResponse(newPassword, ApiResponseStatus.RESET_PASSWORD_SUCCESS));
+        return ResponseEntity.ok(
+            ApiResponseBuilder.createSuccessResponse(newPassword, ApiResponseStatus.RESET_PASSWORD_SUCCESS));
     }
 
     @PostMapping("/token")

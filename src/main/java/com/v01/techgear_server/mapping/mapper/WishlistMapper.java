@@ -5,20 +5,16 @@ import java.util.List;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.v01.techgear_server.dto.WishlistDTO;
-import com.v01.techgear_server.dto.WishlistItemsDTO;
 import com.v01.techgear_server.model.Wishlist;
-import com.v01.techgear_server.model.WishlistItems;
 import com.v01.techgear_server.utils.BaseMapper;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE, uses = {
-        ImageMapper.class,
         WishlistItemsMapper.class,
-        AccountDetailsMapper.class
+        ImageMapper.class
 }, nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT, nullValueMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
 public interface WishlistMapper extends BaseMapper<Wishlist, WishlistDTO> {
     // Override and customize base methods with specific mappings
@@ -31,8 +27,7 @@ public interface WishlistMapper extends BaseMapper<Wishlist, WishlistDTO> {
     @Mapping(target = "priority", source = "priority")
     @Mapping(target = "wishlistImage", source = "wishlistImage")
     @Mapping(target = "notifySale", source = "notifySale")
-    @Mapping(target = "items", source = "items", qualifiedByName = "mapWishlistItems")
-    @Mapping(target = "accountDetails", source = "accountDetails")
+    @Mapping(target = "items", source = "items", qualifiedByName = "toWishlistItemsDTO")
     WishlistDTO toDTO(Wishlist wishlist);
 
     @Override
@@ -44,8 +39,7 @@ public interface WishlistMapper extends BaseMapper<Wishlist, WishlistDTO> {
     @Mapping(target = "priority", source = "priority")
     @Mapping(target = "wishlistImage", source = "wishlistImage")
     @Mapping(target = "notifySale", source = "notifySale")
-    @Mapping(target = "items", source = "items", qualifiedByName = "mapWishlistItems")
-    @Mapping(target = "accountDetails", source = "accountDetails")
+    @Mapping(target = "items", source = "items", qualifiedByName = "toWishlistItems")
     Wishlist toEntity(WishlistDTO wishlistDTO);
 
     // Default implementation for bulk mapping methods
@@ -68,19 +62,5 @@ public interface WishlistMapper extends BaseMapper<Wishlist, WishlistDTO> {
                 .map(this::toEntity)
                 .toList();
     }
-
-    // Named method for complex item mapping
-    @Named("mapWishlistItems")
-    default List<WishlistItemsDTO> mapWishlistItems(List<WishlistItems> items) {
-        if (items == null) {
-            return Collections.emptyList();
-        }
-        return items.stream()
-                .map(this::mapWishlistItem)
-                .toList();
-    }
-
-    // Custom item mapping method
-    WishlistItemsDTO mapWishlistItem(WishlistItems item);
 
 }

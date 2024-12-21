@@ -34,24 +34,35 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
     private final Cloudinary cloudinary;
     private static final String CLOUDINARY_FOLDER = "techgear";
     private final UserRepository userRepository;
-
+    private static final String PUBLIC_ID = "public_id";
+    private static final String SECURE_URL = "secure_url";
+    private static final String FOLDER = "folder";
+    private static final String RESOURCE_TYPE = "resource_type";
+    private static final String QUALITY = "quality";
+    private static final String FETCH_FORMAT = "fetch_format";
+    private static final String WIDTH = "width";
+    private static final String HEIGHT = "height";
+    private static final String CROP = "crop";
+    private static final String LIMIT = "limit";
+    private static final String AUTO_QUALITY = "auto:good";
 
     @Override
     public CompletableFuture<ImageDTO> updateUserImage(Long userId, MultipartFile newImageFile, UserDTO userDTO)
             throws IOException {
         return CompletableFuture.supplyAsync(() -> {
             User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User  with ID " + userId + " not found"));
+                    .orElseThrow(() -> new UserNotFoundException("User  with ID " + userId + " not found"));
 
-        try {
-            // Upload the new image file
-            ImageDTO newImageDTO = uploadSingleImage(newImageFile, userDTO).join(); // Using join to wait for the upload result
+            try {
+                // Upload the new image file
+                ImageDTO newImageDTO = uploadSingleImage(newImageFile, userDTO).join(); // Using join to wait for the
+                                                                                        // upload result
 
-            // Update the user's avatar
-            user.setUserAvatar(newImageDTO.toEntity());
-            userRepository.save(user); // Save the updated user
+                // Update the user's avatar
+                user.setUserAvatar(newImageDTO.toEntity());
+                userRepository.save(user); // Save the updated user
 
-            return newImageDTO; // Return the new ImageDTO
+                return newImageDTO; // Return the new ImageDTO
             } catch (IOException e) {
                 throw new RuntimeException("Unexpected error while updating user's image");
             }
@@ -67,33 +78,26 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
 
                 @SuppressWarnings("unchecked")
                 Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                        ObjectUtils.asMap("folder", CLOUDINARY_FOLDER,
-                                "resource_type", "image",
-                                "quality", "auto:good", // Auto quality based on eco mode
-                                "fetch_format", "auto", // Automatically optimize the image format
-                                "width", 1024, // Resize image to have a max width of 1024px
-                                "crop", "limit" // Limit cropping to avoid exceeding width
+                        ObjectUtils.asMap(FOLDER, CLOUDINARY_FOLDER,
+                                RESOURCE_TYPE, "image",
+                                QUALITY, AUTO_QUALITY, // Auto quality based on eco mode
+                                FETCH_FORMAT, "auto", // Automatically optimize the image format
+                                WIDTH, 1024, // Resize image to have a max width of 1024px
+                                CROP, LIMIT // Limit cropping to avoid exceeding width
                 ));
 
-                String url = (String) uploadResult.get("url");
-                String publicId = (String) uploadResult.get("public_id");
-                String contentType = file.getContentType();
-                Long fileSize = file.getSize();
-                Integer width = (Integer) uploadResult.get("width");
-                Integer height = (Integer) uploadResult.get("height");
+                String url = (String) uploadResult.get(SECURE_URL);
+                String publicId = (String) uploadResult.get(PUBLIC_ID);
+                Integer width = (Integer) uploadResult.get(WIDTH);
+                Integer height = (Integer) uploadResult.get(HEIGHT);
 
                 ImageDTO imageDTO = new ImageDTO();
                 imageDTO.setFileName(publicId);
-                imageDTO.setContentType(contentType);
                 imageDTO.setImageUrl(url); // Set the image URL
-                imageDTO.setData(url.getBytes()); // Store URL as bytes if needed
-                imageDTO.setFileSize(fileSize);
-                imageDTO.setWidth(width);
-                imageDTO.setHeight(height);
+                imageDTO.setDimensions(new ImageDTO.ImageDimensions(width, height));
                 imageDTO.setCreatedAt(LocalDateTime.now()); // Set creation timestamp
-                imageDTO.setUploadedBy(userDTO.getUsername()); // Set the uploader, replace with actual user if
-                                                               // available
-                imageDTO.setImageTypes(ImageTypes.GENERIC);
+
+                imageDTO.setImageType(ImageTypes.GENERIC);
 
                 return imageDTO;
             } catch (Exception e) {
@@ -113,7 +117,7 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
             // Validate and filter non-empty files
             List<MultipartFile> validFiles = files.stream()
                     .filter(file -> !file.isEmpty())
-                    .collect(Collectors.toList());
+                    .toList();
 
             if (validFiles.isEmpty()) {
                 throw new IllegalArgumentException("No valid files to upload");
@@ -126,33 +130,26 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
                     // Upload image to Cloudinary
                     Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
                             ObjectUtils.asMap(
-                                    "folder", CLOUDINARY_FOLDER,
-                                    "resource_type", "image",
-                                    "quality", "auto:good", // Auto quality
-                                    "fetch_format", "auto", // Auto format
-                                    "width", 1024, // Resize width
-                                    "crop", "limit" // Crop limit
+                                    RESOURCE_TYPE, "image",
+                                    QUALITY, AUTO_QUALITY, // Auto quality based on eco mode
+                                    FETCH_FORMAT, "auto", // Automatically optimize the image format
+                                    WIDTH, 1024, // Resize image to have a max width of 1024px
+                                    CROP, LIMIT // Limit cropping to avoid exceeding width
                     ));
 
-                    String url = (String) uploadResult.get("url");
-                    String publicId = (String) uploadResult.get("public_id");
-                    String contentType = file.getContentType();
-                    Long fileSize = file.getSize();
-                    Integer width = (Integer) uploadResult.get("width");
-                    Integer height = (Integer) uploadResult.get("height");
+                    String url = (String) uploadResult.get(SECURE_URL);
+                    String publicId = (String) uploadResult.get(PUBLIC_ID);
+                    Integer width = (Integer) uploadResult.get(WIDTH);
+                    Integer height = (Integer) uploadResult.get(HEIGHT);
 
                     ImageDTO imageDTO = new ImageDTO();
                     imageDTO.setFileName(publicId);
-                    imageDTO.setContentType(contentType);
                     imageDTO.setImageUrl(url); // Set the image URL
-                    imageDTO.setData(url.getBytes()); // Store URL as bytes if needed
-                    imageDTO.setFileSize(fileSize);
-                    imageDTO.setWidth(width);
-                    imageDTO.setHeight(height);
+                    
+                    imageDTO.setDimensions(new ImageDTO.ImageDimensions(width, height));
                     imageDTO.setCreatedAt(LocalDateTime.now()); // Set creation timestamp
-                    imageDTO.setUploadedBy(userDTO.getUsername()); // Set the uploader, replace with actual user if
-                                                                   // available
-                    imageDTO.setImageTypes(ImageTypes.GENERIC);
+                    
+                    imageDTO.setImageType(ImageTypes.GENERIC);
                     // Add the uploaded image to the list
                     uploadedImages.add(imageDTO);
                 }
@@ -174,21 +171,14 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
             @SuppressWarnings("unchecked")
             Map<String, Object> uploadResult = cloudinary.uploader().upload(mediaFile.getBytes(),
                     ObjectUtils.asMap(
-                            "folder", CLOUDINARY_FOLDER,
-                            "resource_type", "video", // Auto-detect resource type (image, video, etc.)
-                            "quality", "auto:best", // Auto quality based on optimization
-                            "fetch_format", "auto" // Automatically optimize the format
-                    // "transformation", ObjectUtils.asMap(
-                    // "quality", "auto", // Adaptive quality
-                    // "fetch_format", "auto", // Adaptive format
-                    // "video_codec", "auto", // Adaptive video codec
-                    // "audio_codec", "best" // Adaptive audio codec
-                    // )
+                            FOLDER, CLOUDINARY_FOLDER,
+                            RESOURCE_TYPE, "video", // Auto-detect resource type (image, video, etc.)
+                            QUALITY, AUTO_QUALITY, // Auto quality based on optimization
+                            FETCH_FORMAT, "auto" // Automatically optimize the format
 
                     ));
-
-            String url = (String) uploadResult.get("secure_url"); // Use secure URL
-            String publicId = (String) uploadResult.get("public_id");
+            String url = (String) uploadResult.get(SECURE_URL); // Use secure URL
+            String publicId = (String) uploadResult.get(PUBLIC_ID);
             String contentType = mediaFile.getContentType();
 
             // Create Media object
@@ -213,7 +203,7 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
         // Validate and filter non-empty files
         List<MultipartFile> validFiles = mediaFile.stream()
                 .filter(file -> !file.isEmpty())
-                .collect(Collectors.toList());
+                .toList();
 
         if (validFiles.isEmpty()) {
             throw new IllegalArgumentException("No valid files to upload");
@@ -222,21 +212,14 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
         for (MultipartFile file : validFiles) {
             Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
                     ObjectUtils.asMap(
-                            "folder", CLOUDINARY_FOLDER,
-                            "resource_type", "auto", // Auto-detect resource type (image, video, etc.)
-                            "quality", "auto:good", // Auto quality based on optimization
-                            "fetch_format", "auto", // Automatically optimize the format
-                            // "transformation", ObjectUtils.asMap(
-                            // "quality", "auto", // Adaptive quality
-                            // "fetch_format", "auto", // Adaptive format
-                            // "video_codec", "auto", // Adaptive video codec
-                            // "audio_codec", "auto" // Adaptive audio codec
-                            // ),
-                            "public_id", file.getOriginalFilename() // Optional: Set public ID
+                            FOLDER, CLOUDINARY_FOLDER,
+                            RESOURCE_TYPE, "auto", // Auto-detect resource type (image, video, etc.)
+                            QUALITY, AUTO_QUALITY, // Auto quality based on optimization
+                            FETCH_FORMAT, "auto", // Automatically optimize the format
+                            PUBLIC_ID, file.getOriginalFilename() // Optional: Set public ID
                     ));
-
-            String url = (String) uploadResult.get("secure_url"); // Use secure URL
-            String publicId = (String) uploadResult.get("public_id");
+            String url = (String) uploadResult.get(SECURE_URL); // Use secure URL
+            String publicId = (String) uploadResult.get(PUBLIC_ID);
             String contentType = file.getContentType();
 
             // Create Media object

@@ -33,6 +33,9 @@ public class WishlistDTO {
     @Schema(description = "Priority of the wishlist")
     private Integer priority;
 
+    @Schema(description = "Wishlist image")
+    private ImageDTO wishlistImage;
+
     @Schema(description = "Notify sale")
     private boolean notifySale;
 

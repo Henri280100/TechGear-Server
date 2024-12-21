@@ -48,6 +48,12 @@ public class Product implements Serializable {
     @Column(name = "product_availability")
     private ProductAvailability availability;
 
+    @Column(name="stock_level")
+    private int stockLevel;
+
+    @Column(name = "slug", unique = true)
+    private String slug;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "image_id")
     private Image image;

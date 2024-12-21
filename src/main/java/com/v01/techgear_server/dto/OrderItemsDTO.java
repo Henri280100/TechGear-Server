@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description= "Order Items data transfer object")
+@Schema(description = "Order Items data transfer object")
 public class OrderItemsDTO {
     @Schema(description = "Order Item ID", example = "123")
     @Positive(message = "Order Item ID must be a positive number")
@@ -24,16 +24,16 @@ public class OrderItemsDTO {
     @Schema(description = "Quantity")
     private Integer quantity;
 
-    @Schema(description="Order item unit price")
+    @Schema(description = "Order item unit price")
     private Double unitPrice;
 
     @Schema(description = "Order associated with the Order item")
-    private Integer orderId;
+    private OrderDTO order;
 
     @Schema(description = "Product associated with the Order item")
-    private Integer productId;
+    private ProductDTO product;
 
-    @Schema(description="Order item status")
+    @Schema(description = "Order item status")
     @Enumerated(EnumType.STRING)
     private OrderItemStatus orderItemStatus;
 }

@@ -34,13 +34,19 @@ public class ImageDTO {
     @Schema(description = "Image dimensions")
     private ImageDimensions dimensions;
 
-    @Data
-    @Builder
-    public static class ImageDimensions {
-        private Integer width;
-        private Integer height;
-    }
-
     @Schema(description = "Creation timestamp")
     private LocalDateTime createdAt;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "Image Dimensions")
+    public static class ImageDimensions {
+        @Schema(description = "Width of the image", example = "1920")
+        private Integer width;
+
+        @Schema(description = "Height of the image", example = "1080")
+        private Integer height;
+    }
 }

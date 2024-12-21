@@ -358,6 +358,5 @@ public class AuthServiceImpl implements UserDetailsManager {
         userRepository.save(user);
     }
 
-    // TODO: Login with a third party such as Google or Facebook
 
 }

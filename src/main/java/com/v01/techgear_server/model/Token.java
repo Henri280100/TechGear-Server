@@ -2,8 +2,12 @@ package com.v01.techgear_server.model;
 
 import java.time.Instant;
 
+import com.v01.techgear_server.enums.TokenTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,12 +42,16 @@ public class Token {
     @Column(name = "refreshToken", length = 1000, nullable = false)
     private String refreshToken;
 
+    @Column(name="tokenType")
+    @Enumerated(EnumType.STRING)
+    private TokenTypes tokenType;
+
     @Column(nullable = false)
     private boolean revoked;
 
-    @Column(nullable = false)
-    private Instant createdAt;
+    @Column(name="createdDate")
+    private Instant createdDate;
 
-    @Column(nullable = false)
-    private Instant expiresAt;
+    @Column(name="expiresDate")
+    private Instant expiresDate;
 }

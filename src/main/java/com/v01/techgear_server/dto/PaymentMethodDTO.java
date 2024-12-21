@@ -17,9 +17,6 @@ public class PaymentMethodDTO {
     @Positive(message = "Payment Method ID must be a positive number")
     private Integer paymentMethodId;
 
-    @Schema(description = "Stripe payment method ID")
-    private String stripePaymentMethodId;
-
     @Schema(description = "Payment type")
     private String type;
 
