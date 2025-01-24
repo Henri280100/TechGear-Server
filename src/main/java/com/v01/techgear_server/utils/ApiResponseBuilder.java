@@ -1,7 +1,9 @@
 package com.v01.techgear_server.utils;
 
 import com.v01.techgear_server.dto.ApiResponseDTO;
+import com.v01.techgear_server.dto.UserDTO;
 import com.v01.techgear_server.enums.ApiResponseStatus;
+import com.v01.techgear_server.model.User;
 
 public class ApiResponseBuilder {
     public static <T> ApiResponseDTO<T> createResponse(boolean isSuccess, ApiResponseStatus status, T data) {
@@ -28,6 +30,7 @@ public class ApiResponseBuilder {
         return createResponse(false, status, errorData);
 
     }
+
 
 //     public static ApiResponse createErrorResponse(ApiResponseStatus status, Object errorData) {
 

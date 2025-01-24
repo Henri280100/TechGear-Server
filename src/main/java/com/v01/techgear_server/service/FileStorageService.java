@@ -7,17 +7,19 @@ import java.util.concurrent.CompletableFuture;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.v01.techgear_server.dto.ImageDTO;
-import com.v01.techgear_server.dto.UserDTO;
-import com.v01.techgear_server.model.Media;
+
+import com.v01.techgear_server.dto.MediaDTO;
 
 public interface FileStorageService {
-    CompletableFuture<ImageDTO> uploadSingleImage(MultipartFile file, UserDTO userDTO) throws IOException;
-    CompletableFuture<List<ImageDTO>> uploadMultipleImage(List<MultipartFile> files, UserDTO userDTO) throws IOException;
+    CompletableFuture<ImageDTO> storeSingleImage(MultipartFile file) throws IOException;
+    CompletableFuture<List<ImageDTO>> storedMultipleImage(List<MultipartFile> files) throws IOException;
 
-    CompletableFuture<ImageDTO> updateUserImage(Long userId, MultipartFile newImageFile, UserDTO userDTO) throws IOException;
+    MediaDTO storeMedia(MultipartFile mediaFile) throws IOException;
 
-    Media uploadMedia(MultipartFile mediaFile) throws IOException;
-    List<Media> uploadMultipleMedia(List<MultipartFile> mediaFile) throws IOException;
+    List<MediaDTO> storeMultipleMedia(List<MultipartFile> mediaFile) throws IOException;
 
-
+    CompletableFuture<Void> deleteImage(String publicId) throws IOException;
+    CompletableFuture<Void> deleteMultipleImages(List<String> publicIds);
+    CompletableFuture<Void> deleteMedia(String publicId);
+    CompletableFuture<Void> deleteMultipleMedia(List<String> publicIds);
 }

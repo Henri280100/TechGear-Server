@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.coyote.BadRequestException;
-import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,25 +13,25 @@ import com.v01.techgear_server.config.GraphQLConfig;
 
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class GraphQLExecutor {
     private final GraphQLConfig graphQLConfig;
-
     private final ObjectMapper objectMapper;
 
-    private final Logger LOGGER;
-
-    public GraphQLExecutor(GraphQLConfig graphQLConfig, ObjectMapper objectMapper, Logger LOGGER) {
+    @Autowired
+    public GraphQLExecutor(GraphQLConfig graphQLConfig, ObjectMapper objectMapper) {
         this.graphQLConfig = graphQLConfig;
         this.objectMapper = objectMapper;
-        this.LOGGER = LOGGER;
+        
     }
 
     public String executeGraphQLQuery(String queryVal) throws IOException {
-        LOGGER.info("Received query: " + queryVal); // Log received query
+        log.info("Received query: " + queryVal); // Log received query
         ExecutionResult executionResult = graphQLConfig.graphQL().execute(queryVal);
         Map<String, Object> respMap = executionResult.getData();
-        LOGGER.info("Execution result: " + respMap); // Log execution result
+        log.info("Execution result: " + respMap); // Log execution result
         List<GraphQLError> errors = executionResult.getErrors();
 
         if (!errors.isEmpty()) {

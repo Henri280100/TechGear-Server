@@ -1,4 +1,4 @@
-package com.v01.techgear_server.serviceImpls;
+package com.v01.techgear_server.serviceimpls;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -10,8 +10,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.v01.techgear_server.dto.TokenDTO;
+import com.v01.techgear_server.exception.TokenRevocationException;
 import com.v01.techgear_server.model.Token;
-import com.v01.techgear_server.repo.TokenRepository;
+import com.v01.techgear_server.repo.jpa.TokenRepository;
 import com.v01.techgear_server.service.TokenService;
 
 import io.jsonwebtoken.Claims;
@@ -19,6 +20,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.Keys;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +39,7 @@ public class TokenServiceImpl implements TokenService {
     public String getUserNameFromJwtToken(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(jwtSecret)
+                    .setSigningKey(Keys.hmacShaKeyFor(jwtSecret.getBytes()))
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
@@ -51,7 +53,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public boolean validateJwtToken(String authToken) {
         try {
-            Jwts.parserBuilder().setSigningKey(jwtSecret).build().parseClaimsJws(authToken);
+            Jwts.parserBuilder().setSigningKey(Keys.hmacShaKeyFor(jwtSecret.getBytes())).build().parseClaimsJws(authToken);
             return true;
         } catch (SecurityException e) {
             log.error("Invalid JWT signature: {}", e.getMessage());
@@ -80,7 +82,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     private boolean isTokenExpired(Token token) {
-        return token.getExpiresAt().isBefore(Instant.now());
+        return token.getExpiresDate().isBefore(Instant.now());
     }
 
     @Override
@@ -102,7 +104,7 @@ public class TokenServiceImpl implements TokenService {
 
         } catch (Exception e) {
             log.error("Error revoking token: {}", e.getMessage());
-            throw new RuntimeException("Failed to revoke token", e);
+            throw new TokenRevocationException("Failed to revoke token", e);
         }
     }
 
@@ -121,14 +123,14 @@ public class TokenServiceImpl implements TokenService {
             log.info("All tokens revoked for user ID: {}", userId);
         } catch (Exception e) {
             log.error("Error revoking user tokens: {}", e.getMessage());
-            throw new RuntimeException("Failed to revoke user tokens", e);
+            throw new TokenRevocationException("Failed to revoke user tokens", e);
         }
     }
 
     @Override
     public Instant getRefreshTokenExpiration(String refreshToken) {
         return tokenRepository.findLatestValidRefreshToken(refreshToken)
-                .map(Token::getExpiresAt)
+                .map(Token::getExpiresDate)
                 .orElse(null);
     }
 
@@ -145,7 +147,7 @@ public class TokenServiceImpl implements TokenService {
         }
 
         validUserTokens.stream()
-                .filter(token -> token.getExpiresAt().isBefore(Instant.now()))
+                .filter(token -> token.getExpiresDate().isBefore(Instant.now()))
                 .forEach(token -> {
                     token.setRevoked(true);
                     tokenRepository.save(token);
@@ -166,8 +168,8 @@ public class TokenServiceImpl implements TokenService {
             token.setAccessToken(tokenDTO.getAccessToken());
             token.setRefreshToken(tokenDTO.getRefreshToken());
             token.setRevoked(false);
-            token.setCreatedAt(Instant.now());
-            token.setExpiresAt(Instant.now().plus(7, ChronoUnit.DAYS));
+            token.setCreatedDate(Instant.now());
+            token.setExpiresDate(Instant.now().plus(7, ChronoUnit.DAYS));
 
             tokenRepository.save(token);
             log.info("New tokens stored for user: {}", userId);

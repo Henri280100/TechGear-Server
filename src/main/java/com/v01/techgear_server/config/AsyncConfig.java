@@ -18,7 +18,7 @@ public class AsyncConfig implements WebMvcConfigurer {
 
     @Bean(name = "mvcTaskExecutor")
     @Lazy
-    public AsyncTaskExecutor mvcTaskExecutor() {
+    AsyncTaskExecutor mvcTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(10); // Number of threads to keep in the pool
         executor.setMaxPoolSize(50); // Max number of threads in the pool

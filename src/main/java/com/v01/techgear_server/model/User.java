@@ -1,41 +1,24 @@
 package com.v01.techgear_server.model;
 
-import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.v01.techgear_server.dto.UserCreateUpdateDTO;
+import com.v01.techgear_server.enums.AuthProvider;
+import com.v01.techgear_server.enums.UserStatus;
+import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.proxy.HibernateProxy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.v01.techgear_server.enums.AuthProvider;
-import com.v01.techgear_server.enums.UserStatus;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+@ToString
 @Getter
 @Setter
 @Entity
@@ -44,102 +27,168 @@ import lombok.Setter;
 @Table(name = "users")
 public class User implements UserDetails {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long userId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private Long userId;
 
-  @Column(name = "username")
-  private String username;
 
-  @Column(name = "password")
-  private String password;
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "user_connections",
+	           joinColumns = @JoinColumn(name = "user_id"),
+	           inverseJoinColumns = @JoinColumn(name = "connection_id"))
+	@ToString.Exclude
+	private Set<User> connections = new HashSet<>();
 
-  @Column(name = "email", unique = true)
-  private String email;
+	@Column(name = "username")
+	private String username;
 
-  @Enumerated(EnumType.STRING)
-  private AuthProvider provider; // for storing data in gg or fb
+	@Column(name = "password")
+	private String password;
 
-  @OneToOne(mappedBy = "users", cascade = CascadeType.ALL)
-  private AccountDetails accountDetails;
+	@Column(name = "email", unique = true)
+	private String email;
 
-  @OneToOne(mappedBy = "users", cascade = CascadeType.ALL)
-  @JsonIgnore
-  private ConfirmationTokens confirmationTokens;
+	@Enumerated(EnumType.STRING)
+	private AuthProvider provider; // for storing data in gg or fb
 
-  @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "userId"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-  private Set<Role> roles = new HashSet<>();
+	@OneToOne(mappedBy = "users", cascade = CascadeType.ALL)
+	private AccountDetails accountDetails;
 
-  @Column(name = "active")
-  private boolean active;
+	@OneToMany(mappedBy = "users", cascade = CascadeType.ALL)
+	@JsonIgnore
+	@ToString.Exclude
+	private List<ConfirmationTokens> confirmationTokens;
 
-  @Column(name = "login_attempts")
-  private int loginAttempts;
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "userId"),
+	           inverseJoinColumns = @JoinColumn(name = "role_id"))
+	@ToString.Exclude
+	private Set<Role> roles = new HashSet<>();
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "user_status")
-  private UserStatus userStatus;
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "user_permissions", joinColumns = @JoinColumn(name = "userId"),
+	           inverseJoinColumns = @JoinColumn(name = "permission_id"))
+	@ToString.Exclude
+	private Set<Permission> permissions = new HashSet<>();
 
-  @Override
-  public Collection<? extends GrantedAuthority> getAuthorities() {
-    return this.roles.stream()
-        .flatMap(role -> Stream.concat(
-            Stream.of(new SimpleGrantedAuthority(role.getRoleType().name())),
-            role.getRoleType().getPermissions().stream()
-                .map(permission -> new SimpleGrantedAuthority(permission.name()))))
-        .collect(Collectors.toSet());
-  }
+	@Column(name = "active")
+	private boolean active;
 
-  @CreationTimestamp
-  @Column(updatable = false, name = "createdDate")
-  private LocalDateTime createdDate;
+	@Column(name = "login_attempts")
+	private int loginAttempts;
 
-  @UpdateTimestamp
-  @Column(name = "updatedDate")
-  private LocalDateTime updatedDate;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "user_status")
+	private UserStatus userStatus;
 
-  @Override
-  public String getPassword() {
-    return password;
-  }
 
-  @Override
-  public String getUsername() {
-    return username;
-  }
+	@Column(name = "last_active_before")
+	public LocalDateTime lastLoginActiveBefore;
 
-  @Override
-  public boolean isAccountNonExpired() {
-    return true;
-  }
+	@Column(name = "account_locked")
+	private boolean accountLocked;
 
-  @Override
-  public boolean isAccountNonLocked() {
-    return true;
-  }
+	@Column(name = "account_expired")
+	private boolean accountExpired;
 
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return true;
-  }
+	public User(UserCreateUpdateDTO userCreateUpdateDTO) {
+		this.username = userCreateUpdateDTO.getUsername();
+		this.password = userCreateUpdateDTO.getPassword();
+		this.email = userCreateUpdateDTO.getEmail();
+		this.active = userCreateUpdateDTO.isActive();
+		this.userStatus = userCreateUpdateDTO.getUserStatus();
+	}
 
-  @Override
-  public boolean isEnabled() {
-    return active &&
-        confirmationTokens != null &&
-        confirmationTokens.getConfirmedAt() != null;
-  }
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return this.roles.stream()
+		                 .flatMap(role -> Stream.concat(
+				                 Stream.of(new SimpleGrantedAuthority(role.getRoleType()
+				                                                          .name())),
+				                 role.getRoleType()
+				                     .getPermissions()
+				                     .stream()
+				                     .map(permission -> new SimpleGrantedAuthority(permission.name()))))
+		                 .collect(Collectors.toSet());
+	}
 
-  public int getLoginAttempts() {
-    return loginAttempts;
-  }
 
-  public void incrementLoginAttempts() {
-    this.loginAttempts++;
-  }
+	@CreationTimestamp
+	@Column(updatable = false, name = "createdDate")
+	private LocalDateTime createdDate;
 
-  public void resetLoginAttempts() {
-    this.loginAttempts = 0;
-  }
+	@UpdateTimestamp
+	@Column(name = "updatedDate")
+	private LocalDateTime updatedDate;
+
+	@Override
+	public String getPassword() {
+		return password;
+	}
+
+	@Override
+	public String getUsername() {
+		return username;
+	}
+
+	@Override
+	public boolean isAccountNonExpired() {
+		return !accountExpired;
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		return !accountLocked;
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return UserDetails.super.isCredentialsNonExpired();
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return active &&
+				confirmationTokens != null &&
+				confirmationTokens
+						.stream()
+						.anyMatch(token -> token.getConfirmedAt() != null);
+	}
+
+	public int getLoginAttempts() {
+		return loginAttempts;
+	}
+
+	public void incrementLoginAttempts() {
+		this.loginAttempts++;
+	}
+
+	public void resetLoginAttempts() {
+		this.loginAttempts = 0;
+	}
+
+	@Override
+	public final boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null)
+			return false;
+		Class<?> oEffectiveClass = o instanceof HibernateProxy
+				? ((HibernateProxy) o).getHibernateLazyInitializer()
+				                      .getPersistentClass() : o.getClass();
+		Class<?> thisEffectiveClass = this instanceof HibernateProxy
+				? ((HibernateProxy) this).getHibernateLazyInitializer()
+				                         .getPersistentClass() : this.getClass();
+		if (thisEffectiveClass != oEffectiveClass)
+			return false;
+		User user = (User) o;
+		return getUserId() != null && Objects.equals(getUserId(), user.getUserId());
+	}
+
+	@Override
+	public final int hashCode() {
+		return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer()
+		                                                               .getPersistentClass()
+		                                                               .hashCode() : getClass().hashCode();
+	}
 }

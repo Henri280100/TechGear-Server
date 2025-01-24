@@ -17,8 +17,8 @@ import com.v01.techgear_server.enums.Roles;
 import com.v01.techgear_server.exception.UserRolesNotFoundException;
 import com.v01.techgear_server.model.Role;
 import com.v01.techgear_server.model.User;
-import com.v01.techgear_server.repo.RoleRepository;
-import com.v01.techgear_server.repo.UserRepository;
+import com.v01.techgear_server.repo.jpa.RoleRepository;
+import com.v01.techgear_server.repo.jpa.UserRepository;
 
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {

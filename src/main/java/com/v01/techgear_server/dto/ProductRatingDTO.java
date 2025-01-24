@@ -17,14 +17,20 @@ public class ProductRatingDTO {
     private Long productRatingId;
 
     @Schema(description = "Comments", example = "Good product")
-    private String comments;
+    private String productComments;
 
     @Schema(description = "Rating", example = "4.5")
-    private double rating;
+    private double productRating;
 
     @Schema(description = "Rating Date", example = "2021-01-01T00:00:00")
     private LocalDateTime ratingDate;
 
     @Schema(description = "Product")
     private ProductDTO product;
+
+    @Schema(description = "Product review image")
+    private ImageDTO productReviewImage;
+
+    @Schema(description="Account Details")
+    private AccountDetailsDTO userAccountDetails;
 }

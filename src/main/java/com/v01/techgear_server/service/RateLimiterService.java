@@ -4,9 +4,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -112,5 +112,9 @@ public class RateLimiterService {
 
         // Check if the current count exceeds the rate limit
         return currentCount <= rateLimit;
+    }
+
+    public CompletableFuture<Void> recordEmailSentAsync(String email) {
+        return CompletableFuture.runAsync(() -> recordEmailSent(email));
     }
 }

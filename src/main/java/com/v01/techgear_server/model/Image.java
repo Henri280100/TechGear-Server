@@ -1,19 +1,22 @@
 package com.v01.techgear_server.model;
 
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
+import com.v01.techgear_server.enums.ImageTypes;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
+import lombok.*;
+import org.hibernate.proxy.HibernateProxy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
-import com.v01.techgear_server.enums.ImageTypes;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.Objects;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Pattern;
-import lombok.Data;
-
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 @Entity
 public class Image implements Serializable{
     @Id
@@ -27,12 +30,12 @@ public class Image implements Serializable{
     private String fileName;
 
     @Column(name = "content_type")
-    @Pattern(regexp = "^image/(jpeg|png|gif|webp|bmp)$", 
-             message = "Invalid image content type")
+    @Pattern(regexp = "^image/(jpeg|png|gif|webp|bmp)$",
+            message = "Invalid image content type")
     private String contentType;
 
     @Column(name = "data", columnDefinition="BYTEA")
-    private byte[] data; // Store image data as byte array
+    private byte[] data; // Store image data as a byte array
 
     // Metadata fields
     @Column(name = "file_size")
@@ -59,27 +62,47 @@ public class Image implements Serializable{
     @Column(name = "uploaded_by")
     private String uploadedBy;
 
-    // Enum for image type
+    // Enum for an image type
     @Enumerated(EnumType.STRING)
     @Column(name = "image_type")
     private ImageTypes imageTypes;
 
-    @OneToOne(mappedBy="image", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy="userAvatar", cascade = CascadeType.ALL)
     private AccountDetails accountDetails;
 
     @OneToOne(mappedBy="image", cascade = CascadeType.ALL)
     private Product product;
 
-    @OneToOne(mappedBy="image", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy="reviewImage", cascade = CascadeType.ALL)
     private ProductRating productRating;
 
-    @OneToOne(mappedBy="image", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy="specImage", cascade = CascadeType.ALL)
     private ProductSpecification productSpecification;
 
-    @OneToOne(mappedBy="image", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy="wishlistImage", cascade = CascadeType.ALL)
     private Wishlist wishlist;
 
-    @OneToOne(mappedBy="image", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy="wishListItemsImage", cascade = CascadeType.ALL)
     private WishlistItems wishlistItems;
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer()
+                .getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                .getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) return false;
+        Image image = (Image) o;
+        return getId() != null && Objects.equals(getId(), image.getId());
+    }
+
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                .getPersistentClass()
+                .hashCode() : getClass().hashCode();
+    }
 }
 

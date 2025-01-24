@@ -31,8 +31,8 @@ public class DateTimeScalar {
                     // DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                     // }
                     // throw new IllegalArgumentException("Invalid DateTime");
-                    return input instanceof StringValue
-                            ? LocalDateTime.parse(((StringValue) input).getValue(),
+                    return input instanceof StringValue sv
+                            ? LocalDateTime.parse(sv.getValue(),
                                     DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                             : null;
                 }

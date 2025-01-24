@@ -28,9 +28,9 @@ public class UrlScalar {
 
             @Override
             public URI parseLiteral(Object input) {
-                if (input instanceof StringValue) {
+                if (input instanceof StringValue value) {
                     try {
-                        return new URI(((StringValue) input).getValue());
+                        return new URI(value.getValue());
                     } catch (URISyntaxException e) {
                         throw new IllegalArgumentException("Invalid URL");
                     }

@@ -69,6 +69,9 @@ public class ApiResponseStatus {
         public static final ApiResponseStatus PASSWORD_RESET_SENT_EMAIL = new ApiResponseStatus(STATUS_SUCCESS,
                         "Password reset sent to your email.");
 
+                        public static final ApiResponseStatus USER_FOUND = new ApiResponseStatus(STATUS_SUCCESS,
+                        "User found successfully"); 
+
         // SUCCESS RESPONSE END
 
         public static final ApiResponseStatus FAILURE = new ApiResponseStatus(STATUS_FAILURE,
@@ -91,6 +94,8 @@ public class ApiResponseStatus {
 
         public static final ApiResponseStatus ALREADY_LOGGED_OUT = new ApiResponseStatus(STATUS_FAILURE,
                         "Error: User is already logged out");
+        public static final ApiResponseStatus USERNAME_ALREADY_EXISTS = new ApiResponseStatus(STATUS_FAILURE,
+                        "Error: Username is already existed");
 
         public static final ApiResponseStatus REGISTRATION_FAILED = new ApiResponseStatus(STATUS_FAILURE,
                         "Error: User registration failed");

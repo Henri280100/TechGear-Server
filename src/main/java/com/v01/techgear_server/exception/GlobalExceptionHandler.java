@@ -13,11 +13,100 @@ import org.springframework.web.context.request.WebRequest;
 public class GlobalExceptionHandler {
         private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+        @ExceptionHandler(ProductFilteringException.class)
+        @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+        public ResponseEntity<ErrorMessage> handleProductFilteringException(ProductFilteringException ex,
+                        WebRequest request) {
+                logger.error("Error during product filtering: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(new ErrorMessage(ex.getMessage(), HttpStatus.BAD_REQUEST.value(),
+                                                request.getDescription(false)));
+        }
+
+        @ExceptionHandler(FailToCreateCollectionException.class)
+        @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+        public ResponseEntity<ErrorMessage> handleFailToCreateCollectionException(FailToCreateCollectionException ex,
+                        WebRequest request) {
+                logger.error("Failed to create collection: {}", ex.getMessage(), ex);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(new ErrorMessage(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                                request.getDescription(false)));
+        }
+
+        @ExceptionHandler(PartialDeletionException.class)
+        @ResponseStatus(value = HttpStatus.PARTIAL_CONTENT)
+        public ResponseEntity<ErrorMessage> handlePartialDeletionException(PartialDeletionException ex,
+                        WebRequest request) {
+                logger.error("Partial deletion: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+                                .body(new ErrorMessage(ex.getMessage(), HttpStatus.PARTIAL_CONTENT.value(),
+                                                request.getDescription(false)));
+        }
+
+        @ExceptionHandler(IndexingException.class)
+        @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+        public ResponseEntity<ErrorMessage> handleIndexingException(IndexingException ex, WebRequest request) {
+                logger.error("Indexing error: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(new ErrorMessage(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                                request.getDescription(false)));
+        }
+
+        @ExceptionHandler(BulkIndexUpsertException.class)
+        @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+        public ResponseEntity<ErrorMessage> handleBulkIndexUpsertException(BulkIndexUpsertException ex,
+                        WebRequest request) {
+                logger.error("Error while performing bulk index upserting: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(new ErrorMessage(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                                request.getDescription(false)));
+        }
+
+        @ExceptionHandler(GenerateHashKeyException.class)
+        @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+        public ResponseEntity<ErrorMessage> handleGenerateHashKeyException(GenerateHashKeyException ex,
+                        WebRequest request) {
+                logger.error("Error while generating hash key: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(new ErrorMessage(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                                request.getDescription(false)));
+        }
+
         @ExceptionHandler(RedisConnectionException.class)
         @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
         public ResponseEntity<ErrorMessage> handleRedisConnectionException(RedisConnectionException ex,
                         WebRequest request) {
                 logger.error("Redis connection error: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(new ErrorMessage(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                                request.getDescription(false)));
+        }
+
+        @ExceptionHandler(TokenRevocationException.class)
+        @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+        public ResponseEntity<ErrorMessage> handleRTokenRevocationException(TokenRevocationException ex,
+                        WebRequest request) {
+                logger.error("Token revocation error: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(new ErrorMessage(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                                request.getDescription(false)));
+        }
+
+        @ExceptionHandler(FileStorageException.class)
+        @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+        public ResponseEntity<ErrorMessage> handleFileStorageException(FileStorageException ex,
+                        WebRequest request) {
+                logger.error("Error while storing file: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(new ErrorMessage(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                                request.getDescription(false)));
+        }
+
+        @ExceptionHandler(UserAddressNotFoundException.class)
+        @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+        public ResponseEntity<ErrorMessage> handleUserAddressNotFoundException(UserAddressNotFoundException ex,
+                        WebRequest request) {
+                logger.error("Error while finding user address: {}", ex.getMessage());
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .body(new ErrorMessage(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
                                                 request.getDescription(false)));

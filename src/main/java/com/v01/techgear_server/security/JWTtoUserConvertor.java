@@ -51,8 +51,8 @@ public class JWTtoUserConvertor implements Converter<Jwt, UsernamePasswordAuthen
         Map<String, Object> claims = jwt.getClaims();
         Object authoritiesClaim = claims.getOrDefault("authorities", Collections.emptyList());
 
-        if (authoritiesClaim instanceof Collection) {
-            return ((Collection<?>) authoritiesClaim).stream()
+        if (authoritiesClaim instanceof Collection<?> collection) {
+            return collection.stream()
                     .map(Object::toString)
                     .toList();
         } else {

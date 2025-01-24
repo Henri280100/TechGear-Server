@@ -15,7 +15,7 @@ public class CloudinaryConfig {
 
     @Bean
     @Lazy
-    public Cloudinary cloudinary() {
+    Cloudinary cloudinary() {
         return new Cloudinary(ObjectUtils.asMap(
             "cloud_name", "didyifgtm",
             "api_key", "184652387491793",

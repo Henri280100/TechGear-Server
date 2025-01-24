@@ -1,10 +1,14 @@
 package com.v01.techgear_server.model;
 
-import java.util.*;
-import lombok.*;
 import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.proxy.HibernateProxy;
 
-@Data
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+@ToString
 @Entity
 @Getter
 @Setter
@@ -13,16 +17,43 @@ import jakarta.persistence.*;
 @Table(name = "shipper")
 public class Shipper {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long shipperId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long shipperId;
 
-    @Column(name = "shipper_name")
-    private String shipperName;
+	@Column(name = "shipper_name")
+	private String shipperName;
 
-    @OneToMany(mappedBy = "shipper", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<Order> orders = new ArrayList<>();
+	@OneToMany(mappedBy = "shipper", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+	@ToString.Exclude
+	private List<Order> orders = new ArrayList<>();
 
-    @OneToMany(mappedBy = "shipper", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<ShipperRating> shipperRatings = new ArrayList<>();
+	@OneToMany(mappedBy = "shipper", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+	@ToString.Exclude
+	private List<ShipperRating> shipperRatings = new ArrayList<>();
+
+	@Override
+	public final boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null)
+			return false;
+		Class<?> oEffectiveClass = o instanceof HibernateProxy
+				? ((HibernateProxy) o).getHibernateLazyInitializer()
+				                      .getPersistentClass() : o.getClass();
+		Class<?> thisEffectiveClass = this instanceof HibernateProxy
+				? ((HibernateProxy) this).getHibernateLazyInitializer()
+				                         .getPersistentClass() : this.getClass();
+		if (thisEffectiveClass != oEffectiveClass)
+			return false;
+		Shipper shipper = (Shipper) o;
+		return getShipperId() != null && Objects.equals(getShipperId(), shipper.getShipperId());
+	}
+
+	@Override
+	public final int hashCode() {
+		return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer()
+		                                                               .getPersistentClass()
+		                                                               .hashCode() : getClass().hashCode();
+	}
 }

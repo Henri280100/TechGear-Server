@@ -1,29 +1,17 @@
 package com.v01.techgear_server.model;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.v01.techgear_server.enums.AddressTypes;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.proxy.HibernateProxy;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.Objects;
 
-@Data
+@ToString
 @Entity
 @Getter
 @Setter
@@ -31,45 +19,71 @@ import lombok.Setter;
 @AllArgsConstructor
 @Table(name = "user_address")
 public class UserAddress implements Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long addressId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long addressId;
 
-    @Column(name = "address_line_1")
-    private String addressLineOne;
+	@Column(name = "address_line_1")
+	private String addressLineOne;
 
-    @Column(name = "address_line_2")
-    private String addressLineTwo;
+	@Column(name = "address_line_2")
+	private String addressLineTwo;
 
-    @Column(name = "city", nullable = false)
-    private String city;
+	@Column(name = "city")
+	private String city;
 
-    @Column(name = "state_province")
-    private String stateProvince;
+	@Column(name = "state_province")
+	private String stateProvince;
 
-    @Column(name = "country", nullable = false)
-    private String country;
+	@Column(name = "country")
+	private String country;
 
-    @Column(name = "zipPostalCode")
-    private String zipPostalCode;
+	@Column(name = "zipPostalCode")
+	private String zipPostalCode;
 
-    @Column(name = "addressType")
-    @Enumerated(EnumType.STRING)
-    private AddressTypes addressType;
+	@Column(name = "addressType")
+	@Enumerated(EnumType.STRING)
+	private AddressTypes addressType;
 
-    @Column(name = "is_address_primary")
-    private boolean primaryAddress;
+	@Column(name = "is_address_primary")
+	private boolean primaryAddress;
 
-    @OneToOne(mappedBy = "addresses", cascade = CascadeType.ALL)
-    @JsonBackReference
-    private AccountDetails accountDetails;
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@JoinColumn(name = "accountDetailsId")
+	@JsonBackReference
+	@ToString.Exclude
+	private AccountDetails accountDetails;
 
-    @Column(name = "created_at")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime createdAt;
+	@Column(name = "created_at")
+	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+	private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime updatedAt;
+	@Column(name = "updated_at")
+	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+	private LocalDateTime updatedAt;
 
+	@Override
+	public final boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null)
+			return false;
+		Class<?> oEffectiveClass = o instanceof HibernateProxy
+				? ((HibernateProxy) o).getHibernateLazyInitializer()
+				                      .getPersistentClass() : o.getClass();
+		Class<?> thisEffectiveClass = this instanceof HibernateProxy
+				? ((HibernateProxy) this).getHibernateLazyInitializer()
+				                         .getPersistentClass() : this.getClass();
+		if (thisEffectiveClass != oEffectiveClass)
+			return false;
+		UserAddress that = (UserAddress) o;
+		return getAddressId() != null && Objects.equals(getAddressId(), that.getAddressId());
+	}
+
+	@Override
+	public final int hashCode() {
+		return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer()
+		                                                               .getPersistentClass()
+		                                                               .hashCode() : getClass().hashCode();
+	}
 }

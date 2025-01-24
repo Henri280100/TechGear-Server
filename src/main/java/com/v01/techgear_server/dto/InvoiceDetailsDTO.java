@@ -15,15 +15,19 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Invoice details Data transfer object")
 public class InvoiceDetailsDTO {
 
-    @Schema(description = "Product name")
-    private String productName;
+	@Schema(description = "Invoice details ID")
+	private Integer invoiceDetailsId;
 
-    @Schema(description = "Product quantity")
-    private Integer quantity;
+	@Schema(description="Invoice associated with the invoice details")
+	private InvoiceDTO invoice;
 
-    @Schema(description = "Line item total")
-    private BigDecimal lineTotal;
+	@Schema(description = "Product associated with the invoice details")
+	private ProductDTO product;
 
-    @Schema(description = "Applied discount percentage")
-    private BigDecimal discountPercentage;
+	@Schema(description = "Discount associated with the invoice details")
+	private DiscountDTO discount;
+
+	@Schema(description = "Line item total")
+	private BigDecimal lineTotal;
+
 }

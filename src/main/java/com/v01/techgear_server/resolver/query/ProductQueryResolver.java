@@ -2,42 +2,50 @@ package com.v01.techgear_server.resolver.query;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.v01.techgear_server.model.Product;
-import com.v01.techgear_server.repo.ProductRepository;
+import com.v01.techgear_server.repo.jpa.ProductRepository;
 
+import graphql.GraphQLException;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
+@RequiredArgsConstructor
 @Component
 public class ProductQueryResolver implements DataFetcher<List<Product>> {
-    private static Logger LOGGER = LoggerFactory.getLogger(ProductQueryResolver.class);
     private final ProductRepository productRepository;
-
-    public ProductQueryResolver(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
 
     @Override
     public List<Product> get(DataFetchingEnvironment environment) {
-        LOGGER.info("Fetching all products...");
-        return productRepository.findAll();
+        // TODO: Implement this method if needs
+        return null;
+        
     }
 
     public Product getProductById(DataFetchingEnvironment environment) {
         Long id = environment.getArgument("id");
-        LOGGER.info("Fetching product with id: {}", id);
+        if (id == null) {
+            log.error("Product Id cannot be null");
+            throw new GraphQLException("Product Id is required");
+        }
 
-        return productRepository.findById(id).orElse(null);
+        log.info("Fetching product with id: {}", id);
+        return productRepository.findById(id).orElseThrow(() -> new GraphQLException("Product not found with ID: " + id));
     }
 
     public Product getProductName(DataFetchingEnvironment environment) {
         String name = environment.getArgument("name");
-        LOGGER.info("Fetching product with name: {}", name);
-        return productRepository.findProductName(name).orElse(null);
+        // Validate input
+        if (name == null || name.trim().isEmpty()) {
+            log.error("Product name cannot be null or empty");
+            throw new GraphQLException("Product name is required");
+        }
+        
+        return productRepository.findProductByName(name)
+            .orElseThrow(() -> new GraphQLException("Product not found with name: " + name));
     }
-
 }

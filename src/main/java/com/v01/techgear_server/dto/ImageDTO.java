@@ -29,13 +29,15 @@ public class ImageDTO {
     private String fileName;
 
     @Schema(description = "Image type")
-    private ImageTypes imageType;
+    private ImageTypes type;
 
     @Schema(description = "Image dimensions")
     private ImageDimensions dimensions;
 
     @Schema(description = "Creation timestamp")
     private LocalDateTime createdAt;
+
+
 
     @Data
     @Builder

@@ -3,7 +3,7 @@ package com.v01.techgear_server.security;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -98,8 +98,8 @@ public class KeyUtils {
     }
 
     private KeyPair loadKeyPair(String publicKeyPath, String privateKeyPath) throws Exception {
-        byte[] publicKeyContent = Files.readAllBytes(Paths.get(publicKeyPath));
-        byte[] privateKeyContent = Files.readAllBytes(Paths.get(privateKeyPath));
+        byte[] publicKeyContent = Files.readAllBytes(Path.of(publicKeyPath));
+        byte[] privateKeyContent = Files.readAllBytes(Path.of(privateKeyPath));
 
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
@@ -133,13 +133,13 @@ public class KeyUtils {
             String publicKeyPEM = "-----BEGIN PUBLIC KEY-----\n" +
                     Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()) +
                     "\n-----END PUBLIC KEY-----";
-            Files.write(Paths.get(publicKeyPath), publicKeyPEM.getBytes());
+            Files.write(Path.of(publicKeyPath), publicKeyPEM.getBytes());
 
             // Save private key
             String privateKeyPEM = "-----BEGIN PRIVATE KEY-----\n" +
                     Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded()) +
                     "\n-----END PRIVATE KEY-----";
-            Files.write(Paths.get(privateKeyPath), privateKeyPEM.getBytes());
+            Files.write(Path.of(privateKeyPath), privateKeyPEM.getBytes());
 
             return keyPair;
         } catch (Exception e) {

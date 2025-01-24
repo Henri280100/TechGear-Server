@@ -1,28 +1,17 @@
 package com.v01.techgear_server.model;
 
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.proxy.HibernateProxy;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.util.Objects;
 
 @Getter
 @Setter
-@Data
+@ToString
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -42,15 +31,42 @@ public class ProductDetail implements Serializable {
     private String technicalSpecifications;
 
     @Column(name = "description")
-    private String description;
+    private String productDetailsDesc;
+
+    @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
+    @ToString.Exclude
+    private List<Media> media = new ArrayList<>();
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @OneToMany(mappedBy = "product_detail", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<InvoiceDetails> invoiceDetails = new ArrayList<>();
-
-    @OneToMany(mappedBy = "product_detail", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
+    @ToString.Exclude
     private List<ProductSpecification> specifications;
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null)
+            return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy
+                ? ((HibernateProxy) o).getHibernateLazyInitializer()
+                                      .getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy
+                ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                                         .getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass)
+            return false;
+        ProductDetail that = (ProductDetail) o;
+        return getId() != null && Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                                                                       .getPersistentClass()
+                                                                       .hashCode() : getClass().hashCode();
+    }
 }

@@ -20,7 +20,7 @@ public class ProductDetailDTO {
     private String warranty;
 
     @Schema(description = "Product description")
-    private String description;
+    private String productDescription;
 
     @Schema(description = "Technical specifications")
     private String technicalSpecs;
@@ -28,6 +28,4 @@ public class ProductDetailDTO {
     @Schema(description = "Product reference")
     private ProductDTO product;
 
-    @Schema(description = "Key specifications")
-    private List<String> specifications;
 }

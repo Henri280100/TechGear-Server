@@ -26,25 +26,22 @@ public class PaymentDTO {
     private String stripePaymentIntentId;
 
     @Schema(description = "Invoice associated with the payment")
-    private InvoiceDTO invoice;
+    private InvoiceDTO paymentInvoice;
 
     @Schema(description = "Payment amount")
     private BigDecimal paymentAmount;
 
     @Schema(description = "Payment date")
-    private LocalDateTime paymentDate;
+    private LocalDateTime paymentDateTime;
 
     @Schema(description = "Payment status")
     @Enumerated(EnumType.STRING)
-    private PaymentStatus paymentStatus;
-
-    @Schema(description = "Payment method")
-    private PaymentMethodDTO paymentMethod;
+    private PaymentStatus status;
 
     @Schema(description = "Account details associated with the payment")
-    private AccountDetailsDTO accountDetails;
+    private AccountDetailsDTO userAccountDetails;
 
     @Schema(description = "Order summary associated with the payment")
-    private OrderSummaryDTO orderSummary;
+    private OrderSummaryDTO summaryDTO;
 
 }

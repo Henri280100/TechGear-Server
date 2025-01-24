@@ -5,7 +5,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
+@Getter
 public enum Roles {
         ROLE_USER(Set.of(
                         UserPermission.PRODUCT_READ,
@@ -46,7 +46,9 @@ public enum Roles {
                         UserPermission.CUSTOMER_SUPPORT_MANAGE,
                         UserPermission.STAFF_MANAGE));
 
-        @Getter
         private final Set<UserPermission> permissions;
 
+	Roles(Set<UserPermission> permissions) {
+		this.permissions = permissions;
+	}
 }

@@ -1,13 +1,15 @@
 package com.v01.techgear_server.model;
 
-import java.util.*;
-import lombok.*;
 import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.proxy.HibernateProxy;
 
 import java.io.Serializable;
-import java.time.*;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
 
-@Data
+@ToString
 @Entity
 @Getter
 @Setter
@@ -34,7 +36,7 @@ public class Wishlist implements Serializable{
     @Column(name="priority")
     private Integer priority;
 
-    @Column(name="wishlist_image")
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="image_id")
     private Image wishlistImage;
 
@@ -42,9 +44,35 @@ public class Wishlist implements Serializable{
     private boolean notifySale;
 
     @OneToMany(mappedBy = "wishlist", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<WishlistItems> items;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="account_details_id")
     private AccountDetails accountDetails;
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null)
+            return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy
+                ? ((HibernateProxy) o).getHibernateLazyInitializer()
+                                      .getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy
+                ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                                         .getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass)
+            return false;
+        Wishlist wishlist = (Wishlist) o;
+        return getWishlistId() != null && Objects.equals(getWishlistId(), wishlist.getWishlistId());
+    }
+
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                                                                       .getPersistentClass()
+                                                                       .hashCode() : getClass().hashCode();
+    }
 }

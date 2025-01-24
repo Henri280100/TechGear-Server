@@ -2,7 +2,6 @@ package com.v01.techgear_server.config;
 
 import java.io.InputStream;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
@@ -33,7 +32,6 @@ public class GraphQLConfig {
 
     @Bean
     public GraphQL graphQL() throws IOException, java.io.IOException {
-        // SchemaParser schemaParser = new SchemaParser();
         SchemaGenerator schemaGenerator = new SchemaGenerator();
         RuntimeWiring runtimeWiring = buildRuntimeWiring();
         TypeDefinitionRegistry typeRegistry = loadSchemas();
@@ -62,19 +60,20 @@ public class GraphQLConfig {
         return RuntimeWiring.newRuntimeWiring()
                 .type("Query", builder -> builder
                         .dataFetcher("getAllProducts", productQueryResolver)
-                        .dataFetcher("getProductById", productQueryResolver))
+                        .dataFetcher("getProductById", productQueryResolver)
+                        .dataFetcher("getProductByName", productQueryResolver)
+                        )
                 .build();
     }
 
     @Bean
-    public RuntimeWiringConfigurer runtimeWiringConfigurer() {
-        new LongScalar();
+    RuntimeWiringConfigurer runtimeWiringConfigurer() {
         return wiringBuilder -> wiringBuilder.scalar(LongScalar.LONG).build();
     }
 
     @Bean
-    public GraphQLExecutor graphQLExecutor(GraphQL graphQL, ObjectMapper objectMapper) {
-        return new GraphQLExecutor(this, objectMapper, LoggerFactory.getLogger(GraphQLExecutor.class));
+    GraphQLExecutor graphQLExecutor(GraphQL graphQL, ObjectMapper objectMapper) {
+        return new GraphQLExecutor(this, objectMapper);
     }
 
 }

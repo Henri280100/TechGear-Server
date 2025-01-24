@@ -1,10 +1,17 @@
 package com.v01.techgear_server.dto;
 
-import com.v01.techgear_server.enums.Roles;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
-@lombok.Data
-@lombok.AllArgsConstructor
-@lombok.NoArgsConstructor
+import java.util.Set;
+
+@Data
+@Schema(description = "Role Data Transfer Object")
 public class RoleDTO {
-    private Roles roles;
+    @Schema(description = "Role ID", example = "1")
+    private Integer roleId;
+
+    @Schema(description = "Role name", example = "ROLE_USER")
+    private String roleName;
+
 }

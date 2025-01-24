@@ -1,29 +1,15 @@
 package com.v01.techgear_server.model;
 
+import com.v01.techgear_server.enums.DiscountType;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.proxy.HibernateProxy;
+
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
-import com.v01.techgear_server.enums.DiscountType;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@Data
+@ToString
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -70,5 +56,31 @@ public class Discount implements Serializable {
     private List<Product> products; // Relationship with Product
 
     @OneToMany(mappedBy = "discount", cascade = CascadeType.ALL)
+    @ToString.Exclude
     private List<InvoiceDetails> invoiceDetails;
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null)
+            return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy
+                ? ((HibernateProxy) o).getHibernateLazyInitializer()
+                                      .getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy
+                ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                                         .getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass)
+            return false;
+        Discount discount = (Discount) o;
+        return getDiscountId() != null && Objects.equals(getDiscountId(), discount.getDiscountId());
+    }
+
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                                                                       .getPersistentClass()
+                                                                       .hashCode() : getClass().hashCode();
+    }
 }

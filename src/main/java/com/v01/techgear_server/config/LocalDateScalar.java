@@ -26,8 +26,8 @@ public class LocalDateScalar {
 
                 @Override
                 public LocalDate parseLiteral(Object input) {
-                    if (input instanceof StringValue) {
-                        return LocalDate.parse(((StringValue) input).getValue(), DateTimeFormatter.ISO_LOCAL_DATE);
+                    if (input instanceof StringValue value) {
+                        return LocalDate.parse(value.getValue(), DateTimeFormatter.ISO_LOCAL_DATE);
                     }
                     throw new IllegalArgumentException("Invalid LocalDate");
                 }

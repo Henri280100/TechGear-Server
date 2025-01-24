@@ -1,23 +1,18 @@
-package com.v01.techgear_server.serviceImpls;
+package com.v01.techgear_server.serviceimpls;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.v01.techgear_server.dto.TokenDTO;
 import com.v01.techgear_server.model.ConfirmationTokens;
 import com.v01.techgear_server.model.User;
-import com.v01.techgear_server.repo.ConfirmationTokensRepository;
-import com.v01.techgear_server.repo.UserRepository;
+import com.v01.techgear_server.repo.jpa.ConfirmationTokensRepository;
+import com.v01.techgear_server.repo.jpa.UserRepository;
 import com.v01.techgear_server.security.TokenGenerator;
 import com.v01.techgear_server.service.EmailService;
 import com.v01.techgear_server.service.RateLimiterService;
@@ -26,136 +21,107 @@ import com.v01.techgear_server.utils.EncryptionUtil;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
     private final TokenGenerator tokenGenerator;
-    private final OnStoreCloudDBServiceImpl onStoreCloud;
     private final RateLimiterService rateLimiterService;
     private final UserRepository userRepository;
     private final ConfirmationTokensRepository confirmationTokensRepository;
-    @Autowired
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
-    private static Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class);
 
     @Override
     public void sendVerificationEmail(User user) {
-        try {
-            String email = user.getEmail();
-            long timeWindowMillis = 10000;
-            if (rateLimitExceeded(email)) {
-                LOGGER.error("Rate limit exceeded for sending verification emails to: ", email);
-                return;
-            }
-
-            if (rateLimiterService.hasEmailBeenSent(email, timeWindowMillis)) {
-                LOGGER.info("Email has already been sent to: ", email);
-                return;
-            }
-
-            // User user = modelMapper.map(userDTO, User.class);
-            ConfirmationTokens confirmToken = generateAndSaveToken(user);
-            String verificationUrl = buildVerificationUrl(confirmToken.getConfirmToken());
-
-            String emailBody = generateEmailBody(verificationUrl, user.getUsername());
-            String encryptedBody = EncryptionUtil.encrypt(emailBody);
-
-            CompletableFuture<Void> firebaseStoreFuture = onStoreCloud.storeData("emails",
-                    "email-verification-" + user.getUserId(), encryptedBody);
-
-            sendEmail(user.getEmail(), "Verify your email", emailBody);
-
-            firebaseStoreFuture.thenRun(() -> {
-                rateLimiterService.recordEmailSent(email);
-                LOGGER.info("Email sent and recorded successfully for: {}", email);
-            }).exceptionally(ex -> {
-                LOGGER.error("Error storing email body in Firebase: {}", ex.getMessage(), ex);
-                return null;
-            });
-
-        } catch (Exception e) {
-            LOGGER.error("Error while sending verification email: {}", e.getMessage(), e);
+        String email = user.getEmail();
+        if (rateLimitExceeded(email)) {
+            log.error("Rate limit exceeded for sending verification emails to: {}", email);
+            return;
         }
+
+        if (rateLimiterService.hasEmailBeenSent(email, 10000)) {
+            log.info("Email has already been sent to: {}", email);
+            return;
+        }
+
+        ConfirmationTokens confirmToken = generateAndSaveToken(user);
+        String verificationUrl = buildVerificationUrl(confirmToken.getConfirmToken());
+
+        String emailBody = generateEmailBody(verificationUrl, user.getUsername());
+        String encryptedBody = EncryptionUtil.encrypt(emailBody);
+
+        CompletableFuture.allOf(
+                sendEmailAsync(user.getEmail(), "Verify your email", encryptedBody),
+                rateLimiterService.recordEmailSentAsync(email))
+                .thenRun(() -> log.info("Email sent and recorded successfully for: {}", email))
+                .exceptionally(ex -> {
+                    log.error("Error while sending verification email: {}", ex.getMessage(), ex);
+                    return null;
+                });
+    }
+
+    private CompletableFuture<Void> sendEmailAsync(String to, String subject, String body) {
+        return CompletableFuture.runAsync(() -> sendEmail(to, subject, body));
     }
 
     @Override
     public void sendResetTokenEmail(String email, String resetToken) {
-        User user = new User();
-        user.setEmail(email);
-        long timeWindowMillis = 10000;
-        if (rateLimitExceeded(email)) {
-            LOGGER.error("Rate limit exceeded for sending reset password emails to: ", email);
+        if (rateLimitExceeded(email) || rateLimiterService.hasEmailBeenSent(email, 10000)) {
+            log.error("Rate limit exceeded or email already sent for: {}", email);
             return;
         }
 
-        if (rateLimiterService.hasEmailBeenSent(email, timeWindowMillis)) {
-            LOGGER.info("Email has already been sent to: ", email);
-            return;
-        }
-
-        String subject = "Reset password";
-        String emailText = "To reset your password, click the link below:\n" +
-                "http://localhost:8082/api/v01/auth/reset-password?token=" + resetToken;
-        sendEmail(email, subject, emailText);
+        sendEmailAsync(email, "Reset password", 
+            "To reset your password, click the link below:\n" +
+            "http://localhost:8082/api/v01/auth/reset-password?token=" + resetToken)
+            .thenRun(() -> rateLimiterService.recordEmailSentAsync(email))
+            .exceptionally(ex -> {
+                log.error("Error sending reset password email: {}", ex.getMessage(), ex);
+                return null;
+            });
     }
 
     @Override
     public String verifyEmail(String token) {
-        try {
-            ConfirmationTokens confirmToken = confirmationTokensRepository.findByConfirmToken(token)
-                    .orElseThrow(() -> new IllegalStateException("Token not found"));
+        return confirmationTokensRepository.findByConfirmToken(token)
+                .map(confirmToken -> {
+                    if (confirmToken.getConfirmedAt() != null) {
+                        log.error("Token already confirmed");
+                        return "Email is already confirmed!";
+                    }
 
-            if (confirmToken.getConfirmedAt() != null) {
-                LOGGER.error("Token already confirmed");
-                return "Email is already confirmed!";
-            }
+                    LocalDateTime now = LocalDateTime.now();
+                    if (confirmToken.getExpiryDate().isBefore(now)) {
+                        log.error("Token expired");
+                        return "Token expired!";
+                    }
 
-            if (confirmToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-                LOGGER.error("Token expired");
-                return "Token expired!";
-            }
+                    User user = confirmToken.getUsers();
+                    if (!user.isActive()) {
+                        user.setActive(true);
+                        userRepository.save(user);
+                    }
 
-            User user = confirmToken.getUsers();
-            if (!user.isActive()) {
-                user.setActive(true);
-                userRepository.save(user);
-            }
+                    confirmToken.setConfirmedAt(now);
+                    confirmationTokensRepository.save(confirmToken);
 
-            confirmToken.setConfirmedAt(LocalDateTime.now());
-            confirmationTokensRepository.save(confirmToken);
+                    TokenDTO userToken = tokenGenerator.generateTokens(user);
+                    log.info("Email confirmed for user: {}", user.getUsername());
 
-            // Generate authentication token after email verification
-            Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
-                    user, user.getPassword(), user.getAuthorities());
-
-            TokenDTO userToken = tokenGenerator.generateTokens(authentication);
-
-            String accessToken = userToken.getAccessToken();
-
-            LOGGER.info("Email confirmed for user: {}", user.getUsername());
-
-            return accessToken;
-        } catch (Exception e) {
-            LOGGER.error("Cannot verify email please check again", e);
-            return "ERROR: cannot verify email";
-        }
+                    return userToken.getAccessToken();
+                })
+                .orElse("ERROR: cannot verify email");
     }
 
     @Override
     public void resendVerificationEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("User not found"));
-
-        if (user.isActive()) {
-            LOGGER.error("User already confirmed");
-            throw new IllegalStateException("User already confirmed");
-        }
-
-        // UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-        sendVerificationEmail(user);
+        userRepository.findByEmail(email)
+                .filter(user -> !user.isActive())
+                .ifPresent(this::sendVerificationEmail);
     }
 
     private void sendEmail(String to, String subject, String body) {
@@ -169,7 +135,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setText(body, true);
             mailSender.send(message);
         } catch (MessagingException e) {
-            LOGGER.error("Failed to send email to: {}", to, e);
+            log.error("Failed to send email to: {}", to, e);
             throw new IllegalStateException("Failed to send email");
         }
     }
@@ -219,7 +185,7 @@ public class EmailServiceImpl implements EmailService {
     private boolean rateLimitExceeded(String email) {
         String rateLimitKey = "sendVerificationEmail:" + email;
         if (rateLimiterService.isRateLimited(rateLimitKey)) {
-            LOGGER.error("Rate limit exceeded for email: {}", email);
+            log.error("Rate limit exceeded for email: {}", email);
             return true;
         }
         return false;

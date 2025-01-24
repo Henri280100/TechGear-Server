@@ -19,21 +19,21 @@ import lombok.NoArgsConstructor;
 public class OrderItemsDTO {
     @Schema(description = "Order Item ID", example = "123")
     @Positive(message = "Order Item ID must be a positive number")
-    private Integer orderItemId;
+    private Integer id;
 
     @Schema(description = "Quantity")
-    private Integer quantity;
+    private Integer itemsQuantity;
 
     @Schema(description = "Order item unit price")
-    private Double unitPrice;
+    private Double itemsUnitPrice;
 
     @Schema(description = "Order associated with the Order item")
-    private OrderDTO order;
+    private OrderDTO orderDTO;
 
     @Schema(description = "Product associated with the Order item")
-    private ProductDTO product;
+    private ProductDTO productDTO;
 
     @Schema(description = "Order item status")
     @Enumerated(EnumType.STRING)
-    private OrderItemStatus orderItemStatus;
+    private OrderItemStatus status;
 }

@@ -1,5 +1,10 @@
 package com.v01.techgear_server.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class ApiResponseDTO<T> {
     private T data; // Use a generic type for data
     private String message;
@@ -16,35 +21,5 @@ public class ApiResponseDTO<T> {
         this.status = status;
     }
 
-    public T getData() {
-    return data;
-    }
 
-    public void setData(T data) {
-        this.data = data;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
 }

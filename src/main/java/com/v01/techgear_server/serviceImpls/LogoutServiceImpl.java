@@ -1,4 +1,4 @@
-package com.v01.techgear_server.serviceImpls;
+package com.v01.techgear_server.serviceimpls;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

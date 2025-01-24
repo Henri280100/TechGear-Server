@@ -1,27 +1,16 @@
 package com.v01.techgear_server.model;
 
-import java.time.Instant;
-
 import com.v01.techgear_server.enums.TokenTypes;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.proxy.HibernateProxy;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.time.Instant;
+import java.util.Objects;
 
 @Getter
 @Setter
-@Data
+@ToString
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -49,9 +38,38 @@ public class Token {
     @Column(nullable = false)
     private boolean revoked;
 
+    @Column(name = "expiresIn")
+    private Long expiresIn;
+
+
     @Column(name="createdDate")
     private Instant createdDate;
 
     @Column(name="expiresDate")
     private Instant expiresDate;
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null)
+            return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy
+                ? ((HibernateProxy) o).getHibernateLazyInitializer()
+                                      .getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy
+                ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                                         .getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass)
+            return false;
+        Token token = (Token) o;
+        return getTokenId() != null && Objects.equals(getTokenId(), token.getTokenId());
+    }
+
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                                                                       .getPersistentClass()
+                                                                       .hashCode() : getClass().hashCode();
+    }
 }

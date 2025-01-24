@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 import com.v01.techgear_server.enums.AddressTypes;
 import com.v01.techgear_server.model.UserAddress;
-import com.v01.techgear_server.repo.UserAddressRepository;
+import com.v01.techgear_server.repo.jpa.UserAddressRepository;
 
 import lombok.RequiredArgsConstructor;
 

@@ -21,8 +21,8 @@ public class LongScalar {
 
                 @Override
                 public Long parseLiteral(Object input) {
-                    if (input instanceof IntValue) {
-                        return ((IntValue) input).getValue().longValue();
+                    if (input instanceof IntValue value) {
+                        return value.getValue().longValue();
                     }
                     throw new IllegalArgumentException("Invalid long value");
                 }

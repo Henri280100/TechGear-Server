@@ -1,6 +1,8 @@
 package com.v01.techgear_server.dto;
 
+import java.util.HashSet;
 import java.time.LocalDateTime;
+
 import com.v01.techgear_server.enums.UserGenders;
 import com.v01.techgear_server.enums.UserTypes;
 
@@ -23,25 +25,27 @@ public class AccountDetailsDTO {
 
     @Schema(description = "First Name")
     @NotBlank(message = "First name is required")
-    private String firstName;
+    private String userFirstName;
 
     @Schema(description = "Last Name")
     @NotBlank(message = "Last name is required")
-    private String lastName;
+    private String userLastName;
 
     @Schema(description = "User Type")
     private UserTypes userType;
 
     @Schema(description = "Gender")
-    private UserGenders gender;
+    private UserGenders userGender;
 
     @Schema(description = "Date of Birth")
-    @Past(message = "Date of birth must be in the past")
-    private LocalDateTime dateOfBirth;
+    private LocalDateTime userDateOfBirth;
 
-    @Schema(description = "Phone Number")
-    private UserPhoneNoDTO userPhoneNo;
+    @Schema(description = "Profile Image")
+    private ImageDTO userProfileImage;
 
-    @Schema(description = "User Address")
-    private UserAddressDTO userAddress;
+    @Schema(description = "Phone Numbers")
+    private HashSet<UserPhoneNoDTO> userPhoneNoDTOS;
+
+    @Schema(description = "User Addresses")
+    private HashSet<UserAddressDTO> userAddressDTOS;
 }

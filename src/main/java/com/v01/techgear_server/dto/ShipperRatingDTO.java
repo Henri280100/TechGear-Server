@@ -13,20 +13,20 @@ import lombok.NoArgsConstructor;
 public class ShipperRatingDTO {
 
     @Schema(description = "Shipper Rating ID", example = "1")
-    private Long id;
+    private Long shipperRatingId;
 
     @Schema(description = "Comments", example = "Great service")
-    private String comments;
+    private String userComments;
 
     @Schema(description = "Rating", example = "4.5")
-    private double rating;
+    private double userRating;
 
     @Schema(description = "Rating Date", example = "2021-01-01T00:00:00")
     private LocalDateTime ratingDateTime;
 
     @Schema(description = "Shipper")
-    private ShipperDTO shipper;
+    private ShipperDTO shipperDTO;
 
     @Schema(description = "Account Details")
-    private AccountDetailsDTO accountDetails;
+    private AccountDetailsDTO userAccountDetails;
 }

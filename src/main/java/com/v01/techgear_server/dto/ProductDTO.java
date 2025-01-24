@@ -19,23 +19,23 @@ public class ProductDTO {
     @Schema(description = "Product name", example = "Apple iPhone")
     private String name;
     @Schema(description = "Product description", example = "This is a description of the Apple iPhone")
-    private String description;
+    private String productDescription;
 
     @Schema(description = "Product price")
-    private double price;
+    private double productPrice;
 
     @Schema(description = "Product availability", example = "AVAILABLE")
-    private ProductAvailability availability;
+    private ProductAvailability productAvailability;
 
     @Schema(description="Product stock level", example = "10")
-    private int stockLevel;
+    private int productStockLevel;
     
     @Schema(description = "Product slug", example = "apple-iphone")
-    private String slug;
+    private String productSlug;
 
     @Schema(description = "Product image")
-    private ImageDTO image;
+    private ImageDTO productImage;
 
     @Schema(description = "Product category", example = "Electronics")
-    private String category;
+    private String productCategory;
 }
