@@ -17,12 +17,19 @@ public class ProductDTO {
     private Long id;
 
     @Schema(description = "Product name", example = "Apple iPhone")
-    private String name;
+    private String productName;
+
     @Schema(description = "Product description", example = "This is a description of the Apple iPhone")
     private String productDescription;
 
     @Schema(description = "Product price")
     private double productPrice;
+
+    @Schema(description = "Product minimum price")
+    private double productMinPrice;
+
+    @Schema(description = "Product maximum price")
+    private double productMaxPrice;
 
     @Schema(description = "Product availability", example = "AVAILABLE")
     private ProductAvailability productAvailability;
@@ -30,8 +37,8 @@ public class ProductDTO {
     @Schema(description="Product stock level", example = "10")
     private int productStockLevel;
     
-    @Schema(description = "Product slug", example = "apple-iphone")
-    private String productSlug;
+    @Schema(description = "Product brand", example = "Asus")
+    private String productBrand;
 
     @Schema(description = "Product image")
     private ImageDTO productImage;

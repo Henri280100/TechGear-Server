@@ -79,7 +79,7 @@ public class AuthController {
 			             content = @Content(mediaType = "application/json"))
 	})
 	public ResponseEntity<ApiResponseDTO<User>> signUp(
-			@Parameter(description = "User details in JSON Format", required = true)
+			@Parameter(description = "User dto in JSON Format", required = true)
 			@Valid
 			@RequestBody
 			SignUpResponse signUp) {
@@ -97,6 +97,7 @@ public class AuthController {
 			User user = new User();
 			user.setUsername(signUp.getUsername());
 			user.setPassword(signUp.getPassword());
+			user.setEmail(signUp.getEmail());
 			userDetailsManager.createUser(user);
 			emailService.sendVerificationEmail(user);
 
@@ -204,7 +205,7 @@ public class AuthController {
 			return "";
 		}
 
-		return Optional.ofNullable(token)
+		return Optional.of(token)
 		               .filter(t -> t.length() > 8)
 		               .map(t -> {
 			               int length = t.length();

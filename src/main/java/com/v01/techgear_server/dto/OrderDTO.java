@@ -28,6 +28,22 @@ public class OrderDTO {
     @Schema(description = "Date and time when the order was placed")
     private LocalDateTime orderDate;
 
-    @Schema(description = "Details of the account associated with the order")
-    private AccountDetailsDTO accountDetails;
+    @Schema(description = "Last updated timestamp of the order")
+    private LocalDateTime updatedAt;
+
+    @Schema(description = "Payment Id", example = "123")
+    @Positive(message = "Payment ID must be a positive number")
+    private Long paymentId;
+
+    @Schema(description="Shipper Id", example = "123")
+    @Positive(message = "Shipper ID must be a positive number")
+    private Long shipperId;
+
+    @Schema(description = "Invoice id", example = "123")
+    @Positive(message = "Invoice ID must be a positive number")
+    private Long invoiceId;
+
+    @Schema(description = "Customer account Id", example = "123")
+    @Positive(message = "Account ID must be a positive number")
+    private Long accountId;
 }

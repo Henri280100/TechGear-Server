@@ -25,12 +25,13 @@ public class ProductRatingDTO {
     @Schema(description = "Rating Date", example = "2021-01-01T00:00:00")
     private LocalDateTime ratingDate;
 
-    @Schema(description = "Product")
-    private ProductDTO product;
+    @Schema(description = "Product ID", example = "1011")
+    private Long productId;
 
     @Schema(description = "Product review image")
     private ImageDTO productReviewImage;
 
-    @Schema(description="Account Details")
-    private AccountDetailsDTO userAccountDetails;
+    @Schema(description = "Account ID of the reviewer", example = "202")
+    private Long accountId;
+
 }

@@ -13,13 +13,4 @@ public class ApiResponseDTO<T> {
 
     public ApiResponseDTO() {
     }
-
-    public ApiResponseDTO(T data, String message, boolean success, String status) {
-        this.data = data;
-        this.message = message;
-        this.success = success;
-        this.status = status;
-    }
-
-
 }

@@ -22,33 +22,19 @@ public class ImageDTO {
     @Positive(message = "Image ID must be a positive number")
     private Long id;
 
-    @Schema(description = "Image URL")
+    @Schema(description = "Image URL", example = "https://example.com/images/sample.jpg")
     private String imageUrl;
 
-    @Schema(description = "Image display name")
-    private String fileName;
+    @Schema(description = "Image public ID", example = "123124")
+    private String publicId;
 
-    @Schema(description = "Image type")
+    @Schema(description = "Image type", example = "PNG")
     private ImageTypes type;
 
     @Schema(description = "Image dimensions")
-    private ImageDimensions dimensions;
+    private ImageDimensionsDTO dimensions;
 
-    @Schema(description = "Creation timestamp")
+    @Schema(description = "Creation timestamp", example = "2024-02-01T12:00:00")
     private LocalDateTime createdAt;
-
-
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Schema(description = "Image Dimensions")
-    public static class ImageDimensions {
-        @Schema(description = "Width of the image", example = "1920")
-        private Integer width;
-
-        @Schema(description = "Height of the image", example = "1080")
-        private Integer height;
-    }
 }
+

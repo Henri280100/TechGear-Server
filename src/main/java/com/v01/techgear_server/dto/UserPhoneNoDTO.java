@@ -20,32 +20,28 @@ import java.util.Set;
 @Schema(name = "UserPhoneNoDTO", description = "Phone number details of user")
 public class UserPhoneNoDTO {
 
-	@Schema(description = "Phone number ID", example = "1")
-	private Long id;
+    @Schema(description = "Phone number ID", example = "1")
+    private Long id;
 
+    @Schema(description = "Account details Id")
+    private Long accountDetailsId;
 
-	@Schema(description = "Phone number type", example = "PERSONAL")
-	private PhoneNumberType type;
+    @Schema(description = "Phone number type", example = "PERSONAL")
+    private PhoneNumberType type;
 
+    @Schema(description = "Phone number purpose", example = "ORDER_UPDATES")
+    private PhoneNumberPurpose purpose;
 
-	@Schema(description = "Phone number purpose", example = "ORDER_UPDATES")
-	private PhoneNumberPurpose purpose;
+    @Schema(description = "Phone number", example = "+1 1234567890")
+    private String phoneNo;
 
-	@Schema(description = "Phone number", example = "+1 1234567890")
-	private String phoneNo;
+    @Schema(description = "Country code", example = "+1")
+    private String countryCode;
 
-	@Schema(description = "Country code", example = "+1")
-	private String countryCode;
+    @Schema(description = "Phone number is primary")
+    private boolean primary;
 
-	@Schema(description = "Phone number is primary")
-	private boolean primary;
-
-
-	@Schema(description = "Account details associated with phone number")
-	private AccountDetailsDTO accountDetails;
-
-	@Schema(description = "Communication preference", example = "SMS")
-	private CommunicationPreference communicationPreference;
-
+    @Schema(description = "Communication preference", example = "SMS")
+    private CommunicationPreference communicationPreference;
 
 }

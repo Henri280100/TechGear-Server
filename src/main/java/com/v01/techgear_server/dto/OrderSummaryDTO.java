@@ -37,10 +37,4 @@ public class OrderSummaryDTO {
 
     @Schema(description = "Notes for the order", example = "Please deliver before 5 PM")
     private String notes;
-
-    @Schema(description="Created at", example = "2023-10-01T12:00:00")
-    private LocalDateTime createdAt;
-
-    @Schema(description = "List of items in the order")
-    private List<OrderItemsDTO> orderItems;
 }
