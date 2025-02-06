@@ -5,8 +5,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import com.v01.techgear_server.dto.ImageDimensionsDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,9 +19,7 @@ import com.v01.techgear_server.dto.ImageDTO;
 import com.v01.techgear_server.dto.MediaDTO;
 import com.v01.techgear_server.enums.ImageTypes;
 import com.v01.techgear_server.exception.FileUploadingException;
-import com.v01.techgear_server.mapping.ImageMapper;
 import com.v01.techgear_server.mapping.MediaMapper;
-import com.v01.techgear_server.model.Image;
 import com.v01.techgear_server.model.Media;
 import com.v01.techgear_server.service.FileStorageService;
 
@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 public class CloudinaryFileStorageServiceImpl implements FileStorageService {
 
     private final Cloudinary cloudinary;
-    private final ImageMapper imageMapper;
     private final MediaMapper mediaMapper;
 
     private static final String CLOUDINARY_FOLDER = "techgear";
@@ -49,10 +48,11 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
     private static final String AUTO_QUALITY = "auto:good";
 
     @Override
-    public CompletableFuture<Void> deleteImage(String publicId) throws IOException {
+    public CompletableFuture<Void> deleteImage(String publicId) {
         return CompletableFuture.runAsync(() -> {
             try {
-                cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+                cloudinary.uploader()
+                        .destroy(publicId, ObjectUtils.emptyMap());
             } catch (Exception e) {
                 log.error(ErrorMessageConstants.ERROR_DELETING_IMAGE, e);
                 throw new FileUploadingException(ErrorMessageConstants.ERROR_DELETING_IMAGE, e);
@@ -64,7 +64,8 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
     public CompletableFuture<Void> deleteMedia(String publicId) {
         return CompletableFuture.runAsync(() -> {
             try {
-                cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+                cloudinary.uploader()
+                        .destroy(publicId, ObjectUtils.emptyMap());
             } catch (Exception e) {
                 throw new FileUploadingException(ErrorMessageConstants.ERROR_DELETING_MEDIA, e);
             }
@@ -76,7 +77,8 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
         return CompletableFuture.runAsync(() -> {
             try {
                 for (String publicId : publicIds) {
-                    cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+                    cloudinary.uploader()
+                            .destroy(publicId, ObjectUtils.emptyMap());
                 }
             } catch (Exception e) {
                 log.error(ErrorMessageConstants.ERROR_DELETING_MULTI_IMAGES, e);
@@ -90,7 +92,8 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
         return CompletableFuture.runAsync(() -> {
             try {
                 for (String publicId : publicIds) {
-                    cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+                    cloudinary.uploader()
+                            .destroy(publicId, ObjectUtils.emptyMap());
                 }
             } catch (Exception e) {
                 log.error(ErrorMessageConstants.ERROR_DELETING_MULTI_MEDIA, e);
@@ -100,51 +103,13 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public CompletableFuture<ImageDTO> storeSingleImage(MultipartFile file)
-            throws IOException {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-
-                validateFiles(file);
-
-                @SuppressWarnings("unchecked")
-                Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                        ObjectUtils.asMap(FOLDER, CLOUDINARY_FOLDER,
-                                RESOURCE_TYPE, "image",
-                                QUALITY, AUTO_QUALITY, // Auto quality based on eco mode
-                                FETCH_FORMAT, "auto", // Automatically optimize the image format
-                                WIDTH, 1024, // Resize image to have a max width of 1024px
-                                CROP, LIMIT // Limit cropping to avoid exceeding width
-                ));
-
-                String url = (String) uploadResult.get(SECURE_URL);
-                String publicId = (String) uploadResult.get(PUBLIC_ID);
-                Integer width = (Integer) uploadResult.get(WIDTH);
-                Integer height = (Integer) uploadResult.get(HEIGHT);
-
-                Image image = new Image();
-                image.setId(Long.parseLong(publicId));
-                image.setImageUrl(url);
-                image.setWidth(width);
-                image.setHeight(height);
-
-                image.setImageTypes(ImageTypes.GENERIC);
-                return imageMapper.toDTO(image);
-            } catch (Exception e) {
-                throw new FileUploadingException("Unexpected error during image upload", e);
-            }
-        });
+    public CompletableFuture<ImageDTO> storeSingleImage(MultipartFile file) throws IOException {
+        return CompletableFuture.supplyAsync(() -> uploadImage(file));
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public CompletableFuture<List<ImageDTO>> storedMultipleImage(List<MultipartFile> files)
-            throws IOException {
+    public CompletableFuture<List<ImageDTO>> storedMultipleImage(List<MultipartFile> files) throws IOException {
         return CompletableFuture.supplyAsync(() -> {
-
-            List<ImageDTO> uploadedImages = new ArrayList<>();
-
-            // Validate and filter non-empty files
             List<MultipartFile> validFiles = files.stream()
                     .filter(file -> !file.isEmpty())
                     .toList();
@@ -153,45 +118,53 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
                 throw new IllegalArgumentException("No valid files to upload");
             }
 
-            try {
-                for (MultipartFile file : validFiles) {
-                    validateFiles(file); // Validate image file
+            return validFiles.parallelStream()
+                    .map(this::uploadImage) // ✅ Reuse uploadImage method
+                    .toList();
+        });
+    }
 
-                    // Upload image to Cloudinary
-                    Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                            ObjectUtils.asMap(
-                                    RESOURCE_TYPE, "image",
-                                    QUALITY, AUTO_QUALITY, // Auto quality based on eco mode
-                                    FETCH_FORMAT, "auto", // Automatically optimize the image format
-                                    WIDTH, 1024, // Resize image to have a max width of 1024px
-                                    CROP, LIMIT // Limit cropping to avoid exceeding width
+    /**
+     * Helper method to handle image upload to Cloudinary and return ImageDTO.
+     */
+    private ImageDTO uploadImage(MultipartFile file) {
+        try {
+            validateFiles(file);
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                    ObjectUtils.asMap(
+                            FOLDER, CLOUDINARY_FOLDER,
+                            RESOURCE_TYPE, "image",
+                            QUALITY, AUTO_QUALITY,
+                            FETCH_FORMAT, "auto",
+                            WIDTH, 1024,
+                            CROP, LIMIT
                     ));
 
-                    String url = (String) uploadResult.get(SECURE_URL);
-                    String publicId = (String) uploadResult.get(PUBLIC_ID);
-                    Integer width = (Integer) uploadResult.get(WIDTH);
-                    Integer height = (Integer) uploadResult.get(HEIGHT);
+            String url = (String) uploadResult.get(SECURE_URL);
+            String publicId = (String) uploadResult.get(PUBLIC_ID);
+            Integer width = (Integer) uploadResult.get(WIDTH);
+            Integer height = (Integer) uploadResult.get(HEIGHT);
 
-                    ImageDTO imageDTO = new ImageDTO();
-                    imageDTO.setFileName(publicId);
-                    imageDTO.setImageUrl(url); // Set the image URL
+            ImageDimensionsDTO dimensions = new ImageDimensionsDTO(
+                    Optional.ofNullable(width).orElse(0),
+                    Optional.ofNullable(height).orElse(0)
+            );
 
-                    imageDTO.setDimensions(new ImageDTO.ImageDimensions(width, height));
-                    imageDTO.setCreatedAt(LocalDateTime.now()); // Set creation timestamp
+            return ImageDTO.builder()
+                    .publicId(publicId)
+                    .imageUrl(url)
+                    .dimensions(dimensions)
+                    .type(ImageTypes.GENERIC)
+                    .createdAt(LocalDateTime.now())
+                    .build();
 
-                    imageDTO.setType(ImageTypes.GENERIC);
-                    // Add the uploaded image to the list
-                    uploadedImages.add(imageDTO);
-                }
-
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to upload multiple files", e);
-            }
-
-            return uploadedImages;
-        });
-
+        } catch (Exception e) {
+            throw new FileUploadingException("Unexpected error during image upload: " + e.getMessage(), e);
+        }
     }
+
 
     @Override
     public MediaDTO storeMedia(MultipartFile mediaFile) throws IOException {
@@ -199,14 +172,18 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
             validateFiles(mediaFile);
 
             @SuppressWarnings("unchecked")
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(mediaFile.getBytes(),
-                    ObjectUtils.asMap(
-                            FOLDER, CLOUDINARY_FOLDER,
-                            RESOURCE_TYPE, "video", // Auto-detect resource type (image, video, etc.)
-                            QUALITY, AUTO_QUALITY, // Auto quality based on optimization
-                            FETCH_FORMAT, "auto" // Automatically optimize the format
+            Map<String, Object> uploadResult = cloudinary.uploader()
+                    .upload(mediaFile.getBytes(),
+                            ObjectUtils.asMap(
+                                    FOLDER, CLOUDINARY_FOLDER,
+                                    RESOURCE_TYPE, "video",
+                                    // Auto-detect resource type (image, video, etc.)
+                                    QUALITY, AUTO_QUALITY,
+                                    // Auto quality based on optimization
+                                    FETCH_FORMAT, "auto"
+                                    // Automatically optimize the format
 
-                    ));
+                            ));
             String url = (String) uploadResult.get(SECURE_URL); // Use secure URL
             String publicId = (String) uploadResult.get(PUBLIC_ID);
             String contentType = mediaFile.getContentType();
@@ -240,14 +217,19 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
         }
 
         for (MultipartFile file : validFiles) {
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                    ObjectUtils.asMap(
-                            FOLDER, CLOUDINARY_FOLDER,
-                            RESOURCE_TYPE, "auto", // Auto-detect resource type (image, video, etc.)
-                            QUALITY, AUTO_QUALITY, // Auto quality based on optimization
-                            FETCH_FORMAT, "auto", // Automatically optimize the format
-                            PUBLIC_ID, file.getOriginalFilename() // Optional: Set public ID
-                    ));
+            Map<String, Object> uploadResult = cloudinary.uploader()
+                    .upload(file.getBytes(),
+                            ObjectUtils.asMap(
+                                    FOLDER, CLOUDINARY_FOLDER,
+                                    RESOURCE_TYPE, "auto",
+                                    // Auto-detect resource type (image, video, etc.)
+                                    QUALITY, AUTO_QUALITY,
+                                    // Auto quality based on optimization
+                                    FETCH_FORMAT, "auto",
+                                    // Automatically optimize the format
+                                    PUBLIC_ID, file.getOriginalFilename()
+                                    // Optional: Set public ID
+                            ));
             String url = (String) uploadResult.get(SECURE_URL); // Use secure URL
             String publicId = (String) uploadResult.get(PUBLIC_ID);
             String contentType = file.getContentType();
