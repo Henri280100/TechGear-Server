@@ -14,15 +14,9 @@ import org.mapstruct.*;
 public interface OrderMapper extends BaseMapper<Order, OrderDTO> {
 
 	@Override
-	@Mapping(source = "orderStatus", target = "orderStatus")
-	@Mapping(source = "orderDate", target = "orderDate")
-	@Mapping(source = "accountDetails", target = "accountDetails.accountDetailsId", ignore = true)
 	OrderDTO toDTO(Order entity);
 
 	@Override
-	@Mapping(source = "orderStatus", target = "orderStatus")
-	@Mapping(source = "orderDate", target = "orderDate")
-	@Mapping(source = "accountDetails", target = "accountDetails.accountDetailsId", ignore = true)
 	Order toEntity(OrderDTO dto);
 
 	@Override

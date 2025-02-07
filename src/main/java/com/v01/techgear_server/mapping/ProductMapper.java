@@ -17,34 +17,33 @@ import com.v01.techgear_server.utils.BaseMapper;
 public interface ProductMapper extends BaseMapper<Product, ProductDTO> {
 
 	@Override
-	@Mapping(target = "productMinPrice", ignore = true)
-	@Mapping(target = "productMaxPrice", ignore = true)
-	@Mapping(target = "productBrand", ignore = true)
-	@Mapping(target = "productName", source = "name")
 	@Mapping(target = "productStockLevel", source = "stockLevel")
-	@Mapping(target = "productSlug", ignore = true)
 	@Mapping(target = "productPrice", source = "price")
+	@Mapping(target = "productName", source = "name")
+	@Mapping(target = "productMinPrice", source = "minPrice")
+	@Mapping(target = "productMaxPrice", source = "maxPrice")
 	@Mapping(target = "productImage", source = "image")
 	@Mapping(target = "productCategory", source = "category")
+	@Mapping(target = "productBrand", source = "brand")
 	@Mapping(target = "productAvailability", source = "availability")
 	@Mapping(target = "id", source = "productId", ignore = true)
 	ProductDTO toDTO(Product product);
 
-
-	@Mapping(target = "name", source = "productName")
+	@Override
 	@Mapping(target = "wishlistItems", ignore = true)
-	@Mapping(target = "stockLevel", source = "productStockLevel")
-	@Mapping(target = "slug", source = "productSlug", ignore = true)
+	@Mapping(target = "stockLevel", source = "productStockLevel", ignore = true)
+	@Mapping(target = "slug", ignore = true)
 	@Mapping(target = "productRatings", ignore = true)
 	@Mapping(target = "productId", source = "id", ignore = true)
 	@Mapping(target = "productDetail", ignore = true)
 	@Mapping(target = "price", source = "productPrice")
 	@Mapping(target = "orderItems", ignore = true)
-	@Mapping(target = "minPrice", ignore = true)
-	@Mapping(target = "maxPrice", ignore = true)
+	@Mapping(target = "name", source = "productName")
+	@Mapping(target = "minPrice", source = "productMinPrice")
+	@Mapping(target = "maxPrice", source = "productMaxPrice")
 	@Mapping(target = "image", source = "productImage")
 	@Mapping(target = "category", source = "productCategory")
-	@Mapping(target = "brand", ignore = true)
+	@Mapping(target = "brand", source = "productBrand")
 	@Mapping(target = "availability", source = "productAvailability")
 	Product toEntity(ProductDTO productDTO);
 

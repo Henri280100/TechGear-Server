@@ -14,21 +14,24 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring", uses = {AccountDetailsMapper.class},
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserMapper extends BaseMapper<User, UserDTO> {
+	@Mapping(target = "userRoles", source = "roles")
+	@Mapping(target = "isActive", source = "active")
 	@Override
-	@Mapping(target = "userRoles", source = "roles", ignore = true)
 	UserDTO toDTO(User entity);
 
-	@Override
-	@Mapping(target = "roles", source = "userRoles", ignore = true)
-	@Mapping(target = "connections", ignore = true)
 	@Mapping(target = "updatedDate", ignore = true)
+	@Mapping(target = "roles", source = "useRoles")
 	@Mapping(target = "provider", ignore = true)
+	@Mapping(target = "permissions", ignore = true)
 	@Mapping(target = "password", ignore = true)
+	@Mapping(target = "lastLoginActiveBefore", ignore = true)
 	@Mapping(target = "createdDate", ignore = true)
+	@Mapping(target = "connections", ignore = true)
 	@Mapping(target = "confirmationTokens", ignore = true)
 	@Mapping(target = "authorities", ignore = true)
 	@Mapping(target = "accountLocked", ignore = true)
 	@Mapping(target = "accountExpired", ignore = true)
+	@Override
 	User toEntity(UserDTO dto);
 
 

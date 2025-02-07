@@ -2,12 +2,8 @@ package com.v01.techgear_server.mapping;
 
 import java.util.Collections;
 import java.util.List;
-
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.NullValueMappingStrategy;
-import org.mapstruct.NullValuePropertyMappingStrategy;
-
 import com.v01.techgear_server.dto.WishlistDTO;
 import com.v01.techgear_server.model.Wishlist;
 import com.v01.techgear_server.utils.BaseMapper;
@@ -19,9 +15,11 @@ import com.v01.techgear_server.utils.BaseMapper;
 public interface WishlistMapper extends BaseMapper<Wishlist, WishlistDTO> {
     // Override and customize base methods with specific mappings
     @Override
+    @Mapping(target = "image", source = "")
     WishlistDTO toDTO(Wishlist wishlist);
 
     @Override
+    @Mapping(target = "wishlistImage", ignore = true)
     @Mapping(target = "accountDetails", ignore = true)
     Wishlist toEntity(WishlistDTO wishlistDTO);
 

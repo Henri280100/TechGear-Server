@@ -13,12 +13,17 @@ import com.v01.techgear_server.dto.*;
 public interface UserPhoneNoMapper extends BaseMapper<UserPhoneNo, UserPhoneNoDTO> {
 
 	@Override
+	@Mapping(target = "accountDetailsId", source = "accountDetails.accountDetailsId", ignore = true)
 	UserPhoneNoDTO toDTO(UserPhoneNo entity);
 
 	@Override
-	@Mapping(target = "verifiedAt", ignore = true) @Mapping(target = "updatedAt", ignore = true)
-	@Mapping(target = "phoneNumberVerified", ignore = true) @Mapping(target = "marketingConsentAt", ignore = true)
-	@Mapping(target = "marketingConsent", ignore = true) @Mapping(target = "createdAt", ignore = true)
+	@Mapping(target = "verifiedAt", ignore = true)
+	@Mapping(target = "updatedAt", ignore = true)
+	@Mapping(target = "phoneNumberVerified", ignore = true)
+	@Mapping(target = "marketingConsentAt", ignore = true)
+	@Mapping(target = "marketingConsent", ignore = true)
+	@Mapping(target = "createdAt", ignore = true)
+	@Mapping(target = "accountDetails", ignore = true)
 	UserPhoneNo toEntity(UserPhoneNoDTO dto);
 
 	@Override

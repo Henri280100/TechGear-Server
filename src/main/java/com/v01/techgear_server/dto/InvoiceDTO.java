@@ -21,16 +21,16 @@ public class InvoiceDTO {
     private Long invoiceId;
 
     @Schema(description = "Invoice status")
-    private InvoiceStatus status;
+    private InvoiceStatus invoiceStatus;
 
     @Schema(description = "Invoice number")
     private String invoiceNumber;
 
     @Schema(description = "Issue date of the invoice")
-    private String issueDate;
+    private String invoiceIssueDate;
 
     @Schema(description = "Total amount of the invoice")
-    private Integer totalAmount;
+    private Integer invoiceTotalAmount;
 
     @Schema(description = "Details of the invoice")
     private List<InvoiceDetailsDTO> invoiceDetails;

@@ -9,6 +9,9 @@ import com.v01.techgear_server.repo.jpa.UserAddressRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 @Component
 @RequiredArgsConstructor
 public class AddressInitializer implements CommandLineRunner {
@@ -16,13 +19,15 @@ public class AddressInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (userAddressRepository.count() == 0) {
-            for (AddressTypes addressType : AddressTypes.values()) {
-                if (userAddressRepository.findByAddressType(addressType).isEmpty()) {
-                    UserAddress address = new UserAddress();
-                    address.setAddressType(addressType);
-                    userAddressRepository.save(address);
-                }
-            }
+            userAddressRepository.saveAll(
+                    Arrays.stream(AddressTypes.values())
+                            .map(addressType -> {
+                                UserAddress address = new UserAddress();
+                                address.setAddressType(addressType);
+                                return address;
+                            })
+                            .collect(Collectors.toList())
+            );
         }
     }
 

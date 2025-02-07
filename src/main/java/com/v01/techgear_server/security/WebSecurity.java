@@ -9,7 +9,6 @@ import org.springframework.security.access.expression.method.DefaultMethodSecuri
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -42,6 +41,8 @@ import com.v01.techgear_server.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Resource;
+
 @Configuration
 @Slf4j
 @EnableWebSecurity
@@ -62,8 +63,8 @@ public class WebSecurity {
 	private final PasswordEncoder passwordEncoder;
 	private final UserDetailsManager userDetailsManager;
 	private final CustomAuthenticationProvider authProvider;
-	private final LogoutHandler logoutHandler;
-	private final OAuth2UserService oAuth2UserService;
+	private final @Resource(name = "customLogoutHandler") LogoutHandler logoutHandler;
+	private final OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService;
 
 
 	@Bean

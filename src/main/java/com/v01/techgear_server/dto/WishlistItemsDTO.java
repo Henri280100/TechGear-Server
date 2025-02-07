@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Wishlist Items data transfer object")
 public class WishlistItemsDTO {
 
     @Schema(description = "Wishlist item ID", example = "1")
