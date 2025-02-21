@@ -1,0 +1,3 @@
+schema:
+  - classpath:graphql/*.graphql
+documents: src/main/resources/graphql/**/*.graphql

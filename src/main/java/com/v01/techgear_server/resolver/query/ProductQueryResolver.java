@@ -21,9 +21,8 @@ public class ProductQueryResolver implements DataFetcher<List<Product>> {
 
     @Override
     public List<Product> get(DataFetchingEnvironment environment) {
-        // TODO: Implement this method if needs
-        return null;
-        
+        return productRepository.findAll();
+
     }
 
     public Product getProductById(DataFetchingEnvironment environment) {
@@ -34,18 +33,19 @@ public class ProductQueryResolver implements DataFetcher<List<Product>> {
         }
 
         log.info("Fetching product with id: {}", id);
-        return productRepository.findById(id).orElseThrow(() -> new GraphQLException("Product not found with ID: " + id));
+        return productRepository.findById(id)
+                .orElseThrow(() -> new GraphQLException("Product not found with ID: " + id));
     }
 
-    public Product getProductName(DataFetchingEnvironment environment) {
+    public Product getProductByName(DataFetchingEnvironment environment) {
         String name = environment.getArgument("name");
         // Validate input
         if (name == null || name.trim().isEmpty()) {
             log.error("Product name cannot be null or empty");
             throw new GraphQLException("Product name is required");
         }
-        
+
         return productRepository.findProductByName(name)
-            .orElseThrow(() -> new GraphQLException("Product not found with name: " + name));
+                .orElseThrow(() -> new GraphQLException("Product not found with name: " + name));
     }
 }

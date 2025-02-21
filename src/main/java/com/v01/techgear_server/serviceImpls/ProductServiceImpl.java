@@ -1,8 +1,9 @@
-package com.v01.techgear_server.serviceimpls;
+package com.v01.techgear_server.serviceImpls;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -55,7 +56,7 @@ public class ProductServiceImpl implements ProductService {
 
     private void validateImageFile(MultipartFile image) {
         // Check the file type
-        if (!image.getContentType().startsWith("image/")) {
+        if (!Objects.requireNonNull(image.getContentType()).startsWith("image/")) {
             throw new BadRequestException("Invalid image file type");
         }
 
@@ -66,7 +67,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private void validateProductDTO(ProductDTO productDTO) {
-        if (productDTO.getName() == null || productDTO.getName().isEmpty()) {
+        if (productDTO.getProductName() == null || productDTO.getProductName().isEmpty()) {
             throw new BadRequestException("Product name cannot be null or empty");
         }
     }
@@ -168,7 +169,7 @@ public class ProductServiceImpl implements ProductService {
                 savedImage = saveImage(image);
             }
             // Update the product fields
-            existingProduct.setName(productDTO.getName());
+            existingProduct.setName(productDTO.getProductName());
             existingProduct.setProductDescription(productDTO.getProductDescription());
             existingProduct.setPrice(productDTO.getProductPrice());
             existingProduct.setAvailability(productDTO.getProductAvailability());
@@ -275,11 +276,7 @@ public class ProductServiceImpl implements ProductService {
      * Convert Sort DTO to Sort Order
      */
     private Sort.Order convertToSortOrder(ProductSortDTO sortDTO) {
-        Sort.Direction direction = Optional.ofNullable(sortDTO.getDirection())
-                .map(dir -> dir.equalsIgnoreCase("desc")
-                        ? Sort.Direction.DESC
-                        : Sort.Direction.ASC)
-                .orElse(Sort.Direction.ASC);
+        Sort.Direction direction = Optional.ofNullable(sortDTO.getDirection()).filter(dir -> dir.equalsIgnoreCase("desc")).map(dir -> Sort.Direction.DESC).orElse(Sort.Direction.ASC);
 
         return new Sort.Order(direction, sortDTO.getField());
     }
@@ -338,7 +335,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Cacheable(value = "productCache", keyGenerator = "customKeyGenerator", condition = "#name != null", unless = "#result == null")
+    @Cacheable(value = "productCache", keyGenerator = "customKeyGenerator", condition = "#productName != null", unless = "#result == null")
     @Transactional(readOnly = true)
     public CompletableFuture<ProductDTO> getProductByName(String productName) {
         return CompletableFuture.supplyAsync(() -> {

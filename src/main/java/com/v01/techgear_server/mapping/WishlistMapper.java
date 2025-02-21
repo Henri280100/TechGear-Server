@@ -15,7 +15,7 @@ import com.v01.techgear_server.utils.BaseMapper;
 public interface WishlistMapper extends BaseMapper<Wishlist, WishlistDTO> {
     // Override and customize base methods with specific mappings
     @Override
-    @Mapping(target = "image", source = "")
+    @Mapping(target = "image", ignore = true)
     WishlistDTO toDTO(Wishlist wishlist);
 
     @Override

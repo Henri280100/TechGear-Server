@@ -41,7 +41,6 @@ import com.v01.techgear_server.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.Resource;
 
 @Configuration
 @Slf4j
@@ -63,55 +62,57 @@ public class WebSecurity {
 	private final PasswordEncoder passwordEncoder;
 	private final UserDetailsManager userDetailsManager;
 	private final CustomAuthenticationProvider authProvider;
-	private final @Resource(name = "customLogoutHandler") LogoutHandler logoutHandler;
+    private final LogoutHandler logoutHandler;
 	private final OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService;
 
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.oauth2ResourceServer(oauth2 -> oauth2
-				    .jwt(jwt -> jwt.jwtAuthenticationConverter(jwTtoUserConvertor)))
-		    .csrf(AbstractHttpConfigurer::disable)
-		    .authorizeHttpRequests(authorize -> authorize
-				    .requestMatchers(SWAGGER_WHITELIST)
-				    .permitAll()
-				    .requestMatchers("/api/v01/auth/**")
-				    .permitAll()
-				    .requestMatchers("/api/v01/user/**")
-				    .hasAnyRole("USER", "ADMIN")
-				    .requestMatchers("/api/v01/admin/**")
-				    .hasRole("ADMIN")
-				    .anyRequest()
-				    .authenticated())
-		    .formLogin(AbstractHttpConfigurer::disable)
-		    .sessionManagement(session ->
-				                       session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-		    )
-		    .authenticationProvider(daoAuthenticationProvider())
-		    .exceptionHandling(exceptions -> exceptions
-				    .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
-				    .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
-		    )
-		    .oauth2Login(oauth2Login -> oauth2Login
-				    .loginPage("/api/v01/auth/login")
-				    .defaultSuccessUrl("/", true)
-				    .authorizationEndpoint(
-						    authEndpoint -> authEndpoint.baseUri("/api/v01/auth/oauth2/authorization")
-				    )
-				    .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
-				    .successHandler(OAuth2LoginSuccessHandler)
-				    .failureHandler(OAuth2LoginFailureHandler)
-		    )
-		    .logout(logout -> logout
-				    .logoutUrl("/api/v01/auth/logout")
-				    .addLogoutHandler(logoutHandler)
-				    .addLogoutHandler(new SecurityContextLogoutHandler())
-				    .logoutSuccessHandler((request, response, authentication) ->
-						                          SecurityContextHolder.clearContext()
-				    )
-				    .invalidateHttpSession(true)
-				    .deleteCookies("JSESSIONID", "refreshToken")
-		    );
+						.jwt(jwt -> jwt.jwtAuthenticationConverter(jwTtoUserConvertor)))
+				.csrf(AbstractHttpConfigurer::disable)
+				.authorizeHttpRequests(authorize -> authorize
+						.requestMatchers(SWAGGER_WHITELIST)
+						.permitAll()
+						.requestMatchers("/api/v01/auth/**")
+						.permitAll()
+						.requestMatchers("/api/v01/user/**")
+						.hasAnyRole("USER", "ADMIN")
+						.requestMatchers("/api/v01/admin/**")
+						.hasRole("ADMIN")
+						.requestMatchers("/api/v01/product/**")
+						.permitAll()
+						.anyRequest()
+						.authenticated())
+				.formLogin(AbstractHttpConfigurer::disable)
+				.sessionManagement(session ->
+						session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+				)
+				.authenticationProvider(daoAuthenticationProvider())
+				.exceptionHandling(exceptions -> exceptions
+						.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+						.accessDeniedHandler(new BearerTokenAccessDeniedHandler())
+				)
+				.oauth2Login(oauth2Login -> oauth2Login
+						.loginPage("/api/v01/auth/login")
+						.defaultSuccessUrl("/", true)
+						.authorizationEndpoint(
+								authEndpoint -> authEndpoint.baseUri("/api/v01/auth/oauth2/authorization")
+						)
+						.userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
+						.successHandler(OAuth2LoginSuccessHandler)
+						.failureHandler(OAuth2LoginFailureHandler)
+				)
+				.logout(logout -> logout
+						.logoutUrl("/api/v01/auth/logout")
+						.addLogoutHandler(logoutHandler)
+						.addLogoutHandler(new SecurityContextLogoutHandler())
+						.logoutSuccessHandler((request, response, authentication) ->
+								SecurityContextHolder.clearContext()
+						)
+						.invalidateHttpSession(true)
+						.deleteCookies("JSESSIONID", "refreshToken")
+				);
 
 		return http.build();
 	}
@@ -151,7 +152,7 @@ public class WebSecurity {
 	@Primary
 	JwtDecoder jwtAccessTokenDecoder() {
 		return NimbusJwtDecoder.withPublicKey(keyUtils.getAccessTokenPublicKey())
-		                       .build();
+				.build();
 	}
 
 	@Bean
@@ -172,7 +173,7 @@ public class WebSecurity {
 	JwtDecoder jwtRefreshTokenDecoder() {
 
 		return NimbusJwtDecoder.withPublicKey(keyUtils.getRefreshTokenPublicKey())
-		                       .build();
+				.build();
 
 	}
 
@@ -205,3 +206,4 @@ public class WebSecurity {
 	}
 
 }
+

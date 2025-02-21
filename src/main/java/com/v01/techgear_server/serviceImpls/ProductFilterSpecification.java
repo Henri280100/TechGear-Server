@@ -1,4 +1,4 @@
-package com.v01.techgear_server.serviceimpls;
+package com.v01.techgear_server.serviceImpls;
 
 import java.util.*;
 import org.springframework.data.jpa.domain.Specification;

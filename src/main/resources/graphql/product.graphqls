@@ -1,7 +1,0 @@
-extend type Query {
-  getProductByName(name: String): [Product]
-}
-
-extend type Mutation {
-  updateProductName(product_id: ID, name: String): [Product]
-}

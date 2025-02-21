@@ -1,4 +1,4 @@
-package com.v01.techgear_server.controller.product;
+package com.v01.techgear_server.controller.Product;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -50,7 +50,7 @@ public class ProductController {
                         ObjectMapper objectMapper = new ObjectMapper();
                         ProductRatingDTO reviewDTO = objectMapper.readValue(reviewJson, ProductRatingDTO.class);
 
-                        reviewDTO.setProduct(productService.getProductById(id).join());
+                        reviewDTO.setProductId(productService.getProductById(id).join().getId());
 
                         reviewService.submitReview(reviewDTO, reviewImage).join();
                         return ResponseEntity.status(HttpStatus.CREATED).body(reviewDTO);

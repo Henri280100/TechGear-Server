@@ -1,24 +1,22 @@
 package com.v01.techgear_server.config;
 
+import java.io.IOException;
 import java.io.InputStream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.v01.techgear_server.controller.GraphQLExecutor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.graphql.execution.RuntimeWiringConfigurer;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.v01.techgear_server.controller.GraphQLExecutor;
 import com.v01.techgear_server.resolver.query.ProductQueryResolver;
-
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import io.jsonwebtoken.io.IOException;
 
 @Configuration
 public class GraphQLConfig {
@@ -31,7 +29,7 @@ public class GraphQLConfig {
     }
 
     @Bean
-    public GraphQL graphQL() throws IOException, java.io.IOException {
+    public GraphQL graphQL() throws IOException {
         SchemaGenerator schemaGenerator = new SchemaGenerator();
         RuntimeWiring runtimeWiring = buildRuntimeWiring();
         TypeDefinitionRegistry typeRegistry = loadSchemas();
@@ -39,13 +37,13 @@ public class GraphQLConfig {
         return GraphQL.newGraphQL(graphQLSchema).build();
     }
 
-    private TypeDefinitionRegistry loadSchemas() throws IOException, java.io.IOException {
+    private TypeDefinitionRegistry loadSchemas() throws IOException {
         SchemaParser schemaParser = new SchemaParser();
         TypeDefinitionRegistry typeRegistry = new TypeDefinitionRegistry();
 
         // Load all schema files from the specified directory
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        Resource[] resources = resolver.getResources("classpath:graphql/*.graphqls");
+        Resource[] resources = resolver.getResources("classpath:graphql/*.graphql");
 
         for (Resource resource : resources) {
             try (InputStream inputStream = resource.getInputStream()) {
@@ -59,10 +57,9 @@ public class GraphQLConfig {
     private RuntimeWiring buildRuntimeWiring() {
         return RuntimeWiring.newRuntimeWiring()
                 .type("Query", builder -> builder
-                        .dataFetcher("getAllProducts", productQueryResolver)
                         .dataFetcher("getProductById", productQueryResolver)
                         .dataFetcher("getProductByName", productQueryResolver)
-                        )
+                )
                 .build();
     }
 
@@ -72,8 +69,7 @@ public class GraphQLConfig {
     }
 
     @Bean
-    GraphQLExecutor graphQLExecutor(GraphQL graphQL, ObjectMapper objectMapper) {
-        return new GraphQLExecutor(this, objectMapper);
+    GraphQLExecutor graphQLExecutor(GraphQLConfig config, ObjectMapper objectMapper) {
+        return new GraphQLExecutor(config, objectMapper);
     }
-
 }

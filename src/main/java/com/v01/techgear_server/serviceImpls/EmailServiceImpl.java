@@ -1,9 +1,11 @@
-package com.v01.techgear_server.serviceimpls;
+package com.v01.techgear_server.serviceImpls;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import com.v01.techgear_server.security.TokenGenerator;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -13,19 +15,16 @@ import com.v01.techgear_server.model.ConfirmationTokens;
 import com.v01.techgear_server.model.User;
 import com.v01.techgear_server.repo.jpa.ConfirmationTokensRepository;
 import com.v01.techgear_server.repo.jpa.UserRepository;
-import com.v01.techgear_server.security.TokenGenerator;
 import com.v01.techgear_server.service.EmailService;
 import com.v01.techgear_server.service.RateLimiterService;
 import com.v01.techgear_server.utils.EncryptionUtil;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
     private final TokenGenerator tokenGenerator;
@@ -33,6 +32,14 @@ public class EmailServiceImpl implements EmailService {
     private final UserRepository userRepository;
     private final ConfirmationTokensRepository confirmationTokensRepository;
     private final JavaMailSender mailSender;
+
+    public EmailServiceImpl(@Lazy TokenGenerator tokenGenerator, RateLimiterService rateLimiterService, UserRepository userRepository, ConfirmationTokensRepository confirmationTokensRepository, JavaMailSender mailSender) {
+        this.tokenGenerator = tokenGenerator;
+        this.rateLimiterService = rateLimiterService;
+        this.userRepository = userRepository;
+        this.confirmationTokensRepository = confirmationTokensRepository;
+        this.mailSender = mailSender;
+    }
 
 
     @Override

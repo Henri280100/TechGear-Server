@@ -1,12 +1,16 @@
-package com.v01.techgear_server.serviceimpls;
+package com.v01.techgear_server.serviceImpls;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
+import com.v01.techgear_server.model.User;
+import com.v01.techgear_server.security.TokenGenerator;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.v01.techgear_server.dto.TokenDTO;
@@ -34,6 +38,7 @@ public class TokenServiceImpl implements TokenService {
     @Value("${jwt.secret}")
     private String jwtSecret;
     private final TokenRepository tokenRepository;
+
 
     @Override
     public String getUserNameFromJwtToken(String token) {

@@ -1,0 +1,45 @@
+type Product {
+    productId: ID!
+    name: String!
+    productDescription: String!
+    availability: ProductAvailability!
+    stockLevel: Int!
+    slug: String!
+    image: Image
+    price: Float
+    minPrice: Float
+    maxPrice: Float
+    brand: String
+    category: Category!
+}
+
+enum ProductAvailability {
+    IN_STOCK
+    OUT_OF_STOCK
+    PRE_ORDER
+}
+
+enum Category {
+    CHAIR
+    PC
+    LAPTOP
+    BLUETOOTH
+    MOUSE
+    KEYBOARD
+    MONITOR
+    HEADPHONES
+    CAMERA
+    GEARS
+    TABLE
+    GAMING_HANDLER
+}
+
+type Image {
+    imageId: ID!
+    url: String!
+}
+
+type Query {
+    getProductById(productId: ID!): Product
+    getProductByName(name: String!): Product
+}

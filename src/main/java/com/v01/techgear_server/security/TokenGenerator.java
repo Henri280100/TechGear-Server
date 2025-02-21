@@ -2,7 +2,7 @@ package com.v01.techgear_server.security;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,7 +17,6 @@ import com.v01.techgear_server.mapping.TokenMapper;
 import com.v01.techgear_server.model.Token;
 import com.v01.techgear_server.model.User;
 import com.v01.techgear_server.repo.jpa.TokenRepository;
-import com.v01.techgear_server.repo.jpa.UserRepository;
 import com.v01.techgear_server.enums.*;
 
 import lombok.RequiredArgsConstructor;
@@ -28,7 +27,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class TokenGenerator {
 	private final TokenMapper tokenMapper;
+	@Qualifier("jwtAccessTokenEncoder")
 	private final JwtEncoder accessTokenEncoder;
+	@Qualifier("jwtRefreshTokenEncoder")
 	private final JwtEncoder refreshTokenEncoder;
 	private final TokenRepository tokenRepository;
 

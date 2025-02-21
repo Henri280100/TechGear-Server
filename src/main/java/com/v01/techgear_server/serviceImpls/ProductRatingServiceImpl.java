@@ -1,4 +1,4 @@
-package com.v01.techgear_server.serviceimpls;
+package com.v01.techgear_server.serviceImpls;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -93,14 +93,14 @@ public class ProductRatingServiceImpl implements ProductRatingService {
     @Override
     public CompletableFuture<Void> submitReview(ProductRatingDTO reviewDto, MultipartFile file) {
         return CompletableFuture.runAsync(() -> {
-            Product product = productRepository.findById(reviewDto.getProduct().getId())
+            Product product = productRepository.findById(reviewDto.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Product not found with id " + reviewDto.getProduct().getId()));
+                            "Product not found with id " + reviewDto.getProductId()));
 
             AccountDetails accountDetails = accountDetailsRepository
-                    .findById(reviewDto.getUserAccountDetails().getAccountDetailsId())
+                    .findById(reviewDto.getAccountId())
                     .orElseThrow(() -> new ResourceNotFoundException("User account detail not found with id "
-                            + reviewDto.getUserAccountDetails().getAccountDetailsId()));
+                            + reviewDto.getAccountId()));
             
             
             try {
