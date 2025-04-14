@@ -1,0 +1,92 @@
+package com.v01.techgear_server.product.service.impl;
+
+import com.v01.techgear_server.exception.ProductIndexingException;
+import com.v01.techgear_server.model.product.Product;
+import com.v01.techgear_server.product.repository.ProductRepository;
+import com.v01.techgear_server.service.searching.ProductIndexingService;
+import com.v01.techgear_server.service.searching.ProductSchemaService;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.typesense.api.Client;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class ProductIndexingServiceImpl implements ProductIndexingService {
+    private final Client typesenseClient;
+    private final ProductRepository productRepository;
+    private final ProductSchemaService productSchemaService;
+
+
+    @PostConstruct
+    public void initialize() {
+        try {
+            // Create a collection if not exists
+            productSchemaService.createProductSchema(typesenseClient);
+            syncAllProductsToTypesense();
+            log.info("Product collection ensured in Typesense");
+        } catch (Exception e) {
+            log.error("Failed to create product collection", e);
+            throw new ProductIndexingException("Failed to initialize product collection", e);
+        }
+    }
+
+    private void syncAllProductsToTypesense() {
+        List<Product> products = productRepository.findAll();
+        for (Product product : products) {
+            try {
+                indexProduct(product);
+            } catch (Exception e) {
+                log.error("Failed to index product {}", product.getProductId(), e);
+            }
+        }
+        log.info("All products synced to Typesense");
+    }
+
+    private Map<String, Object> prepareProductForIndexing(Product product) {
+        Map<String, Object> documentData = new HashMap<>();
+
+        documentData.put("id", product.getProductId()
+                .toString());
+        documentData.put("name", product.getName());
+        documentData.put("description", product.getProductDescription());
+        documentData.put("price", product.getPrice());
+        documentData.put("category", product.getCategory()
+                .name());
+        documentData.put("brand", product.getBrand());
+        documentData.put("availability", product.getAvailability()
+                .name());
+        documentData.put("stockLevel", product.getStockLevel());
+
+        return documentData;
+    }
+
+    @Override
+    public Map<String, Object> indexProduct(Product product) {
+        if (product == null) {
+            throw new ProductIndexingException("Cannot index null product");
+        }
+        try {
+            // Prepare and index document
+            Map<String, Object> documentMap = prepareProductForIndexing(product);
+            Map<String, Object> upsertedDocument = typesenseClient
+                    .collections("products")
+                    .documents()
+                    .upsert(documentMap);
+
+            log.info("Product {} indexed successfully", product.getProductId());
+            return upsertedDocument;
+        } catch (Exception e) {
+            log.error("Failed to index product {}", product.getProductId(), e);
+            throw new ProductIndexingException("Indexing failed for product " + product.getProductId(), e);
+        }
+    }
+
+
+}
