@@ -23,7 +23,7 @@ services:
     image: postgres
     container_name: postgres-db
     restart: always
-    env_file: ./.env
+    env_file: local.env
     environment:
       - POSTGRES_USER=$POSTGRESDB_USER
       - POSTGRES_PASSWORD=$POSTGRESDB_ROOT_PASSWORD

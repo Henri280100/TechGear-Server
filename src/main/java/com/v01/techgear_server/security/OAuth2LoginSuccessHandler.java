@@ -9,9 +9,9 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import com.v01.techgear_server.exception.UserNotFoundException;
-import com.v01.techgear_server.model.User;
-import com.v01.techgear_server.repo.jpa.UserRepository;
-import com.v01.techgear_server.service.RedisLoginAttemptsService;
+import com.v01.techgear_server.user.model.User;
+import com.v01.techgear_server.user.repository.UserRepository;
+import com.v01.techgear_server.user.service.RedisLoginAttemptsService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

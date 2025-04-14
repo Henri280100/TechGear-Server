@@ -19,6 +19,7 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder().group("public-apis").pathsToMatch("/**").build();
     }
 
+
     @Bean
     OpenAPI customOpenAPI() {
         return new OpenAPI()

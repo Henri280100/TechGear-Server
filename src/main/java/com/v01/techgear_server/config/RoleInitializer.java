@@ -1,16 +1,16 @@
 package com.v01.techgear_server.config;
 
 import com.v01.techgear_server.enums.UserPermission;
-import com.v01.techgear_server.model.Permission;
-import com.v01.techgear_server.repo.jpa.UserPermissionRepository;
+import com.v01.techgear_server.user.model.Permission;
+import com.v01.techgear_server.user.repository.UserPermissionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import com.v01.techgear_server.enums.Roles;
-import com.v01.techgear_server.model.Role;
-import com.v01.techgear_server.repo.jpa.RoleRepository;
+import com.v01.techgear_server.user.model.Role;
+import com.v01.techgear_server.user.repository.RoleRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;

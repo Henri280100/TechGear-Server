@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.v01.techgear_server.dto.ProductSearchRequest;
+import com.v01.techgear_server.product.dto.ProductSearchRequest;
 import com.v01.techgear_server.enums.Category;
 import com.v01.techgear_server.exception.GenerateHashKeyException;
-import com.v01.techgear_server.model.Product;
+import com.v01.techgear_server.product.model.Product;
 
 @Component
 public class CustomKeyGenerator implements KeyGenerator {

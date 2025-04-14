@@ -30,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @SuppressWarnings("deprecation")
 @EnableCaching
-@EnableRedisRepositories(basePackages = "com.v01.techgear_server.repo.redis")
 @RequiredArgsConstructor
 public class RedisConfig extends CachingConfigurerSupport {
 	@Value("${spring.data.redis.host}")

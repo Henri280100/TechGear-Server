@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.v01.techgear_server.controller.GraphQLExecutor;
+import com.v01.techgear_server.graphql.GraphQLExecutor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.graphql.execution.RuntimeWiringConfigurer;
-import com.v01.techgear_server.resolver.query.ProductQueryResolver;
+import com.v01.techgear_server.product.graphql.resolver.query.ProductQueryResolver;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
