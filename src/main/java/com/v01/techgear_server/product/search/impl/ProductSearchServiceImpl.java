@@ -40,7 +40,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
 
         // Build response with additional metadata
         return ProductSearchResponse.builder()
-                .products(products)
+                .product(products)
                 .totalResult(searchResult.getFound() != null ? searchResult.getFound() : 0)
                 .page(searchResult.getPage() != null ? searchResult.getPage() : 1)
                 .perPage(searchResult.getRequestParams() != null && searchResult.getRequestParams().getPerPage() != null ? searchResult.getRequestParams().getPerPage() : 10)

@@ -27,10 +27,10 @@ public class ProductIndexingServiceImpl implements ProductIndexingService {
     @PostConstruct
     public void initialize() {
         try {
-            // Create a collection if not exists
+            log.info("Initializing Typesense...");
             productSchemaService.createProductSchema(typesenseClient);
             syncAllProductsToTypesense();
-            log.info("Product collection ensured in Typesense");
+            log.info("Typesense initialized and synced with Postgres");
         } catch (Exception e) {
             log.error("Failed to create product collection", e);
             throw new ProductIndexingException("Failed to initialize product collection", e);
@@ -38,31 +38,32 @@ public class ProductIndexingServiceImpl implements ProductIndexingService {
     }
 
     private void syncAllProductsToTypesense() {
+        log.info("Syncing products to Typesense...");
         List<Product> products = productRepository.findAll();
+        log.info("Found {} product in Postgres", products.size());
         for (Product product : products) {
-            try {
-                indexProduct(product);
-            } catch (Exception e) {
-                log.error("Failed to index product {}", product.getProductId(), e);
-            }
+            log.info("Indexing product: {}", product.getProductId());
+            indexProduct(product);
         }
-        log.info("All products synced to Typesense");
+        log.info("Sync completed");
     }
 
     private Map<String, Object> prepareProductForIndexing(Product product) {
         Map<String, Object> documentData = new HashMap<>();
 
-        documentData.put("id", product.getProductId()
-                .toString());
+        documentData.put("id", product.getProductId().toString());
+        documentData.put("productId", product.getProductId());
         documentData.put("name", product.getName());
-        documentData.put("description", product.getProductDescription());
+        documentData.put("productDescription", product.getProductDescription());
         documentData.put("price", product.getPrice());
-        documentData.put("category", product.getCategory()
-                .name());
-        documentData.put("brand", product.getBrand());
-        documentData.put("availability", product.getAvailability()
-                .name());
+        documentData.put("minPrice", product.getMinPrice());
+        documentData.put("maxPrice", product.getMaxPrice());
+        documentData.put("category", product.getCategory().name());
         documentData.put("stockLevel", product.getStockLevel());
+        documentData.put("brand", product.getBrand());
+        documentData.put("availability", product.getAvailability().name());
+        documentData.put("features", product.getFeatures());
+        documentData.put("slug", product.getSlug());
 
         return documentData;
     }
@@ -76,7 +77,7 @@ public class ProductIndexingServiceImpl implements ProductIndexingService {
             // Prepare and index document
             Map<String, Object> documentMap = prepareProductForIndexing(product);
             Map<String, Object> upsertedDocument = typesenseClient
-                    .collections("products")
+                    .collections("product")
                     .documents()
                     .upsert(documentMap);
 

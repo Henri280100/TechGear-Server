@@ -60,7 +60,11 @@ public class Product implements Serializable {
     private String brand;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "category")
     private Category category;
+
+    @Column(name="features")
+    private String features;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "product")
     @ToString.Exclude
@@ -84,6 +88,7 @@ public class Product implements Serializable {
             joinColumns = @JoinColumn(name = "product_id"),
             inverseJoinColumns = @JoinColumn(name = "discount_id")
     )
+    @ToString.Exclude
     private List<Discount> discounts;
 
     @Override

@@ -1,67 +1,33 @@
 package com.v01.techgear_server.product.controller;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.v01.techgear_server.graphql.GraphQLExecutor;
 import com.v01.techgear_server.product.dto.*;
+import com.v01.techgear_server.product.search.ProductSearchService;
+import com.v01.techgear_server.product.service.ProductService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.v01.techgear_server.graphql.GraphQLExecutor;
-import com.v01.techgear_server.product.service.ProductRatingService;
-import com.v01.techgear_server.product.service.ProductService;
-import com.v01.techgear_server.product.search.ProductSearchService;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v01/product")
 public class ProductController {
-    private final ProductRatingService reviewService;
     private final ProductSearchService searchService;
     private final ProductService productService;
     private final GraphQLExecutor executor;
-
-//    @PostMapping("/{id}/reviews")
-//    public CompletableFuture<ResponseEntity<ProductRatingDTO>> submitReview(
-//            @PathVariable Long id,
-//            @RequestPart("review") String reviewJson,
-//            @RequestPart("reviewImage") MultipartFile reviewImage) {
-//        return CompletableFuture
-//                .supplyAsync(() -> {
-//                    try {
-//                        ObjectMapper objectMapper = new ObjectMapper();
-//                        ProductRatingDTO reviewDTO = objectMapper.readValue(reviewJson, ProductRatingDTO.class);
-//
-//                        reviewDTO.setProductId(productService.getProductById(id).join().getId());
-//
-//                        reviewService.submitReview(reviewDTO, reviewImage).join();
-//                        return ResponseEntity.status(HttpStatus.CREATED).body(reviewDTO);
-//                    } catch (Exception e) {
-//                        log.error("Failed to add review", e);
-//                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-//                    }
-//                });
-//    }
 
 
     @GetMapping("/filter")
@@ -85,25 +51,12 @@ public class ProductController {
                     log.error("Error in searchProducts", ex);
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                             .body(ProductSearchResponse.builder()
-                                    .products(Collections.emptyList())
+                                    .product(Collections.emptyList())
                                     .totalResult(0)
                                     .page(1)
                                     .perPage(10)
                                     .facets(Collections.emptyMap())
                                     .build());
-                });
-    }
-
-    @DeleteMapping("/{id}/reviews/{reviewId}")
-    public CompletableFuture<ResponseEntity<Void>> deleteReviewById(
-            @PathVariable Long id,
-            @PathVariable Long reviewId) {
-        return reviewService.deleteReviewById(id, reviewId)
-                .thenApply(ResponseEntity::ok).exceptionally(ex -> {
-                    if (log.isErrorEnabled()) {
-                        log.error("Error while delete review ID: {} for product ID: {}", reviewId, id);
-                    }
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
                 });
     }
 
@@ -114,8 +67,8 @@ public class ProductController {
      * @param image       The image file to be uploaded and associated with the
      *                    product.
      * @return A ResponseEntity containing the created ProductDTO, or a 400 Bad
-     *         Request
-     *         status if an error occurs.
+     * Request
+     * status if an error occurs.
      */
     @PostMapping("/new")
     public CompletableFuture<ResponseEntity<ProductDTO>> createProduct(
@@ -141,7 +94,6 @@ public class ProductController {
      *
      * @param id the ID of the product to delete
      * @return a ResponseEntity indicating success or failure
-     * 
      */
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteProduct(@PathVariable Long id) {

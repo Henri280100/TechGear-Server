@@ -11,7 +11,7 @@ import lombok.Data;
 @Data
 @Builder
 public class ProductSearchResponse {
-    private List<ProductDTO> products;
+    private List<ProductDTO> product;
     private long totalResult;
     private Integer page;
     private Integer perPage;
