@@ -1,6 +1,7 @@
 package com.v01.techgear_server.product.model;
 
 import com.v01.techgear_server.common.model.Media;
+import com.v01.techgear_server.enums.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
@@ -34,9 +35,28 @@ public class ProductDetail implements Serializable {
     @Column(name = "description")
     private String productDetailsDesc;
 
+    @Column(name="colors")
+    private String colors;
+
+    @Column(name="hype")
+    private String hype;
+
+    @Column(name="title")
+    private String title;
+
+    @Column(name="release_date")
+    private String releaseDate;
+
+
+    @Column(name="days_left")
+    private String daysLeft;
+
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
     @ToString.Exclude
     private List<Media> media = new ArrayList<>();
+
+    @Column(name="product_status")
+    private ProductStatus productStatus;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "product_id")

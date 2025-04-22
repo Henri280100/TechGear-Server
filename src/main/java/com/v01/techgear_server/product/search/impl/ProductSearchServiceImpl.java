@@ -1,18 +1,19 @@
 package com.v01.techgear_server.product.search.impl;
 
-import com.v01.techgear_server.product.dto.ProductDTO;
-import com.v01.techgear_server.product.dto.ProductSearchRequest;
-import com.v01.techgear_server.product.dto.ProductSearchResponse;
+import com.v01.techgear_server.common.model.search.FacetCount;
+import com.v01.techgear_server.common.model.search.SortOption;
 import com.v01.techgear_server.enums.Category;
 import com.v01.techgear_server.enums.ProductAvailability;
 import com.v01.techgear_server.exception.ProductSearchException;
+import com.v01.techgear_server.product.dto.ProductDTO;
+import com.v01.techgear_server.product.dto.ProductSearchRequest;
+import com.v01.techgear_server.product.dto.ProductSearchResponse;
 import com.v01.techgear_server.product.mapping.ProductMapper;
-import com.v01.techgear_server.common.model.search.FacetCount;
-import com.v01.techgear_server.common.model.search.SortOption;
 import com.v01.techgear_server.product.search.ProductSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.typesense.api.Client;
 import org.typesense.model.FacetCounts;
@@ -75,6 +76,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                 .toList();
     }
 
+
     @Override
     @Cacheable(value = "productSearchCache", keyGenerator = "customKeyGenerator", condition = "#request.query != null", unless = "#result.totalResult == 0")
     public CompletableFuture<ProductSearchResponse> searchProduct(ProductSearchRequest request) {
@@ -83,14 +85,15 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                     .q(Optional.ofNullable(request.getQuery()).filter(q -> !q.trim().isEmpty()).orElse("*"))
                     .queryBy("name,productDescription,brand,category")
                     .page(Optional.ofNullable(request.getPage()).filter(p -> p > 0).orElse(1))
-                    .perPage(Optional.ofNullable(request.getPerPage()).filter(pp -> pp > 0 && pp <= 100).orElse(10))
+                    .perPage(Optional.ofNullable(request.getPerPage()).filter(pp -> pp > 0 && pp <= 100).orElse(8))
                     .facetBy("category,brand,availability,price")
                     .maxFacetValues(10)
-                    .includeFields("productId,name,price,category,brand,availability") // Specify returned fields
-                    .highlightFields("name,productDescription,price") // Add highlighting for better UX
-                    .numTypos("2") // Allow some typo tolerance
-                    .exhaustiveSearch(false); // Optimize performance
+                    .includeFields("productId,name,productDescription,price,category,brand,availability,features,image") // Updated to match schema
+                    .highlightFields("name,productDescription") // Removed price from highlighting
+                    .numTypos("2")
+                    .exhaustiveSearch(false);
 
+            log.info("Search parameters: query={}, page={}, perPage={}", searchParameters.getQ(), searchParameters.getPage(), searchParameters.getPerPage());
             validateSearchResponse(searchParameters, request);
 
             try {

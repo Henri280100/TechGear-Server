@@ -1,6 +1,7 @@
 package com.v01.techgear_server.product.mapping;
 
 import com.v01.techgear_server.common.mapping.ImageMapper;
+import com.v01.techgear_server.common.model.Image;
 import com.v01.techgear_server.enums.ProductAvailability;
 import com.v01.techgear_server.product.dto.ProductDTO;
 import com.v01.techgear_server.product.dto.ProductFilterSortResponse;
@@ -33,13 +34,12 @@ public interface ProductMapper extends BaseMapper<Product, ProductDTO> {
     @Mapping(target = "productBrand", source = "brand")
     @Mapping(target = "productAvailability", source = "availability")
     @Mapping(target = "id", source = "productId", ignore = true)
+    @Mapping(target = "productFeatures", source = "features")
     ProductDTO toDTO(Product product);
 
-    @Mapping(target = "features", ignore = true)
-    @Mapping(target = "discounts", ignore = true)
     @Override
     @Mapping(target = "wishlistItems", ignore = true)
-    @Mapping(target = "stockLevel", source = "productStockLevel", ignore = true)
+    @Mapping(target = "stockLevel", source = "productStockLevel")
     @Mapping(target = "slug", ignore = true)
     @Mapping(target = "productRatings", ignore = true)
     @Mapping(target = "productId", source = "id", ignore = true)
@@ -53,6 +53,8 @@ public interface ProductMapper extends BaseMapper<Product, ProductDTO> {
     @Mapping(target = "category", source = "productCategory")
     @Mapping(target = "brand", source = "productBrand")
     @Mapping(target = "availability", source = "productAvailability")
+    @Mapping(target = "features", source = "productFeatures")
+    @Mapping(target = "discounts", ignore = true)
     Product toEntity(ProductDTO productDTO);
 
     @Override
@@ -72,6 +74,20 @@ public interface ProductMapper extends BaseMapper<Product, ProductDTO> {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "productPrice", source = "price")
     ProductFilterSortResponse productFilterSortToDTO(Product product);
+
+    // String -> Image
+    default Image map(String url) {
+        if (url == null || url.isEmpty()) return null;
+        Image image = new Image();
+        image.setImageUrl(url);
+        return image;
+    }
+
+    // Image -> String
+    default String map(Image image) {
+        if (image == null) return null;
+        return image.getImageUrl();
+    }
 
     default ProductDTO toSearchDTO(Map<String, Object> map) {
         if (map == null) {
@@ -103,23 +119,10 @@ public interface ProductMapper extends BaseMapper<Product, ProductDTO> {
             log.warn("Price is missing or not a number in document: {}", map);
             productDTO.setProductPrice(0.0); // Default value or handle as needed
         }
+        productDTO.setProductAvailability((String) map.get("availability"));
 
-        // Set availability (String, not Boolean)
-        String availabilityStr = (String) map.get("availability");
-        if (availabilityStr != null) {
-            try {
-                productDTO.setProductAvailability(ProductAvailability.valueOf(availabilityStr));
-            } catch (IllegalArgumentException e) {
-                log.error("Invalid availability value: {}", availabilityStr);
-                productDTO.setProductAvailability(ProductAvailability.OUT_OF_STOCK); // Default
-            }
-        } else {
-            log.warn("Availability is missing in document: {}", map);
-            productDTO.setProductAvailability(ProductAvailability.OUT_OF_STOCK); // Default
-        }
-
-        // Set category
         productDTO.setProductCategory((String) map.get("category"));
+        productDTO.setProductImage((String) map.get("productImage"));
 
         return productDTO;
     }

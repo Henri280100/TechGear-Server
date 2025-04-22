@@ -1,11 +1,13 @@
 package com.v01.techgear_server.product.search;
 
+import java.util.List;
 import java.util.Map;
 
+import com.v01.techgear_server.product.dto.ProductDTO;
 import com.v01.techgear_server.product.model.Product;
 
 public interface ProductIndexingService {
 
-    Map<String, Object> indexProduct(Product product);
+    void indexProduct(List<ProductDTO> products);
 
 }

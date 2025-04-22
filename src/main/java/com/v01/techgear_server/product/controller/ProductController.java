@@ -9,6 +9,7 @@ import com.v01.techgear_server.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 @RequestMapping("/api/v01/product")
 public class ProductController {
+    @Autowired
     private final ProductSearchService searchService;
     private final ProductService productService;
     private final GraphQLExecutor executor;
@@ -73,7 +75,7 @@ public class ProductController {
     @PostMapping("/new")
     public CompletableFuture<ResponseEntity<ProductDTO>> createProduct(
             @RequestPart("product") String productJson,
-            @RequestPart("image") MultipartFile image) throws JsonProcessingException {
+            @RequestPart("image") MultipartFile image) throws IOException {
 
         // Check if the image is empty
         if (image == null || image.isEmpty()) {

@@ -2,6 +2,9 @@ package com.v01.techgear_server.product.repository;
 
 import java.util.*;
 
+import com.v01.techgear_server.product.dto.ProductDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -12,6 +15,15 @@ import com.v01.techgear_server.product.model.Product;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
+
+    @Query("SELECT new com.v01.techgear_server.product.dto.ProductDTO(" +
+            "p.productId, p.name, p.productDescription, p.price, p.minPrice, p.maxPrice, " +
+            "LOWER(REPLACE(CAST(p.availability AS string), '_', ' ')), p.stockLevel, p.brand, p.image.imageUrl, p.features, " +
+            "LOWER(REPLACE(CAST(p.category AS string), '_', ' '))) " +
+            "FROM Product p")
+    Page<ProductDTO> findAllForIndexing(Pageable pageable);
+
+
     @Modifying
     @Query("SELECT p FROM Product p WHERE p.name = :name")
     Optional<Product> findProductByName(String name);

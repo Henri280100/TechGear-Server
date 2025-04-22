@@ -235,9 +235,8 @@
         <dependency>
             <groupId>com.stripe</groupId>
             <artifactId>stripe-java</artifactId>
-            <version>28.1.0</version>
+            <version>29.0.0</version>
         </dependency>
-
         <!--
         https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-circuitbreaker-resilience4j -->
         <dependency>

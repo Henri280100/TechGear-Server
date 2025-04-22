@@ -1,14 +1,12 @@
 package com.v01.techgear_server.product.service.impl;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import com.v01.techgear_server.enums.ProductAvailability;
 import com.v01.techgear_server.product.dto.*;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -18,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -81,60 +80,54 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    /**
-     * Create a new product.
-     * 
-     * @param productDTO JSON string representing the product to be created.
-     * @param image      The image file to be uploaded and associated with the
-     *                   product.
-     * @return A ResponseEntity containing the created ProductDTO, or a 400 Bad
-     *         Request status if an error occurs.
-     */
+    @Async
+    @Transactional(rollbackFor = { IOException.class, org.springframework.dao.DataAccessException.class })
+    public void saveImageAndUpdateProduct(MultipartFile image, Product product) throws IOException {
+        fileStorageService.storeSingleImage(image)
+                .thenApply(imageDTO -> {
+                    Image savedImage = new Image();
+                    savedImage.setImageUrl(imageDTO.getImageUrl());
+                    product.setImage(savedImage);
+                    productRepository.save(product); // Save one product at a time
+                    return null;
+                })
+                .exceptionally(throwable -> {
+                    log.error("Failed to upload image and update product ID: {}", product.getProductId(), throwable);
+                    return null;
+                });
+    }
+
     @Override
-    @Transactional(rollbackFor = {
-            BadRequestException.class,
-            ResourceNotFoundException.class,
-            IOException.class,
-            DataAccessException.class
-    }, noRollbackFor = {
-            ValidationException.class }, isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, timeout = 30)
-    public CompletableFuture<ProductDTO> createProduct(ProductDTO productDTO, MultipartFile image) {
+    @Transactional(rollbackFor = { BadRequestException.class, ResourceNotFoundException.class, IOException.class, DataAccessException.class },
+            noRollbackFor = { ValidationException.class }, isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, timeout = 30)
+    public CompletableFuture<ProductDTO> createProduct(ProductDTO productDTO, MultipartFile image) throws IOException {
         if (productDTO.getId() != null) {
             throw new BadRequestException("Product ID cannot be set");
         }
 
-        // Validate the image file
         if (image != null && !image.isEmpty()) {
             validateImageFile(image);
         }
 
         validateProductDTO(productDTO);
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                // Save the image file if it is not null
-                Image savedImage = null;
-                if (image != null && !image.isEmpty()) {
-                    savedImage = saveImage(image);
-                }
 
-                // Map the ProductDTO to a Product entity
-                Product product = productMapper.toEntity(productDTO);
+        Product product = productMapper.toEntity(productDTO);
 
-                // Associate the saved image with the product if it exists
-                if (savedImage != null) {
-                    product.setImage(savedImage);
-                }
+        // Ensure collections are empty for a new product
+        product.setProductDetail(new ArrayList<>());
+        product.setProductRatings(new ArrayList<>());
+        product.setOrderItems(new ArrayList<>());
+        product.setWishlistItems(new ArrayList<>());
+        product.setDiscounts(new ArrayList<>());
 
-                // Save the product to the repository
-                Product savedProduct = productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
 
-                // Map the saved product entity back to a ProductDTO
-                return productMapper.toDTO(savedProduct);
-            } catch (Exception e) {
-                log.error("Error creating product", e);
-                throw new BadRequestException("Failed to create product");
-            }
-        });
+        if (image != null && !image.isEmpty()) {
+            saveImageAndUpdateProduct(image, savedProduct);
+        }
+
+        ProductDTO resultDTO = productMapper.toDTO(savedProduct);
+        return CompletableFuture.completedFuture(resultDTO);
     }
 
     @Override
@@ -172,7 +165,7 @@ public class ProductServiceImpl implements ProductService {
             existingProduct.setName(productDTO.getProductName());
             existingProduct.setProductDescription(productDTO.getProductDescription());
             existingProduct.setPrice(productDTO.getProductPrice());
-            existingProduct.setAvailability(productDTO.getProductAvailability());
+            existingProduct.setAvailability(ProductAvailability.valueOf(productDTO.getProductAvailability()));
             // Associate the saved image with the product if it exists
             if (savedImage != null) {
                 existingProduct.setImage(savedImage);

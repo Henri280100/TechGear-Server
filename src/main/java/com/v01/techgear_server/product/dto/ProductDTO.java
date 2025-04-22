@@ -1,8 +1,10 @@
 package com.v01.techgear_server.product.dto;
 
 import com.v01.techgear_server.common.dto.ImageDTO;
+import com.v01.techgear_server.enums.Category;
 import com.v01.techgear_server.enums.ProductAvailability;
 
+import com.v01.techgear_server.enums.ProductStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,7 +35,7 @@ public class ProductDTO {
     private double productMaxPrice;
 
     @Schema(description = "Product availability", example = "AVAILABLE")
-    private ProductAvailability productAvailability;
+    private String productAvailability;
 
     @Schema(description="Product stock level", example = "10")
     private int productStockLevel;
@@ -42,7 +44,10 @@ public class ProductDTO {
     private String productBrand;
 
     @Schema(description = "Product image")
-    private ImageDTO productImage;
+    private String productImage;
+
+    @Schema(description = "product features")
+    private String productFeatures;
 
     @Schema(description = "Product category", example = "Electronics")
     private String productCategory;

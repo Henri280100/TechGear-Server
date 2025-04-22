@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import com.v01.techgear_server.common.dto.ImageDimensionsDTO;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -103,6 +104,7 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
+    @Async
     public CompletableFuture<ImageDTO> storeSingleImage(MultipartFile file) throws IOException {
         return CompletableFuture.supplyAsync(() -> uploadImage(file));
     }

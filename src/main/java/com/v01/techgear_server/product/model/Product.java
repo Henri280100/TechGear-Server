@@ -24,7 +24,7 @@ import java.util.Objects;
 @Table(name = "product")
 public class Product implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long productId;
 
     @Column(name = "name", unique = true)
@@ -43,7 +43,7 @@ public class Product implements Serializable {
     @Column(name = "slug", unique = true)
     private String slug;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "image_id")
     private Image image;
 
@@ -59,28 +59,29 @@ public class Product implements Serializable {
     @Column(name = "brand")
     private String brand;
 
+    @Column(name="features")
+    private String features;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "category")
     private Category category;
 
-    @Column(name="features")
-    private String features;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "product")
     @ToString.Exclude
-    private List<ProductDetail> productDetail = new ArrayList<>();
+    private List<ProductDetail> productDetail;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "product")
     @ToString.Exclude
-    private List<ProductRating> productRatings = new ArrayList<>();
+    private List<ProductRating> productRatings;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @ToString.Exclude
-    private List<OrderItem> orderItems = new ArrayList<>();
+    private List<OrderItem> orderItems;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
-    private List<WishlistItems> wishlistItems = new ArrayList<>();
+    private List<WishlistItems> wishlistItems;
 
     @ManyToMany
     @JoinTable(

@@ -1,5 +1,6 @@
 package com.v01.techgear_server.product.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -12,7 +13,7 @@ import com.v01.techgear_server.product.dto.ProductFilterSortResponse;
 
 public interface ProductService {
 
-    CompletableFuture<ProductDTO> createProduct(ProductDTO productDTO, MultipartFile image);
+    CompletableFuture<ProductDTO> createProduct(ProductDTO productDTO, MultipartFile image) throws IOException;
 
     CompletableFuture<ProductDTO> updateProduct(Long productId, ProductDTO productDTO, MultipartFile image);
 
