@@ -1,0 +1,23 @@
+package com.v01.techgear_server.product.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ProductCategoryDTO {
+
+    @Schema(description = "product category id")
+    private Long productCategoryId;
+
+    @Schema(description = "product category name")
+    private String productCategoryName;
+
+    @Schema(description = "product category image")
+    private String productCategoryImage;
+}

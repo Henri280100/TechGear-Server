@@ -20,7 +20,7 @@ public interface ProductDetailRepository
     // Find by Product
     Optional<ProductDetail> findByProduct(Product product);
 
-    Optional<ProductDetail> findByProduct_ProductId(Long productId);
+    List<ProductDetail> findByProductProductId(Long productId);
 
     // Find by Warranty
     List<ProductDetail> findByWarranty(String warranty);
@@ -32,8 +32,6 @@ public interface ProductDetailRepository
 
     List<ProductDetail> findByVoucherCodeStartingWith(String prefix);
 
-    // Search by Technical Specifications
-    List<ProductDetail> findByTechnicalSpecificationsContaining(String specification);
 
     // Complex Query Methods
     @Query("SELECT pd FROM ProductDetail pd WHERE " +
@@ -44,8 +42,9 @@ public interface ProductDetailRepository
             @Param("voucherCode") String voucherCode);
 
     // Media Related Queries
-    @Query("SELECT pd FROM ProductDetail pd JOIN pd.media m WHERE m.mediaFilename = :fileName")
-    List<ProductDetail> findByMediaFileName(@Param("fileName") String fileName);
+    @Query("SELECT pd FROM ProductDetail pd WHERE " +
+            "pd.detailImageUrl IS NOT NULL OR pd.detailVideoUrl IS NOT NULL")
+    List<ProductDetail> findWithMedia();
 
     // Specification Related Queries
     @Query("SELECT pd FROM ProductDetail pd JOIN pd.specifications ps " +
@@ -62,16 +61,8 @@ public interface ProductDetailRepository
 
     void deleteByVoucherCode(String voucherCode);
 
-    // Projection Interface
-    interface ProductDetailSummary {
-        String getWarranty();
 
-        String getVoucherCode();
 
-        String getTechnicalSpecifications();
-    }
-
-    List<ProductDetailSummary> findProjectedByProduct_Category(Category category);
 
     // Batch Update Methods
     @Modifying

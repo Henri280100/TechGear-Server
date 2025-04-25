@@ -1,17 +1,15 @@
 package com.v01.techgear_server.product.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.v01.techgear_server.graphql.GraphQLExecutor;
+import com.v01.techgear_server.exception.GenericException;
 import com.v01.techgear_server.product.dto.*;
 import com.v01.techgear_server.product.search.ProductSearchService;
 import com.v01.techgear_server.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -26,11 +25,15 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 @RequestMapping("/api/v01/product")
 public class ProductController {
-    @Autowired
     private final ProductSearchService searchService;
     private final ProductService productService;
-    private final GraphQLExecutor executor;
 
+    @GetMapping("/category-name")
+    public CompletableFuture<ResponseEntity<ProductDTO>> getProductByCategoryName(@RequestParam String categoryName) {
+        return productService.getProductByCategory(categoryName)
+                .thenApply(ResponseEntity::ok)
+                .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null));
+    }
 
     @GetMapping("/filter")
     public CompletableFuture<ResponseEntity<Page<ProductFilterSortResponse>>> filterAndSort(
@@ -65,31 +68,32 @@ public class ProductController {
     /**
      * Create a new product.
      *
-     * @param productJson JSON string representing the product to be created.
-     * @param image       The image file to be uploaded and associated with the
+     * @param productsJson JSON string representing the product to be created.
+     * @param images       The image file to be uploaded and associated with the
      *                    product.
      * @return A ResponseEntity containing the created ProductDTO, or a 400 Bad
      * Request
      * status if an error occurs.
      */
     @PostMapping("/new")
-    public CompletableFuture<ResponseEntity<ProductDTO>> createProduct(
-            @RequestPart("product") String productJson,
-            @RequestPart("image") MultipartFile image) throws IOException {
+    public CompletableFuture<ResponseEntity<List<ProductDTO>>> createProduct(
+            @RequestPart("product") String productsJson,
+            @RequestPart(value = "image", required = false) List<MultipartFile> images) {
 
-        // Check if the image is empty
-        if (image == null || image.isEmpty()) {
-            return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(null));
+        List<ProductDTO> dtos;
+        try {
+            // Parse ProductDTO from JSON
+            dtos = new ObjectMapper().readValue(productsJson, new TypeReference<List<ProductDTO>>() {});
+            // Create product
+            return productService.createProduct(dtos, images != null ? images : Collections.emptyList())
+                    .thenApply(ResponseEntity::ok)
+                    .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null));
+        } catch (IOException e) {
+            log.error("Error parsing product JSON", e);
+            throw new GenericException("Error parsing product JSON", e);
         }
-
-        // Parse ProductDTO from JSON
-        ProductDTO productDTO = new ObjectMapper().readValue(productJson, ProductDTO.class);
-
-        // Create product
-        return productService.createProduct(productDTO, image)
-                .thenApply(ResponseEntity::ok)
-                .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null));
     }
+
 
     /**
      * Deletes a product with the given ID.
@@ -114,32 +118,5 @@ public class ProductController {
         }).join();
     }
 
-    @PostMapping(value = "/product/name")
-    @QueryMapping(name = "getProductByName")
-    public String getProductByName(@RequestBody String queryVal) throws IOException {
-        return executor.executeGraphQLQuery(queryVal);
-    }
-
-    @PostMapping(value = "/product/id:{productId}")
-    @QueryMapping(name = "getProductById")
-    public String getProductByID(@PathVariable Long productId, @RequestBody String queryVal) throws IOException {
-        return executor.executeGraphQLQuery(queryVal);
-    }
-
-    @PostMapping("/product/{id}/reviews")
-    @QueryMapping(name = "getAllReviewsForProduct")
-    public String getAllReviewsForProduct(
-            @PathVariable Long id, @RequestBody String queryVal) throws IOException {
-        return executor.executeGraphQLQuery(queryVal);
-    }
-
-    @PostMapping("/product/{id}/reviews/{reviewId}")
-    @QueryMapping(name = "getReviewById")
-    public String getReviewById(
-            @PathVariable Long id,
-            @PathVariable Long reviewId,
-            @RequestBody String queryVal) throws IOException {
-        return executor.executeGraphQLQuery(queryVal);
-    }
 
 }

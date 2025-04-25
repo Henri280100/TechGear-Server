@@ -12,16 +12,17 @@ import com.v01.techgear_server.utils.BaseMapper;
 @Mapper(componentModel = "spring")
 public interface DiscountMapper extends BaseMapper<Discount, DiscountDTO> {
     @Override
+    @Mapping(target = "isDiscountActive", source = "isDiscountActive")
     @Mapping(target = "discountPercentage", source = "discountPercentage")
     @Mapping(target = "discountCode", source = "discountCode")
     @Mapping(target = "discountName", source = "discountName")
-    @Mapping(target = "isDiscountActive", source = "isDiscountActive")
     @Mapping(target = "discountType", source = "discountType")
     @Mapping(target = "startDate", source = "startDate")
     @Mapping(target = "expiryDate", source = "expiryDate")
     DiscountDTO toDTO(Discount entity);
 
     @Override
+    @Mapping(target = "isDiscountActive", source = "isDiscountActive")
     @Mapping(target = "products", ignore = true)
     @Mapping(target = "invoiceDetails", ignore = true)
     @Mapping(target = "discountStatus", ignore = true)
@@ -30,7 +31,6 @@ public interface DiscountMapper extends BaseMapper<Discount, DiscountDTO> {
     @Mapping(target = "discountPercentage", source = "discountPercentage")
     @Mapping(target = "discountCode", source = "discountCode")
     @Mapping(target = "discountName", source = "discountName")
-    @Mapping(target = "isDiscountActive", source = "isDiscountActive")
     @Mapping(target = "discountType", source = "discountType")
     @Mapping(target = "startDate", source = "startDate")
     @Mapping(target = "expiryDate", source = "expiryDate")

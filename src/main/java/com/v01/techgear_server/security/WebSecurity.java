@@ -55,6 +55,11 @@ public class WebSecurity {
 			"/swagger-resources"
 	};
 
+	private final String[] GRAPHIQL_WHITELIST = {
+			"/graphiql",
+			"/graphql"
+	};
+
 	private final OAuth2LoginSuccessHandler OAuth2LoginSuccessHandler;
 	private final OAuth2LoginFailureHandler OAuth2LoginFailureHandler;
 	private final JWTtoUserConvertor jwTtoUserConvertor;
@@ -81,6 +86,10 @@ public class WebSecurity {
 						.requestMatchers("/api/v01/admin/**")
 						.hasRole("ADMIN")
 						.requestMatchers("/api/v01/product/**")
+						.permitAll()
+						.requestMatchers("/api/v01/category/**")
+						.permitAll()
+						.requestMatchers(GRAPHIQL_WHITELIST)
 						.permitAll()
 						.anyRequest()
 						.authenticated())

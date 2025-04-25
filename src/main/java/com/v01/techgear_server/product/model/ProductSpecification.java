@@ -24,43 +24,25 @@ public class ProductSpecification implements Serializable {
 	private String specName;
 
 	@Column(name = "spec_value")
-
 	private String specValue;
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "image_id")
-	private Image specImage;
 
-	@Column(name = "icon")
-	private String icon;
+	@Column(name="image_url")
+	private String imageUrl;
 
 	@ManyToOne
 	@JoinColumn(name = "product_detail_id")
 	private ProductDetail productDetail;
 
 	@Override
-	public final boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (o == null)
-			return false;
-		Class<?> oEffectiveClass = o instanceof HibernateProxy
-				? ((HibernateProxy) o).getHibernateLazyInitializer()
-				                      .getPersistentClass()
-				: o.getClass();
-		Class<?> thisEffectiveClass = this instanceof HibernateProxy
-				? ((HibernateProxy) this).getHibernateLazyInitializer()
-				                         .getPersistentClass()
-				: this.getClass();
-		if (thisEffectiveClass != oEffectiveClass)
-			return false;
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
 		ProductSpecification that = (ProductSpecification) o;
-		return getSpecId() != null && Objects.equals(getSpecId(), that.getSpecId());
+		return Objects.equals(specId, that.specId);
 	}
 
 	@Override
-	public final int hashCode() {
-		return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer()
-		                                                               .getPersistentClass()
-		                                                               .hashCode() : getClass().hashCode();
+	public int hashCode() {
+		return Objects.hash(specId);
 	}
 }

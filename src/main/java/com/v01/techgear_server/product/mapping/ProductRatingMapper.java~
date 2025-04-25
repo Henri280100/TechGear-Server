@@ -21,7 +21,6 @@ public interface ProductRatingMapper extends BaseMapper<ProductRating, ProductRa
     ProductRatingDTO toDTO(ProductRating productRating);
 
     @Override
-    @Mapping(target = "averageRating", ignore = true)
     @Mapping(target = "reviewImage", ignore = true)
     @Mapping(target = "rating", source = "productRating")
     @Mapping(target = "product", ignore = true)

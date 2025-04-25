@@ -21,7 +21,7 @@ import java.util.Objects;
 @Table(name = "discounts")
 public class Discount implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long discountId;
 
     @Column(name = "discount_percentage")
@@ -34,7 +34,7 @@ public class Discount implements Serializable {
     private String discountName;
 
     @Column(name = "is_discount_active")
-    private String isDiscountActive;
+    private Boolean isDiscountActive;
 
     @Column(name = "discount_type")
     @Enumerated(EnumType.STRING)

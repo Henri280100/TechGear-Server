@@ -87,15 +87,15 @@ public class ProductIndexingServiceImpl implements ProductIndexingService {
                 document.put("productId", dto.getId());
                 document.put("name", dto.getProductName());
                 document.put("productDescription", dto.getProductDescription());
-                document.put("price", dto.getProductPrice());
+                document.put("finalPrice", dto.getProductDetailPrice());
                 document.put("minPrice", dto.getProductMinPrice());
                 document.put("maxPrice", dto.getProductMaxPrice());
                 document.put("availability", dto.getProductAvailability());
                 document.put("stockLevel", dto.getProductStockLevel());
-                document.put("brand", dto.getProductBrand());
+                document.put("brand", dto.getProductBrand().toLowerCase());
                 document.put("image", dto.getProductImage());
                 document.put("features", dto.getProductFeatures());
-                document.put("category", dto.getProductCategory());
+                document.put("category", dto.getProductCategory().toLowerCase());
                 return document;
             }).collect(Collectors.toList());
 

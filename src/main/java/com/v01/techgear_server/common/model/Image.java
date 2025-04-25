@@ -65,9 +65,6 @@ public class Image implements Serializable{
     @Column(name="last_modified_at")
     private LocalDateTime lastModifiedAt;
 
-    @Column(name = "uploaded_by")
-    private String uploadedBy;
-
     // Enum for an image type
     @Enumerated(EnumType.STRING)
     @Column(name = "image_type")
@@ -76,14 +73,8 @@ public class Image implements Serializable{
     @OneToOne(mappedBy="userAvatar", cascade = CascadeType.ALL)
     private AccountDetails accountDetails;
 
-    @OneToOne(mappedBy="image", cascade = CascadeType.ALL)
-    private Product product;
-
     @OneToOne(mappedBy="reviewImage", cascade = CascadeType.ALL)
     private ProductRating productRating;
-
-    @OneToOne(mappedBy="specImage", cascade = CascadeType.ALL)
-    private ProductSpecification productSpecification;
 
     @OneToOne(mappedBy="wishlistImage", cascade = CascadeType.ALL)
     private Wishlist wishlist;

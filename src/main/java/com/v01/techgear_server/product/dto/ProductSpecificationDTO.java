@@ -22,11 +22,5 @@ public class ProductSpecificationDTO {
     private String productSpecValue;
 
     @Schema(description = "Image associated with the specification")
-    private ImageDTO productSpecImage;
-
-    @Schema(description = "Icon representing the specification")
-    private String productSpecIcon;
-
-    @Schema(description = "Details of the product associated with the specification")
-    private ProductDetailDTO detailDTO;
+    private String productSpecImage;
 }

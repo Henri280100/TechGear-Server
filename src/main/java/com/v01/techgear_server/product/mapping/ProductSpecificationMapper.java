@@ -18,19 +18,16 @@ public interface ProductSpecificationMapper extends BaseMapper<ProductSpecificat
 	@Override
 	@Mapping(target = "productSpecValue", source = "specValue")
 	@Mapping(target = "productSpecName", source = "specName")
-	@Mapping(target = "productSpecImage", source = "specImage")
+	@Mapping(target = "productSpecImage", source = "imageUrl")
 	@Mapping(target = "productSpecId", source = "specId", ignore = true)
-	@Mapping(target = "productSpecIcon", source = "icon")
-	@Mapping(target = "detailDTO", source = "productDetail", ignore = true)
     ProductSpecificationDTO toDTO(ProductSpecification productSpecification);
 
 	@Override
+	@Mapping(target = "productDetail", ignore = true)
+	@Mapping(target = "imageUrl", source = "productSpecImage")
 	@Mapping(target = "specName", source = "productSpecName")
 	@Mapping(target = "specValue", source = "productSpecValue")
-	@Mapping(target = "specImage", source = "productSpecImage")
 	@Mapping(target = "specId", source = "productSpecId", ignore = true)
-	@Mapping(target = "productDetail", source = "detailDTO", ignore = true)
-	@Mapping(target = "icon", source = "productSpecIcon", ignore = true)
 	ProductSpecification toEntity(ProductSpecificationDTO productSpecificationDTO);
 
 	@Override

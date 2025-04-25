@@ -1,14 +1,33 @@
 package com.v01.techgear_server.product.service.impl;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
-import com.v01.techgear_server.enums.ProductAvailability;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.v01.techgear_server.common.dto.ImageDTO;
+import com.v01.techgear_server.common.service.FileStorageService;
+import com.v01.techgear_server.discount.model.Discount;
+import com.v01.techgear_server.discount.repository.DiscountRepository;
+import com.v01.techgear_server.enums.ProductStatus;
+import com.v01.techgear_server.exception.BadRequestException;
+import com.v01.techgear_server.exception.ProductFilteringException;
+import com.v01.techgear_server.exception.ResourceNotFoundException;
+import com.v01.techgear_server.exception.ValidationException;
 import com.v01.techgear_server.product.dto.*;
+import com.v01.techgear_server.product.mapping.ProductDetailMapper;
+import com.v01.techgear_server.product.mapping.ProductMapper;
+import com.v01.techgear_server.product.model.Product;
+import com.v01.techgear_server.product.model.ProductCategory;
+import com.v01.techgear_server.product.model.ProductDetail;
+import com.v01.techgear_server.product.repository.ProductCategoryRepository;
+import com.v01.techgear_server.product.repository.ProductDetailRepository;
+import com.v01.techgear_server.product.repository.ProductRepository;
+import com.v01.techgear_server.product.service.ProductService;
+import com.v01.techgear_server.utils.CalculateHype;
+import com.v01.techgear_server.utils.DiscountCalculator;
+import com.v01.techgear_server.utils.ImageUploadService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
@@ -24,34 +43,31 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.v01.techgear_server.exception.BadRequestException;
-import com.v01.techgear_server.exception.ProductFilteringException;
-import com.v01.techgear_server.exception.ResourceNotFoundException;
-import com.v01.techgear_server.exception.ValidationException;
-import com.v01.techgear_server.common.mapping.ImageMapper;
-import com.v01.techgear_server.product.mapping.ProductMapper;
-import com.v01.techgear_server.common.model.Image;
-import com.v01.techgear_server.product.model.Product;
-import com.v01.techgear_server.product.repository.ProductRepository;
-import com.v01.techgear_server.common.service.FileStorageService;
-import com.v01.techgear_server.product.service.ProductService;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
-    private final ProductRepository productRepository;
-    private final FileStorageService fileStorageService;
-    private final ImageMapper imageMapper;
-    private final ProductMapper productMapper;
-    private final ObjectMapper objectMapper;
     private static final long MAX_IMAGE_SIZE = 1024L * 1024 * 5;
     private static final int MAX_PAGE_SIZE = 1024 * 1024 * 5;
+    private final ImageUploadService uploadService;
+    private final FileStorageService fileStorageService;
+    private final ProductMapper productMapper;
+    private final ProductDetailMapper productDetailMapper;
+    private final ObjectMapper objectMapper;
+
+    private final DiscountRepository discountRepository;
+    private final ProductRepository productRepository;
+    private final ProductDetailRepository detailRepository;
+    private final ProductCategoryRepository categoryRepository;
 
     private void validateImageFile(MultipartFile image) {
         // Check the file type
@@ -71,69 +87,149 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    private Image saveImage(MultipartFile image) {
+    private String saveImage(MultipartFile image) {
         try {
-            return fileStorageService.storeSingleImage(image).thenApply(imageMapper::toEntity).join();
+            ImageDTO imageDTO = fileStorageService.storeSingleImage(image).join();
+            return imageDTO.getImageUrl();
         } catch (IOException e) {
             log.error("Error storing image", e);
             throw new BadRequestException("Failed to store image");
         }
     }
 
-    @Async
-    @Transactional(rollbackFor = { IOException.class, org.springframework.dao.DataAccessException.class })
-    public void saveImageAndUpdateProduct(MultipartFile image, Product product) throws IOException {
-        fileStorageService.storeSingleImage(image)
-                .thenApply(imageDTO -> {
-                    Image savedImage = new Image();
-                    savedImage.setImageUrl(imageDTO.getImageUrl());
-                    product.setImage(savedImage);
-                    productRepository.save(product); // Save one product at a time
-                    return null;
-                })
-                .exceptionally(throwable -> {
-                    log.error("Failed to upload image and update product ID: {}", product.getProductId(), throwable);
-                    return null;
-                });
-    }
 
     @Override
-    @Transactional(rollbackFor = { BadRequestException.class, ResourceNotFoundException.class, IOException.class, DataAccessException.class },
-            noRollbackFor = { ValidationException.class }, isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, timeout = 30)
-    public CompletableFuture<ProductDTO> createProduct(ProductDTO productDTO, MultipartFile image) throws IOException {
-        if (productDTO.getId() != null) {
-            throw new BadRequestException("Product ID cannot be set");
+    @Transactional(rollbackFor = {BadRequestException.class, ResourceNotFoundException.class, IOException.class, DataAccessException.class},
+            noRollbackFor = {ValidationException.class}, isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, timeout = 30)
+    @CacheEvict(value = {"productSearchCache", "productCache"}, allEntries = true)
+    public CompletableFuture<List<ProductDTO>> createProduct(List<ProductDTO> productDTOs, List<MultipartFile> images) {
+        if (productDTOs == null || productDTOs.isEmpty()) {
+            throw new BadRequestException("Product list cannot be null or empty");
         }
 
-        if (image != null && !image.isEmpty()) {
-            validateImageFile(image);
+        String categoryName = productDTOs.getFirst().getProductCategory();
+        if (categoryName == null || categoryName.trim().isEmpty()) {
+            throw new BadRequestException("Product category name is required");
         }
 
-        validateProductDTO(productDTO);
-
-        Product product = productMapper.toEntity(productDTO);
-
-        // Ensure collections are empty for a new product
-        product.setProductDetail(new ArrayList<>());
-        product.setProductRatings(new ArrayList<>());
-        product.setOrderItems(new ArrayList<>());
-        product.setWishlistItems(new ArrayList<>());
-        product.setDiscounts(new ArrayList<>());
-
-        Product savedProduct = productRepository.save(product);
-
-        if (image != null && !image.isEmpty()) {
-            saveImageAndUpdateProduct(image, savedProduct);
+        ProductCategory category = categoryRepository.findFirstByCategoryName(categoryName)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with name: " + categoryName));
+        if (images != null && !images.isEmpty()) {
+            for (MultipartFile image : images) {
+                validateImageFile(image);
+            }
         }
+        productDTOs.forEach(this::validateProductDTO);
+        try {
+            List<Product> products = productMapper.toEntityList(productDTOs);
 
-        ProductDTO resultDTO = productMapper.toDTO(savedProduct);
-        return CompletableFuture.completedFuture(resultDTO);
+
+            products.forEach(p -> {
+                p.setCategory(category);
+                p.setProductDetails(new ArrayList<>());
+                p.setProductRatings(new ArrayList<>());
+                p.setOrderItems(new ArrayList<>());
+                p.setWishlistItems(new ArrayList<>());
+                p.setDiscounts(new ArrayList<>());
+                if (p.getTags() == null) {
+                    p.setTags(new ArrayList<>());
+                }
+            });
+
+
+
+            log.info("Saving products: {}", products);
+            List<Product> savedProducts = productRepository.saveAll(products);
+            log.info("Saved products: {}", savedProducts);
+
+            if (images != null && !images.isEmpty()) {
+                uploadService.saveImagesAndUpdateEntities(
+                        images,
+                        savedProducts,
+                        Product::setImageUrl,
+                        productRepository::saveAll
+                );
+            }
+
+            return CompletableFuture.completedFuture(productMapper.toDTOList(savedProducts));
+        } catch (IOException e) {
+            log.error("Error storing image and update product", e);
+            throw new BadRequestException("Failed to store image and update product");
+        }
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = {BadRequestException.class, ResourceNotFoundException.class, IOException.class, DataAccessException.class},
+            noRollbackFor = {ValidationException.class}, isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, timeout = 30)
+    public CompletableFuture<List<ProductDetailDTO>> createProductDetail(List<ProductDetailDTO> productDetailDTOs, List<MultipartFile> detailImages, List<MultipartFile> videos) {
+        if (detailImages != null && !detailImages.isEmpty()) {
+            for (MultipartFile image : detailImages) {
+                validateImageFile(image);
+            }
+        }
+        try {
+            if (productDetailDTOs == null || productDetailDTOs.isEmpty()) {
+                throw new BadRequestException("Product detail list cannot be null or empty");
+            }
+            List<ProductDetail> productDetails = productDetailMapper.toEntityList(productDetailDTOs);
+            List<ProductDetail> savedProductDetails = detailRepository.saveAll(productDetails);
+
+            long daysSinceRelease = ChronoUnit.DAYS.between(productDetails.getFirst().getReleaseDate().toLocalDate(), LocalDate.now());
+
+            ProductStatus status = switch ((int) ChronoUnit.DAYS.between(productDetails.getFirst().getReleaseDate().toLocalDate(), LocalDate.now())) {
+                case 0 -> ProductStatus.NEW;
+                case 1, 2, 3, 4, 5, 6, 7 -> ProductStatus.HOT;
+                default -> daysSinceRelease < 0 ? ProductStatus.COMING_SOON : ProductStatus.NORMAL;
+            };
+
+
+            Product product = productRepository.findById(productDetailDTOs.getFirst().getProductId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productDetailDTOs.getFirst().getProductId()));
+
+            String hype = CalculateHype.calculateHype(status, daysSinceRelease);
+            productDetails.forEach(pd -> {
+                List<Discount> allDiscounts = Optional.ofNullable(pd.getVoucherCode())
+                        .filter(v -> !v.trim().isEmpty())
+                        .map(discountRepository::findByDiscountCode)
+                        .orElse(Collections.emptyList());
+                pd.setFinalPrice(pd.getPrice() != null
+                        ? DiscountCalculator.calculateFinalPrice(product, pd, allDiscounts)
+                        : BigDecimal.ZERO);
+                pd.setHype(hype);
+                pd.setProductStatus(status);
+                pd.setDayLeft(String.valueOf(daysSinceRelease));
+                pd.setSpecifications(new ArrayList<>());
+            });
+            if (detailImages != null && !detailImages.isEmpty()) {
+                uploadService.saveImagesAndUpdateEntities(
+                        detailImages,
+                        savedProductDetails,
+                        ProductDetail::setDetailImageUrl,
+                        detailRepository::saveAll
+                );
+            }
+
+            if (videos != null && !videos.isEmpty()) {
+                uploadService.saveMultipleVideoAndUpdateEntity(
+                        videos,
+                        savedProductDetails,
+                        ProductDetail::setDetailVideoUrl,
+                        detailRepository::saveAll
+                );
+            }
+
+            return CompletableFuture.completedFuture(productDetailMapper.toDTOList(savedProductDetails));
+        } catch (IOException e) {
+            log.error("Error storing image and update product detail", e);
+            throw new BadRequestException("Failed to store image and update product detail");
+        }
     }
 
     @Override
     @CacheEvict(value = "productCache", key = "#productId")
-    @Transactional(rollbackFor = { ResourceNotFoundException.class,
-            DataAccessException.class }, isolation = Isolation.READ_COMMITTED)
+    @Transactional(rollbackFor = {ResourceNotFoundException.class,
+            DataAccessException.class}, isolation = Isolation.READ_COMMITTED)
     public CompletableFuture<Void> deleteProduct(Long productId) {
         return CompletableFuture.runAsync(() -> {
             if (productId == null) {
@@ -148,7 +244,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @CacheEvict(value = "productCache", key = "#productId")
+    @Async
+    @CachePut(value = "productCache", key = "#productId")
     @Transactional(rollbackFor = {
             ResourceNotFoundException.class,
             DataAccessException.class
@@ -157,18 +254,19 @@ public class ProductServiceImpl implements ProductService {
         return CompletableFuture.supplyAsync(() -> {
             Product existingProduct = validateProductUpdate(productId, productDTO);
             // Save the image file if it is not null
-            Image savedImage = null;
+            String savedImage = null;
             if (image != null && !image.isEmpty()) {
                 savedImage = saveImage(image);
             }
             // Update the product fields
             existingProduct.setName(productDTO.getProductName());
             existingProduct.setProductDescription(productDTO.getProductDescription());
-            existingProduct.setPrice(productDTO.getProductPrice());
-            existingProduct.setAvailability(ProductAvailability.valueOf(productDTO.getProductAvailability()));
+            existingProduct.setMaxPrice(productDTO.getProductMaxPrice());
+            existingProduct.setMinPrice(productDTO.getProductMinPrice());
+            existingProduct.setAvailability(productDTO.getProductAvailability());
             // Associate the saved image with the product if it exists
             if (savedImage != null) {
-                existingProduct.setImage(savedImage);
+                existingProduct.setImageUrl(savedImage);
             }
 
             // Save the updated product to the repository
@@ -251,7 +349,7 @@ public class ProductServiceImpl implements ProductService {
             if (StringUtils.hasText(sortJson)) {
                 List<ProductSortDTO> sortDTOs = objectMapper.readValue(
                         sortJson,
-                        new TypeReference<List<ProductSortDTO>>() {
+                        new TypeReference<>() {
                         });
 
                 return List.copyOf(sortDTOs.stream()
@@ -314,31 +412,6 @@ public class ProductServiceImpl implements ProductService {
         });
     }
 
-    @Override
-    @Cacheable(value = "productCache", keyGenerator = "customKeyGenerator", condition = "#productId != null", unless = "#result == null || #result.getProductId() == null || #result.getProductId() == 0")
-    @Transactional(readOnly = true)
-    public CompletableFuture<ProductDTO> getProductById(Long productId) {
-        return CompletableFuture.supplyAsync(() -> {
-            Optional<Product> product = productRepository.findById(productId);
-            if (product.isEmpty()) {
-                throw new ResourceNotFoundException("No product found with id: " + productId);
-            }
-            return productMapper.toDTO(product.get());
-        });
-    }
-
-    @Override
-    @Cacheable(value = "productCache", keyGenerator = "customKeyGenerator", condition = "#productName != null", unless = "#result == null")
-    @Transactional(readOnly = true)
-    public CompletableFuture<ProductDTO> getProductByName(String productName) {
-        return CompletableFuture.supplyAsync(() -> {
-            Optional<Product> product = productRepository.findProductByName(productName);
-            if (product.isEmpty()) {
-                throw new ResourceNotFoundException("No product found with name: " + productName);
-            }
-            return productMapper.toDTO(product.get());
-        });
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -362,7 +435,7 @@ public class ProductServiceImpl implements ProductService {
             if (product.isEmpty()) {
                 throw new ResourceNotFoundException("No product found with id: " + productId);
             }
-            Integer stockLevel = product.get().getStockLevel();
+            int stockLevel = product.get().getStockLevel();
             if (stockLevel == 0) {
                 throw new BadRequestException("Product with id: " + productId + " is out of stock");
             }

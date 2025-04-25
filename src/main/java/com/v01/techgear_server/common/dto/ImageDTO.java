@@ -18,10 +18,6 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Image Data Transfer Object")
 public class ImageDTO {
 
-    @Schema(description = "Image ID", example = "123")
-    @Positive(message = "Image ID must be a positive number")
-    private Long id;
-
     @Schema(description = "Image URL", example = "https://example.com/images/sample.jpg")
     private String imageUrl;
 

@@ -1,0 +1,27 @@
+
+type Product {
+    productId: ID!
+    name: String!
+    productDescription: String!
+    availability: String!
+    stockLevel: Int!
+    imageUrl: String
+    minPrice: Float
+    maxPrice: Float
+    brand: String
+    category: String!
+    features: String
+}
+
+type ProductCategory {
+    id: ID!
+    categoryName: String!
+    categoryImage: String
+}
+
+type Query {
+    getProductById(productId: ID!): Product
+    getProductByName(name: String!): Product
+    getAllProducts: [Product]
+    getAllCategories: [ProductCategory]
+}

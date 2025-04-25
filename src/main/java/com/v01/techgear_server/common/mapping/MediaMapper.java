@@ -13,7 +13,7 @@ import com.v01.techgear_server.utils.BaseMapper;
 public interface MediaMapper extends BaseMapper<Media, MediaDTO> {
 
 	@Override
-	@Mapping(target = "productDetails.id", ignore = true)
+	@Mapping(target = "productDetails.detailsId", ignore = true)
 	@Mapping(target = "filename", source = "mediaFilename")
 	@Mapping(target = "dimensions", ignore = true)
 	MediaDTO toDTO(Media media);

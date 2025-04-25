@@ -1,23 +1,23 @@
 package com.v01.techgear_server.config;
 
-import java.lang.reflect.Method;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.v01.techgear_server.exception.GenerateHashKeyException;
+import com.v01.techgear_server.product.dto.ProductCategoryDTO;
+import com.v01.techgear_server.product.dto.ProductSearchRequest;
+import com.v01.techgear_server.product.model.Product;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.v01.techgear_server.product.dto.ProductSearchRequest;
-import com.v01.techgear_server.enums.Category;
-import com.v01.techgear_server.exception.GenerateHashKeyException;
-import com.v01.techgear_server.product.model.Product;
+import java.lang.reflect.Method;
+import java.util.stream.Collectors;
 
 @Component
 public class CustomKeyGenerator implements KeyGenerator {
 
     @Override
-    public Object generate(Object target, Method method, Object... params) {
+    public @NotNull Object generate(@NotNull Object target, @NotNull Method method, Object... params) {
         if (params.length == 0) {
             return generateDefaultKey(target, method);
         }
@@ -40,16 +40,19 @@ public class CustomKeyGenerator implements KeyGenerator {
     }
 
     private String generateParamKey(Object param) {
-        if (param == null)
-            return "null";
-
-        // Handle specific types with custom key generation
-        if (param instanceof ProductSearchRequest productSearchRequest) {
-            return generateProductSearchKey(productSearchRequest);
-        }
-
-        if (param instanceof Product product) {
-            return generateProductKey(product);
+        switch (param) {
+            case null -> {
+                return "null";
+            }
+            // Handle specific types with custom key generation
+            case ProductSearchRequest productSearchRequest -> {
+                return generateProductSearchKey(productSearchRequest);
+            }
+            case Product product -> {
+                return generateProductKey(product);
+            }
+            default -> {
+            }
         }
 
         if (param instanceof Long || param instanceof Integer) {
@@ -75,29 +78,28 @@ public class CustomKeyGenerator implements KeyGenerator {
 
     private String generateProductKey(Product param) {
         return "productId" + param.getProductId() + "|name:" +
-		        param.getName() + "|category:" + param.getCategory() + "|price:" +
-		        param.getPrice();
+                param.getName() + "|category:" + param.getCategory();
     }
 
     private String generateProductSearchKey(ProductSearchRequest param) {
         return "query:" + (param.getQuery() != null ? param.getQuery() : "") +
-		        "|page:" + (param.getPage() != null ? param.getPage() : 0) +
-		        "|perPage:" + (param.getPerPage() != null ? param.getPerPage() : 10) +
-		        "|categories:" +
-		        (param.getCategories() != null
-				        ? param.getCategories()
-				               .stream()
-				               .map(Category::toString)
-				               .sorted()
-				               .collect(Collectors.joining(","))
-				        : "") +
-		        "|brands:" +
-		        (param.getBrands() != null ? param.getBrands()
-		                                          .stream()
-		                                          .sorted()
-		                                          .collect(Collectors.joining(","))
-				        : "") +
-		        "|minPrice:" + (param.getMinPrice() != null ? param.getMinPrice() : "") +
-		        "|maxPrice:" + (param.getMaxPrice() != null ? param.getMaxPrice() : "");
+                "|page:" + (param.getPage() != null ? param.getPage() : 0) +
+                "|perPage:" + (param.getPerPage() != null ? param.getPerPage() : 10) +
+                "|categories:" +
+                (param.getCategories() != null
+                        ? param.getCategories()
+                        .stream()
+                        .map(ProductCategoryDTO::getProductCategoryName)
+                        .sorted()
+                        .collect(Collectors.joining(","))
+                        : "") +
+                "|brands:" +
+                (param.getBrands() != null ? param.getBrands()
+                        .stream()
+                        .sorted()
+                        .collect(Collectors.joining(","))
+                        : "") +
+                "|minPrice:" + (param.getMinPrice() != null ? param.getMinPrice() : "") +
+                "|maxPrice:" + (param.getMaxPrice() != null ? param.getMaxPrice() : "");
     }
 }

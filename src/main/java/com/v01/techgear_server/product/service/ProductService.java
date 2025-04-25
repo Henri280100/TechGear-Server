@@ -1,29 +1,26 @@
 package com.v01.techgear_server.product.service;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import com.v01.techgear_server.product.dto.ProductDTO;
+import com.v01.techgear_server.product.dto.ProductDetailDTO;
+import com.v01.techgear_server.product.dto.ProductFilterSortRequest;
+import com.v01.techgear_server.product.dto.ProductFilterSortResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.v01.techgear_server.product.dto.ProductFilterSortRequest;
-import com.v01.techgear_server.product.dto.ProductFilterSortResponse;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface ProductService {
 
-    CompletableFuture<ProductDTO> createProduct(ProductDTO productDTO, MultipartFile image) throws IOException;
+    CompletableFuture<List<ProductDTO>> createProduct(List<ProductDTO> productDTOs, List<MultipartFile> images);
 
     CompletableFuture<ProductDTO> updateProduct(Long productId, ProductDTO productDTO, MultipartFile image);
+
+    CompletableFuture<List<ProductDetailDTO>> createProductDetail(List<ProductDetailDTO> productDetailDTOs, List<MultipartFile> detailImages, List<MultipartFile> videos);
 
     CompletableFuture<Void> deleteProduct(Long productId);
 
     CompletableFuture<Page<ProductFilterSortResponse>> productFilteringSorting(ProductFilterSortRequest request);
-
-    CompletableFuture<ProductDTO> getProductById(Long productId);
-
-    CompletableFuture<ProductDTO> getProductByName(String productName);
 
     CompletableFuture<ProductDTO> getProductByCategory(String category);
 

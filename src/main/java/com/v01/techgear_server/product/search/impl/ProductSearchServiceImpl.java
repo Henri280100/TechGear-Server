@@ -2,9 +2,9 @@ package com.v01.techgear_server.product.search.impl;
 
 import com.v01.techgear_server.common.model.search.FacetCount;
 import com.v01.techgear_server.common.model.search.SortOption;
-import com.v01.techgear_server.enums.Category;
 import com.v01.techgear_server.enums.ProductAvailability;
 import com.v01.techgear_server.exception.ProductSearchException;
+import com.v01.techgear_server.product.dto.ProductCategoryDTO;
 import com.v01.techgear_server.product.dto.ProductDTO;
 import com.v01.techgear_server.product.dto.ProductSearchRequest;
 import com.v01.techgear_server.product.dto.ProductSearchResponse;
@@ -12,8 +12,8 @@ import com.v01.techgear_server.product.mapping.ProductMapper;
 import com.v01.techgear_server.product.search.ProductSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.typesense.api.Client;
 import org.typesense.model.FacetCounts;
@@ -86,7 +86,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                     .queryBy("name,productDescription,brand,category")
                     .page(Optional.ofNullable(request.getPage()).filter(p -> p > 0).orElse(1))
                     .perPage(Optional.ofNullable(request.getPerPage()).filter(pp -> pp > 0 && pp <= 100).orElse(8))
-                    .facetBy("category,brand,availability,price")
+                    .facetBy("category,brand,availability,finalPrice")
                     .maxFacetValues(10)
                     .includeFields("productId,name,productDescription,price,category,brand,availability,features,image") // Updated to match schema
                     .highlightFields("name,productDescription") // Removed price from highlighting
@@ -110,7 +110,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
 
     private void validateSearchResponse(SearchParameters searchParameters, ProductSearchRequest request) {
         if (request.getCategories() != null && !request.getCategories().isEmpty()) {
-            searchParameters.filterBy(categoriesFilter(request.getCategories()));
+            searchParameters.filterBy(categoriesFilter(request.getCategories().stream().toList()));
         }
 
         if (request.getBrands() != null && !request.getBrands().isEmpty()) {
@@ -134,9 +134,9 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         }
     }
 
-    private String categoriesFilter(List<Category> categories) {
+    private String categoriesFilter(List<ProductCategoryDTO> categories) {
         return String.format("(%s)", categories.stream()
-                .map(category -> String.format("category:=%s", category.name()))
+                .map(category -> String.format("category:=%s", category.getProductCategoryName()))
                 .collect(Collectors.joining(" || ")));
     }
 

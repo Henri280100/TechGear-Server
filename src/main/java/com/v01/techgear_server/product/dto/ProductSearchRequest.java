@@ -1,19 +1,17 @@
 package com.v01.techgear_server.product.dto;
 
-import java.util.List;
-
-import com.v01.techgear_server.enums.Category;
-import com.v01.techgear_server.enums.ProductAvailability;
 import com.v01.techgear_server.common.model.search.SortOption;
-
+import com.v01.techgear_server.enums.ProductAvailability;
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 @Builder
 public class ProductSearchRequest {
     private String query;
-    private List<Category> categories;
+    private List<ProductCategoryDTO> categories;
     private List<String> brands;
     private Double minPrice;
     private Double maxPrice;

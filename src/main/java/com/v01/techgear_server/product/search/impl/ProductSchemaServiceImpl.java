@@ -36,7 +36,7 @@ public class ProductSchemaServiceImpl implements ProductSchemaService {
                                 new Field().name("productId").type(FieldTypes.INT64).facet(false),
                                 new Field().name("name").type(FieldTypes.STRING).facet(false),
                                 new Field().name("productDescription").type(FieldTypes.STRING).facet(false),
-                                new Field().name("price").type(FieldTypes.FLOAT).facet(true),
+                                new Field().name("finalPrice").type(FieldTypes.FLOAT).facet(true),
                                 new Field().name("minPrice").type(FieldTypes.FLOAT).facet(true),
                                 new Field().name("maxPrice").type(FieldTypes.FLOAT).facet(true),
                                 new Field().name("category").type(FieldTypes.STRING).facet(true),

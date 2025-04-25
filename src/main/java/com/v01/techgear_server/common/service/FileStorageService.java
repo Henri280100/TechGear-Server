@@ -14,9 +14,9 @@ public interface FileStorageService {
     CompletableFuture<ImageDTO> storeSingleImage(MultipartFile file) throws IOException;
     CompletableFuture<List<ImageDTO>> storedMultipleImage(List<MultipartFile> files) throws IOException;
 
-    MediaDTO storeMedia(MultipartFile mediaFile) throws IOException;
+    CompletableFuture<MediaDTO> storeMedia(MultipartFile mediaFile) throws IOException;
 
-    List<MediaDTO> storeMultipleMedia(List<MultipartFile> mediaFile) throws IOException;
+    CompletableFuture<List<MediaDTO>> storeMultipleMedia(List<MultipartFile> mediaFile) throws IOException;
 
     CompletableFuture<Void> deleteImage(String publicId) throws IOException;
     CompletableFuture<Void> deleteMultipleImages(List<String> publicIds);

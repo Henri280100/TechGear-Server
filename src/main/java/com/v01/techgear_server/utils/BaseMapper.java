@@ -1,5 +1,7 @@
 package com.v01.techgear_server.utils;
 
+import org.mapstruct.Context;
+
 import java.util.*;
 
 public interface BaseMapper<E, D> {
@@ -11,5 +13,6 @@ public interface BaseMapper<E, D> {
     List<D> toDTOList(List<E> entityList);
 
     List<E> toEntityList(List<D> dtoList);
+
 
 }

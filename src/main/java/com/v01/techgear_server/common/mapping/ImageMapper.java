@@ -18,15 +18,14 @@ public interface ImageMapper extends BaseMapper<Image, ImageDTO> {
     @Mapping(target = "dimensions", ignore = true)
     ImageDTO toDTO(Image image);
 
+
     @Override
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "wishlistItems", ignore = true)
     @Mapping(target = "wishlist", ignore = true)
     @Mapping(target = "width", ignore = true)
-    @Mapping(target = "uploadedBy", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "productSpecification", ignore = true)
     @Mapping(target = "productRating", ignore = true)
-    @Mapping(target = "product", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "imageTypes", ignore = true)
     @Mapping(target = "height", ignore = true)
@@ -36,7 +35,6 @@ public interface ImageMapper extends BaseMapper<Image, ImageDTO> {
     @Mapping(target = "contentType", ignore = true)
     @Mapping(target = "accountDetails", ignore = true)
     Image toEntity(ImageDTO imageDTO);
-
 
     // Bulk mapping methods
     @Override

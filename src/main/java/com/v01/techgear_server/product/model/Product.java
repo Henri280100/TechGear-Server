@@ -1,16 +1,16 @@
 package com.v01.techgear_server.product.model;
 
-import com.v01.techgear_server.enums.Category;
-import com.v01.techgear_server.enums.ProductAvailability;
-import com.v01.techgear_server.common.model.Image;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.v01.techgear_server.discount.model.Discount;
-import com.v01.techgear_server.wishlist.model.WishlistItems;
+import com.v01.techgear_server.enums.ProductAvailability;
 import com.v01.techgear_server.order.model.OrderItem;
+import com.v01.techgear_server.wishlist.model.WishlistItems;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -26,11 +26,12 @@ public class Product implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long productId;
-
+    @Version
+    private Long version;
     @Column(name = "name", unique = true)
     private String name;
 
-    @Column(name = "product_description", unique = true)
+    @Column(name = "product_description")
     private String productDescription;
 
     @Enumerated(EnumType.STRING)
@@ -43,33 +44,34 @@ public class Product implements Serializable {
     @Column(name = "slug", unique = true)
     private String slug;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "image_id")
-    private Image image;
-
-    @Column(name = "price")
-    private Double price;
+    @Column(name = "image_url")
+    private String imageUrl;
 
     @Column(name = "min_price")
-    private Double minPrice;
+    private BigDecimal minPrice;
 
     @Column(name = "max_price")
-    private Double maxPrice;
+    private BigDecimal maxPrice;
 
     @Column(name = "brand")
     private String brand;
 
-    @Column(name="features")
+    @Column(name = "features")
     private String features;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "category")
-    private Category category;
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinColumn(name = "category_id")
+    private ProductCategory category;
 
+    @ElementCollection
+    @CollectionTable(name = "product_tags", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "tag")
+    private List<String> tags = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "product")
     @ToString.Exclude
-    private List<ProductDetail> productDetail;
+    @JsonIgnore
+    private List<ProductDetail> productDetails;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "product")
     @ToString.Exclude

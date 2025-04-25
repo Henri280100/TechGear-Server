@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
+import java.io.IOException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -242,6 +244,7 @@ public class GlobalExceptionHandler {
      *
      * @param ex      the exception that occurred
      * @param request the web request
+     *
      * @return the response entity with an error message and the corresponding HTTP
      * status code
      */
@@ -253,4 +256,5 @@ public class GlobalExceptionHandler {
                 .body(new ErrorMessage(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         request.getDescription(false)));
     }
+
 }
