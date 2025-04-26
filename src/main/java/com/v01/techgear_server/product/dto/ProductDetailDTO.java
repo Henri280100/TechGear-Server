@@ -1,6 +1,5 @@
 package com.v01.techgear_server.product.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.v01.techgear_server.enums.ProductStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -50,7 +49,6 @@ public class ProductDetailDTO {
     private String title;
 
     @Schema(description = "Product release date")
-    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate releaseDate;
 
     @Schema(description = "Product release day left")

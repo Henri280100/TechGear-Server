@@ -2,6 +2,8 @@ package com.v01.techgear_server.product.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.v01.techgear_server.exception.GenericException;
 import com.v01.techgear_server.product.dto.*;
 import com.v01.techgear_server.product.search.ProductSearchService;
@@ -82,8 +84,12 @@ public class ProductController {
 
         List<ProductDTO> dtos;
         try {
-            // Parse ProductDTO from JSON
-            dtos = new ObjectMapper().readValue(productsJson, new TypeReference<List<ProductDTO>>() {});
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            dtos = mapper.readValue(productsJson, new TypeReference<List<ProductDTO>>() {});
+
             // Create product
             return productService.createProduct(dtos, images != null ? images : Collections.emptyList())
                     .thenApply(ResponseEntity::ok)

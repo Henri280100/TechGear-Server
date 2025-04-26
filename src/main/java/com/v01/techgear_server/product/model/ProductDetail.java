@@ -51,8 +51,7 @@ public class ProductDetail implements Serializable {
     @Column(name = "detail_image_url")
     private String detailImageUrl;
 
-    @Column(name = "release_date", columnDefinition = "TIMESTAMP(6) WITHOUT TIME ZONE")
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Column(name = "release_date")
     private LocalDateTime releaseDate;
 
     @Column(name = "day_left")

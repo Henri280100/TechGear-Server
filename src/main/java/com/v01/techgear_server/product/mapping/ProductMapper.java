@@ -43,13 +43,13 @@ public interface ProductMapper extends BaseMapper<Product, ProductDTO> {
     @Override
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "category.categoryName", source = "productCategory")
-    @Mapping(target = "productDetails", ignore = true)
+    @Mapping(target = "productDetails", source = "productDetails")
     @Mapping(target = "tags", source = "productTags")
     @Mapping(target = "wishlistItems", ignore = true)
     @Mapping(target = "stockLevel", source = "productStockLevel")
     @Mapping(target = "slug", ignore = true)
     @Mapping(target = "productRatings", ignore = true)
-    @Mapping(target = "productId", source = "id", ignore = true)
+    @Mapping(target = "productId", source = "id")
     @Mapping(target = "orderItems", ignore = true)
     @Mapping(target = "name", source = "productName")
     @Mapping(target = "minPrice", source = "productMinPrice")
@@ -99,13 +99,6 @@ public interface ProductMapper extends BaseMapper<Product, ProductDTO> {
     @Mapping(target = "productPrice", expression = "java(getDefaultPrice(product.getProductDetails()))")
     @Mapping(target = "id", ignore = true)
     ProductFilterSortResponse productFilterSortToDTO(Product product);
-
-    default ProductCategory mapCategory(String name) {
-        if (name == null) return null;
-        ProductCategory category = new ProductCategory();
-        category.setCategoryName(name.trim());
-        return category;
-    }
 
     default String mapCategory(ProductCategory category) {
         if (category == null) return null;

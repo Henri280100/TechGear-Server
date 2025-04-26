@@ -123,10 +123,13 @@ public class ProductServiceImpl implements ProductService {
         try {
             List<Product> products = productMapper.toEntityList(productDTOs);
 
-
             products.forEach(p -> {
                 p.setCategory(category);
-                p.setProductDetails(new ArrayList<>());
+                if (p.getProductDetails() == null) {
+                    for (ProductDetail detail : p.getProductDetails()) {
+                        detail.setProduct(p);
+                    }
+                }
                 p.setProductRatings(new ArrayList<>());
                 p.setOrderItems(new ArrayList<>());
                 p.setWishlistItems(new ArrayList<>());
@@ -135,8 +138,6 @@ public class ProductServiceImpl implements ProductService {
                     p.setTags(new ArrayList<>());
                 }
             });
-
-
 
             log.info("Saving products: {}", products);
             List<Product> savedProducts = productRepository.saveAll(products);

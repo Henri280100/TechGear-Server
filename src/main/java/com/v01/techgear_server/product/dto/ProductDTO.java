@@ -58,6 +58,9 @@ public class ProductDTO {
     @JsonProperty("productTags")
     private List<String> productTags = new ArrayList<>();
 
+    @Schema(description = "Product details")
+    private List<ProductDetailDTO> productDetails;
+
     public ProductDTO(Long id, String productName, String productDescription,
                       BigDecimal productDetailPrice, BigDecimal productMinPrice, BigDecimal productMaxPrice,
                       String productAvailability, int productStockLevel,
