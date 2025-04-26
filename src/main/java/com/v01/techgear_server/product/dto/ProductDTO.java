@@ -53,7 +53,6 @@ public class ProductDTO {
     @Schema(description = "Product detail price")
     private BigDecimal productDetailPrice;
 
-
     @Schema(description = "Product Tags")
     @JsonProperty("productTags")
     private List<String> productTags = new ArrayList<>();

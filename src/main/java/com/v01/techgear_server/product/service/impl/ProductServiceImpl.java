@@ -125,11 +125,12 @@ public class ProductServiceImpl implements ProductService {
 
             products.forEach(p -> {
                 p.setCategory(category);
-                if (p.getProductDetails() == null) {
-                    for (ProductDetail detail : p.getProductDetails()) {
-                        detail.setProduct(p);
-                    }
-                }
+//                if (p.getProductDetails() == null) {
+//                    for (ProductDetail detail : p.getProductDetails()) {
+//                        detail.setProduct(p);
+//                    }
+//                }
+                p.setProductDetails(new ArrayList<>());
                 p.setProductRatings(new ArrayList<>());
                 p.setOrderItems(new ArrayList<>());
                 p.setWishlistItems(new ArrayList<>());
