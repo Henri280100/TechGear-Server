@@ -16,18 +16,18 @@ import com.v01.techgear_server.utils.*;
 public interface ProductSpecificationMapper extends BaseMapper<ProductSpecification, ProductSpecificationDTO> {
 
 	@Override
+	@Mapping(target = "productSpecGuarantee", source = "guarantee")
 	@Mapping(target = "productSpecValue", source = "specValue")
 	@Mapping(target = "productSpecName", source = "specName")
-	@Mapping(target = "productSpecImage", source = "imageUrl")
-	@Mapping(target = "productSpecId", source = "specId", ignore = true)
+	@Mapping(target = "productSpecId", source = "specId")
     ProductSpecificationDTO toDTO(ProductSpecification productSpecification);
 
 	@Override
+	@Mapping(target = "guarantee", source = "productSpecGuarantee")
 	@Mapping(target = "productDetail", ignore = true)
-	@Mapping(target = "imageUrl", source = "productSpecImage")
 	@Mapping(target = "specName", source = "productSpecName")
 	@Mapping(target = "specValue", source = "productSpecValue")
-	@Mapping(target = "specId", source = "productSpecId", ignore = true)
+	@Mapping(target = "specId", source = "productSpecId")
 	ProductSpecification toEntity(ProductSpecificationDTO productSpecificationDTO);
 
 	@Override

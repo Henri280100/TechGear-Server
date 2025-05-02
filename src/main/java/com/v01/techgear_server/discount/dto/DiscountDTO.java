@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Schema(description = "Data Transfer Object for Discount")
 @Data
 @Builder
@@ -33,8 +35,8 @@ public class DiscountDTO {
     private DiscountType discountType;
 
     @Schema(description = "Start date of the discount", example = "2022-05-01")
-    private String startDate;
+    private LocalDateTime startDate;
 
     @Schema(description = "Expiry date of the discount", example = "2022-08-31")
-    private String expiryDate;
+    private LocalDateTime expiryDate;
 }

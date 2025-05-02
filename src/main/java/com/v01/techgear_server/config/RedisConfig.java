@@ -109,6 +109,16 @@ public class RedisConfig extends CachingConfigurerSupport {
                         .entryTtl(Duration.ofHours(4))
                         .disableCachingNullValues()
                         .serializeValuesWith(SerializationPair.fromSerializer(
-                                redisTemplate.getValueSerializer())));
+                                redisTemplate.getValueSerializer())),
+
+                "productDetailCache", RedisCacheConfiguration.defaultCacheConfig()
+                        .entryTtl(Duration.ofHours(4))
+                        .disableCachingNullValues()
+                        .serializeValuesWith(SerializationPair.fromSerializer(
+                                redisTemplate.getValueSerializer()))
+
+        );
+
+
     }
 }

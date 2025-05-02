@@ -12,7 +12,6 @@ import com.v01.techgear_server.product.mapping.ProductMapper;
 import com.v01.techgear_server.product.search.ProductSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.typesense.api.Client;
@@ -88,12 +87,14 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                     .perPage(Optional.ofNullable(request.getPerPage()).filter(pp -> pp > 0 && pp <= 100).orElse(8))
                     .facetBy("category,brand,availability,finalPrice")
                     .maxFacetValues(10)
-                    .includeFields("productId,name,productDescription,price,category,brand,availability,features,image") // Updated to match schema
+                    .includeFields("productId,name,productDescription,finalPrice,category,brand,availability,features,image,tags") // Updated to match schema
                     .highlightFields("name,productDescription") // Removed price from highlighting
                     .numTypos("2")
                     .exhaustiveSearch(false);
 
-            log.info("Search parameters: query={}, page={}, perPage={}", searchParameters.getQ(), searchParameters.getPage(), searchParameters.getPerPage());
+            log.info("Filter Query: {}", "finalPrice:[0.0 TO 1000.0]");
+            log.info("Search request: {}", request);
+
             validateSearchResponse(searchParameters, request);
 
             try {

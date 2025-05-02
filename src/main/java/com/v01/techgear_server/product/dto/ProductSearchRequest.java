@@ -5,6 +5,7 @@ import com.v01.techgear_server.enums.ProductAvailability;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -12,6 +13,7 @@ import java.util.List;
 public class ProductSearchRequest {
     private String query;
     private List<ProductCategoryDTO> categories;
+    private BigDecimal finalPrice;
     private List<String> brands;
     private Double minPrice;
     private Double maxPrice;

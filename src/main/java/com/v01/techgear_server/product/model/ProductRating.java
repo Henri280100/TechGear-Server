@@ -32,7 +32,6 @@ public class ProductRating implements Serializable {
     @Column(name = "rating_date")
     private LocalDateTime ratingDate;
 
-
     @Column(name = "average_rating")
     private double averageRating;
 

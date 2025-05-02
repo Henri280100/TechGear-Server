@@ -2,32 +2,28 @@ package com.v01.techgear_server.product.mapping;
 
 import com.v01.techgear_server.common.dto.ImageDTO;
 import com.v01.techgear_server.enums.ProductAvailability;
-import com.v01.techgear_server.enums.ProductStatus;
 import com.v01.techgear_server.product.dto.ProductDTO;
-import com.v01.techgear_server.product.dto.ProductFilterSortResponse;
+import com.v01.techgear_server.product.dto.ProductDetailDTO;
 import com.v01.techgear_server.product.model.Product;
-import com.v01.techgear_server.product.model.ProductCategory;
 import com.v01.techgear_server.product.model.ProductDetail;
+import com.v01.techgear_server.product.repository.ProductRepository;
 import com.v01.techgear_server.utils.BaseMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper(componentModel = "spring")
 public interface ProductMapper extends BaseMapper<Product, ProductDTO> {
     Logger log = LoggerFactory.getLogger(ProductMapper.class);
 
-    @Override
+
+    @Mapping(target = "productSlug", source = "slug")
     @Mapping(target = "productTags", source = "tags")
-    @Mapping(target = "productDetailPrice", expression = "java(getDefaultPrice(product.getProductDetails()))")
+    @Mapping(target = "finalPrice", expression = "java(getFinalPriceFromProductDetails(product))")
     @Mapping(target = "productStockLevel", source = "stockLevel")
     @Mapping(target = "productName", source = "name")
     @Mapping(target = "productMinPrice", source = "minPrice")
@@ -41,9 +37,8 @@ public interface ProductMapper extends BaseMapper<Product, ProductDTO> {
     ProductDTO toDTO(Product product);
 
     @Override
-    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "productDetails", ignore = true)
     @Mapping(target = "category.categoryName", source = "productCategory")
-    @Mapping(target = "productDetails", source = "productDetails")
     @Mapping(target = "tags", source = "productTags")
     @Mapping(target = "wishlistItems", ignore = true)
     @Mapping(target = "stockLevel", source = "productStockLevel")
@@ -75,35 +70,29 @@ public interface ProductMapper extends BaseMapper<Product, ProductDTO> {
                 .toList();
     }
 
-//
-//    default String getVoucherCode(List<ProductDetail> details) {
-//        return details.stream()
-//                .map(ProductDetail::getVoucherCode)
-//                .filter(voucherCode -> voucherCode != null && !voucherCode.isEmpty())
-//                .findFirst()
-//                .orElse(null);
-//    }
-
-    default BigDecimal getDefaultPrice(List<ProductDetail> productDetails) {
-        if (productDetails == null || productDetails.isEmpty()) {
-            return BigDecimal.ZERO;
+    // Custom method to get finalPrice from Product's productDetails
+    default BigDecimal getFinalPriceFromProductDetails(Product product) {
+        if (product == null || product.getProductDetails() == null || product.getProductDetails().isEmpty()) {
+            return BigDecimal.ZERO; // Return default value if no product details
         }
-        return productDetails.stream()
-                .filter(detail -> detail.getProductStatus() == ProductStatus.NEW)
-                .map(ProductDetail::getFinalPrice)
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(BigDecimal.ZERO);
+
+        return product.getProductDetails().stream()
+                .map(ProductDetail::getFinalPrice) // Get finalPrice from each ProductDetail
+                .filter(Objects::nonNull) // Only include non-null finalPrices
+                .min(BigDecimal::compareTo) // Get the minimum finalPrice (or change to another logic)
+                .orElse(BigDecimal.ZERO); // Default to zero if no finalPrice found
     }
 
-    @Mapping(target = "productPrice", expression = "java(getDefaultPrice(product.getProductDetails()))")
-    @Mapping(target = "id", ignore = true)
-    ProductFilterSortResponse productFilterSortToDTO(Product product);
-
-    default String mapCategory(ProductCategory category) {
-        if (category == null) return null;
-        return category.getCategoryName();
+    @AfterMapping
+    default void setFinalPriceInProductDetails(ProductDTO dto, @MappingTarget Product entity) {
+        if (dto.getFinalPrice() != null) {
+            ProductDetail detail = new ProductDetail();
+            detail.setFinalPrice(dto.getFinalPrice());
+            detail.setProduct(entity); // maintain bidirectional relationship if needed
+            entity.setProductDetails(List.of(detail));
+        }
     }
+
 
     // String -> ImageDTO
     default ImageDTO map(String url) {
@@ -129,17 +118,14 @@ public interface ProductMapper extends BaseMapper<Product, ProductDTO> {
         ProductDTO productDTO = new ProductDTO();
 
         Object productIdObj = map.get("productId");
+        Long productId = null;
         if (productIdObj instanceof Number) {
-            productDTO.setId(((Number) productIdObj).longValue());
+            productId = ((Number) productIdObj).longValue();
+            productDTO.setId(productId);
         }
 
         productDTO.setProductName((String) map.get("name"));
         productDTO.setProductDescription((String) map.get("productDescription"));
-
-        Object priceObj = map.get("price");
-        if (priceObj instanceof Number) {
-            productDTO.setProductDetailPrice(BigDecimal.valueOf(((Number) priceObj).doubleValue()));
-        }
 
         Object availabilityObj = map.get("availability");
         if (availabilityObj instanceof String availabilityStr) {
@@ -155,6 +141,41 @@ public interface ProductMapper extends BaseMapper<Product, ProductDTO> {
         productDTO.setProductImage((String) map.get("image"));
         productDTO.setProductBrand((String) map.get("brand"));
         productDTO.setProductFeatures((String) map.get("features"));
+        Object finalPriceObj = map.get("finalPrice");
+
+        if (finalPriceObj instanceof Number) {
+            // Handle case where the value is a Number (could be Double, Integer, etc.)
+            productDTO.setFinalPrice(new BigDecimal(finalPriceObj.toString()));  // Convert Number to BigDecimal
+        } else if (finalPriceObj instanceof String finalPriceStr) {
+            try {
+                productDTO.setFinalPrice(new BigDecimal(finalPriceStr));
+            } catch (NumberFormatException e) {
+                log.warn("Invalid finalPrice format: {}", finalPriceStr);
+
+                productDTO.setFinalPrice(BigDecimal.ZERO);
+            }
+        } else {
+            productDTO.setFinalPrice(BigDecimal.ZERO);
+        }
+
+        Object tagsObj = map.get("tags");
+
+        if (tagsObj instanceof List<?>) {
+            List<?> rawList = (List<?>) tagsObj;
+
+            // Convert each element to string (if it's not already)
+            List<String> tagList = rawList.stream()
+                    .filter(Objects::nonNull)
+                    .map(Object::toString) // Ensures each item is converted to a String
+                    .collect(Collectors.toList());
+
+            productDTO.setProductTags(tagList);
+        } else {
+            productDTO.setProductTags(new ArrayList<>());
+        }
+
+
+
 
         return productDTO;
     }

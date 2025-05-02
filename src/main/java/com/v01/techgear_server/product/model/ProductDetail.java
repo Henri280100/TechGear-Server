@@ -1,6 +1,5 @@
 package com.v01.techgear_server.product.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.v01.techgear_server.enums.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -64,11 +63,11 @@ public class ProductDetail implements Serializable {
     @Column(name = "product_status")
     private ProductStatus productStatus;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @OneToMany(mappedBy = "productDetail", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<ProductSpecification> specifications;
 

@@ -37,17 +37,6 @@ public class ProductController {
                 .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null));
     }
 
-    @GetMapping("/filter")
-    public CompletableFuture<ResponseEntity<Page<ProductFilterSortResponse>>> filterAndSort(
-            @Valid @ModelAttribute ProductFilterSortRequest request) {
-        return productService.productFilteringSorting(request)
-                .thenApply(page -> ResponseEntity.ok().body(page))
-                .exceptionally(ex -> {
-                    log.error("Error in filterAndSort", ex);
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(Page.empty());
-                });
-    }
 
     @GetMapping("/search")
     public CompletableFuture<ResponseEntity<ProductSearchResponse>> searchProducts(
@@ -72,7 +61,7 @@ public class ProductController {
      *
      * @param productsJson JSON string representing the product to be created.
      * @param images       The image file to be uploaded and associated with the
-     *                    product.
+     *                     product.
      * @return A ResponseEntity containing the created ProductDTO, or a 400 Bad
      * Request
      * status if an error occurs.
@@ -82,13 +71,14 @@ public class ProductController {
             @RequestPart("product") String productsJson,
             @RequestPart(value = "image", required = false) List<MultipartFile> images) {
 
-        List<ProductDTO> dtos;
+
         try {
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());
             mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-            dtos = mapper.readValue(productsJson, new TypeReference<List<ProductDTO>>() {});
+            List<ProductDTO> dtos = mapper.readValue(productsJson, new TypeReference<List<ProductDTO>>() {
+            });
 
             // Create product
             return productService.createProduct(dtos, images != null ? images : Collections.emptyList())
@@ -99,6 +89,31 @@ public class ProductController {
             throw new GenericException("Error parsing product JSON", e);
         }
     }
+
+    @PostMapping("/new-detail")
+    public CompletableFuture<ResponseEntity<List<ProductDetailDTO>>> createProductDetail(
+            @RequestPart("detail") String productDetailJson,
+            @RequestPart(value = "detailImage", required = false) List<MultipartFile> detailImages,
+            @RequestPart(value = "video", required = false) List<MultipartFile> videos) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            List<ProductDetailDTO> detailDTOs = mapper.readValue(productDetailJson, new TypeReference<List<ProductDetailDTO>>() {
+            });
+
+            // Create product detail
+            return productService.createProductDetail(detailDTOs, detailImages != null ? detailImages : Collections.emptyList(), videos != null ? videos : Collections.emptyList())
+                    .thenApply(ResponseEntity::ok)
+                    .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null));
+        } catch (IOException e) {
+            log.error("Error parsing product detail JSON", e);
+            throw new GenericException("Error parsing product detail JSON", e);
+        }
+    }
+
+
 
 
     /**

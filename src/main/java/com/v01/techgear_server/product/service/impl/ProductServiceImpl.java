@@ -1,46 +1,43 @@
 package com.v01.techgear_server.product.service.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.v01.techgear_server.common.dto.ImageDTO;
 import com.v01.techgear_server.common.service.FileStorageService;
 import com.v01.techgear_server.discount.model.Discount;
 import com.v01.techgear_server.discount.repository.DiscountRepository;
 import com.v01.techgear_server.enums.ProductStatus;
 import com.v01.techgear_server.exception.BadRequestException;
-import com.v01.techgear_server.exception.ProductFilteringException;
 import com.v01.techgear_server.exception.ResourceNotFoundException;
 import com.v01.techgear_server.exception.ValidationException;
-import com.v01.techgear_server.product.dto.*;
+import com.v01.techgear_server.product.dto.ProductDTO;
+import com.v01.techgear_server.product.dto.ProductDetailDTO;
+import com.v01.techgear_server.product.dto.ProductSpecificationDTO;
 import com.v01.techgear_server.product.mapping.ProductDetailMapper;
 import com.v01.techgear_server.product.mapping.ProductMapper;
+import com.v01.techgear_server.product.mapping.ProductSpecificationMapper;
 import com.v01.techgear_server.product.model.Product;
 import com.v01.techgear_server.product.model.ProductCategory;
 import com.v01.techgear_server.product.model.ProductDetail;
+import com.v01.techgear_server.product.model.ProductSpecification;
 import com.v01.techgear_server.product.repository.ProductCategoryRepository;
 import com.v01.techgear_server.product.repository.ProductDetailRepository;
 import com.v01.techgear_server.product.repository.ProductRepository;
+import com.v01.techgear_server.product.service.DiscountService;
 import com.v01.techgear_server.product.service.ProductService;
 import com.v01.techgear_server.utils.CalculateHype;
 import com.v01.techgear_server.utils.DiscountCalculator;
 import com.v01.techgear_server.utils.ImageUploadService;
+import com.v01.techgear_server.utils.SlugUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -51,23 +48,27 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
     private static final long MAX_IMAGE_SIZE = 1024L * 1024 * 5;
-    private static final int MAX_PAGE_SIZE = 1024 * 1024 * 5;
     private final ImageUploadService uploadService;
     private final FileStorageService fileStorageService;
+    private final DiscountService discountService;
+
     private final ProductMapper productMapper;
     private final ProductDetailMapper productDetailMapper;
-    private final ObjectMapper objectMapper;
+    private final ProductSpecificationMapper productSpecificationMapper;
+
 
     private final DiscountRepository discountRepository;
     private final ProductRepository productRepository;
     private final ProductDetailRepository detailRepository;
     private final ProductCategoryRepository categoryRepository;
+
 
     private void validateImageFile(MultipartFile image) {
         // Check the file type
@@ -101,7 +102,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(rollbackFor = {BadRequestException.class, ResourceNotFoundException.class, IOException.class, DataAccessException.class},
             noRollbackFor = {ValidationException.class}, isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, timeout = 30)
-    @CacheEvict(value = {"productSearchCache", "productCache"}, allEntries = true)
+    @CacheEvict(value = "productSearchCache", allEntries = true)
     public CompletableFuture<List<ProductDTO>> createProduct(List<ProductDTO> productDTOs, List<MultipartFile> images) {
         if (productDTOs == null || productDTOs.isEmpty()) {
             throw new BadRequestException("Product list cannot be null or empty");
@@ -125,11 +126,6 @@ public class ProductServiceImpl implements ProductService {
 
             products.forEach(p -> {
                 p.setCategory(category);
-//                if (p.getProductDetails() == null) {
-//                    for (ProductDetail detail : p.getProductDetails()) {
-//                        detail.setProduct(p);
-//                    }
-//                }
                 p.setProductDetails(new ArrayList<>());
                 p.setProductRatings(new ArrayList<>());
                 p.setOrderItems(new ArrayList<>());
@@ -138,6 +134,13 @@ public class ProductServiceImpl implements ProductService {
                 if (p.getTags() == null) {
                     p.setTags(new ArrayList<>());
                 }
+                String baseSlug = SlugUtils.toSlug(p.getName());
+                String slug = baseSlug;
+                int count = 1;
+                while (productRepository.existsBySlug(slug)) {
+                    slug = baseSlug + "-" + count++;
+                }
+                p.setSlug(slug);
             });
 
             log.info("Saving products: {}", products);
@@ -177,8 +180,18 @@ public class ProductServiceImpl implements ProductService {
             List<ProductDetail> productDetails = productDetailMapper.toEntityList(productDetailDTOs);
             List<ProductDetail> savedProductDetails = detailRepository.saveAll(productDetails);
 
-            long daysSinceRelease = ChronoUnit.DAYS.between(productDetails.getFirst().getReleaseDate().toLocalDate(), LocalDate.now());
+            long daysSinceRelease = ChronoUnit.DAYS.between(LocalDate.now(), productDetails.getFirst().getReleaseDate().toLocalDate());
 
+            /**
+             * Determine the product status based on the release date.
+             *
+             * <ul>
+             *     <li>New: 0 days since release date</li>
+             *     <li>Hot: 1-7 days since release date</li>
+             *     <li>Coming Soon: more than 7 days before release date</li>
+             *     <li>Normal: more than 7 days after release date</li>
+             * </ul>
+             */
             ProductStatus status = switch ((int) ChronoUnit.DAYS.between(productDetails.getFirst().getReleaseDate().toLocalDate(), LocalDate.now())) {
                 case 0 -> ProductStatus.NEW;
                 case 1, 2, 3, 4, 5, 6, 7 -> ProductStatus.HOT;
@@ -186,22 +199,65 @@ public class ProductServiceImpl implements ProductService {
             };
 
 
-            Product product = productRepository.findById(productDetailDTOs.getFirst().getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productDetailDTOs.getFirst().getProductId()));
-
             String hype = CalculateHype.calculateHype(status, daysSinceRelease);
             productDetails.forEach(pd -> {
-                List<Discount> allDiscounts = Optional.ofNullable(pd.getVoucherCode())
-                        .filter(v -> !v.trim().isEmpty())
-                        .map(discountRepository::findByDiscountCode)
-                        .orElse(Collections.emptyList());
-                pd.setFinalPrice(pd.getPrice() != null
-                        ? DiscountCalculator.calculateFinalPrice(product, pd, allDiscounts)
-                        : BigDecimal.ZERO);
+                for (int i = 0; i < productDetails.size(); i++) {
+                    Long productId = productDetailDTOs.get(i).getProductId();
+                    Product product = productRepository.findById(productId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productId));
+                    productDetails.get(i).setProduct(product);
+                    List<Discount> allDiscounts = Optional.ofNullable(pd.getVoucherCode())
+                            .filter(v -> !v.trim().isEmpty())
+                            .map(v -> discountRepository.findByDiscountCode(v.trim()))
+                            .orElse(Collections.emptyList());
+
+                    System.out.println("Voucher code: " + pd.getVoucherCode().trim());
+                    System.out.println("Found discounts: " + allDiscounts.size());
+
+                    // Always set price (original)
+                    BigDecimal originalPrice = pd.getPrice() != null ? pd.getPrice() : BigDecimal.ZERO;
+                    pd.setPrice(originalPrice);
+
+                    // Calculate finalPrice
+                    if (!allDiscounts.isEmpty()) {
+                        // If there are discounts
+
+                        pd.setFinalPrice(DiscountCalculator.calculateFinalPrice(product, pd, allDiscounts));
+                    } else {
+                        // No discounts ➔ finalPrice = original price
+                        pd.setFinalPrice(originalPrice);
+                    }
+                }
                 pd.setHype(hype);
                 pd.setProductStatus(status);
                 pd.setDayLeft(String.valueOf(daysSinceRelease));
-                pd.setSpecifications(new ArrayList<>());
+                pd.setProductDetailsDesc(productDetailDTOs.getFirst().getProductDescription());
+                pd.setTitle(productDetailDTOs.getFirst().getTitle());
+                pd.setWarranty(productDetailDTOs.getFirst().getWarranty());
+                pd.setReleaseDate(productDetailDTOs.getFirst().getReleaseDate().atStartOfDay());
+
+                List<ProductSpecificationDTO> filteredDTOs = Optional.ofNullable(productDetailDTOs.getFirst().getSpecification())
+                        .orElse(Collections.emptyList())
+                        .stream()
+                        .filter(dto -> dto.getProductSpecName() != null && !dto.getProductSpecName().trim().isEmpty() &&
+                                dto.getProductSpecValue() != null && !dto.getProductSpecValue().trim().isEmpty() &&
+                                dto.getProductSpecGuarantee() != null && !dto.getProductSpecGuarantee().trim().isEmpty()
+                        )
+                        .toList();
+
+                System.out.println("Filtered DTOs: " + filteredDTOs.size()); // for debugging
+
+                List<ProductSpecification> specEntities = filteredDTOs.stream()
+                        .map(dto -> {
+                            ProductSpecification specEntity = productSpecificationMapper.toEntity(dto); // Map DTO to Entity
+                            specEntity.setProductDetail(pd); // Set ProductDetail reference here
+                            return specEntity;
+                        })
+                        .collect(Collectors.toList());
+
+
+                pd.setSpecifications(specEntities);
+                pd.setColors(String.valueOf(new ArrayList<>()));
             });
             if (detailImages != null && !detailImages.isEmpty()) {
                 uploadService.saveImagesAndUpdateEntities(
@@ -213,7 +269,7 @@ public class ProductServiceImpl implements ProductService {
             }
 
             if (videos != null && !videos.isEmpty()) {
-                uploadService.saveMultipleVideoAndUpdateEntity(
+                uploadService.saveVideosAndUpdateEntity(
                         videos,
                         savedProductDetails,
                         ProductDetail::setDetailVideoUrl,
@@ -227,6 +283,7 @@ public class ProductServiceImpl implements ProductService {
             throw new BadRequestException("Failed to store image and update product detail");
         }
     }
+
 
     @Override
     @CacheEvict(value = "productCache", key = "#productId")
@@ -292,94 +349,6 @@ public class ProductServiceImpl implements ProductService {
         return existingProduct;
     }
 
-    @Override
-    public CompletableFuture<Page<ProductFilterSortResponse>> productFilteringSorting(
-            ProductFilterSortRequest request) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                // Create Filter DTO
-                ProductFilterDTO filterDTO = createFilterDTO(request);
-
-                // Create Sort Configuration
-                Pageable pageRequest = createPageRequest(request);
-
-                // Create Specification
-                Specification<Product> specification = createSpecification(filterDTO);
-
-                // Execute Query
-                Page<Product> products = productRepository.findAll(specification, pageRequest);
-
-                // Map to Response DTO
-                return products.map(productMapper::productFilterSortToDTO);
-            } catch (Exception e) {
-                log.error("Error in product filtering", e);
-                throw new ProductFilteringException("Failed to filter products", e);
-            }
-        }, getForkJoinPool());
-    }
-
-    /**
-     * Create Filter DTO from Request
-     */
-    private ProductFilterDTO createFilterDTO(ProductFilterSortRequest request) {
-        return ProductFilterDTO.builder()
-                .name(request.getName())
-                .minPrice(request.getMinPrice())
-                .maxPrice(request.getMaxPrice())
-                .category(request.getCategory())
-                .brand(request.getBrand())
-                .build();
-    }
-
-    /**
-     * Create Page Request with Dynamic Sorting
-     */
-    private Pageable createPageRequest(ProductFilterSortRequest request) {
-        List<Sort.Order> sortOrders = parseSortOrders(request.getSort());
-
-        return PageRequest.of(
-                Math.max(0, request.getPage()),
-                Math.min(request.getSize(), MAX_PAGE_SIZE),
-                Sort.by(sortOrders));
-    }
-
-    /**
-     * Parse Sort Orders from JSON StringO
-     */
-    private List<Sort.Order> parseSortOrders(String sortJson) {
-        try {
-            if (StringUtils.hasText(sortJson)) {
-                List<ProductSortDTO> sortDTOs = objectMapper.readValue(
-                        sortJson,
-                        new TypeReference<>() {
-                        });
-
-                return List.copyOf(sortDTOs.stream()
-                        .map(this::convertToSortOrder)
-                        .toList());
-            }
-            return Collections.emptyList();
-        } catch (Exception e) {
-            log.warn("Invalid sort configuration: {}", e.getMessage());
-            return Collections.emptyList();
-        }
-    }
-
-    /**
-     * Convert Sort DTO to Sort Order
-     */
-    private Sort.Order convertToSortOrder(ProductSortDTO sortDTO) {
-        Sort.Direction direction = Optional.ofNullable(sortDTO.getDirection()).filter(dir -> dir.equalsIgnoreCase("desc")).map(dir -> Sort.Direction.DESC).orElse(Sort.Direction.ASC);
-
-        return new Sort.Order(direction, sortDTO.getField());
-    }
-
-    /**
-     * Create Specification for Filtering
-     */
-    private Specification<Product> createSpecification(ProductFilterDTO filterDTO) {
-        return ProductFilterSpecificationImpl.getProductSpecification(filterDTO);
-    }
 
     /**
      * Custom Fork Join Pool for Async Operations

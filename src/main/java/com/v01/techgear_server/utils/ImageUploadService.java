@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -37,18 +36,20 @@ public class ImageUploadService {
      */
     @Async
     @Transactional(rollbackFor = Exception.class)
-    public <T> CompletableFuture<Object> saveImagesAndUpdateEntities(
+    public <T> void saveImagesAndUpdateEntities(
             List<MultipartFile> images,
             List<T> entities,
             BiConsumer<T, String> setImageUrl,
             Consumer<List<T>> saveEntities
     ) throws IOException {
         if (images == null || entities == null || setImageUrl == null || saveEntities == null) {
-            return CompletableFuture.failedFuture(new IllegalArgumentException("Inputs cannot be null"));
+            CompletableFuture.failedFuture(new IllegalArgumentException("Inputs cannot be null"));
+            return;
         }
         if (images.isEmpty() || entities.isEmpty()) {
             log.info("No images or entities provided; skipping processing");
-            return CompletableFuture.completedFuture(null);
+            CompletableFuture.completedFuture(null);
+            return;
         }
 
         // Handle single or multiple images
@@ -56,7 +57,7 @@ public class ImageUploadService {
                 ? fileStorageService.storeSingleImage(images.getFirst()).thenApply(Collections::singletonList)
                 : fileStorageService.storedMultipleImage(images);
 
-        return imageUploadFuture.thenApply(imageDTOS -> {
+        imageUploadFuture.thenApply(imageDTOS -> {
             TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
             return transactionTemplate.execute(status -> {
                 try {
@@ -80,45 +81,46 @@ public class ImageUploadService {
 
     @Async
     @Transactional(rollbackFor = {IOException.class, DataAccessException.class})
-    public <T> void saveVideoAndUpdateEntity(
-            MultipartFile video,
-            T entity,
-            Consumer<T> setVideoUrl,
-            Consumer<T> saveEntity
-    ) throws IOException {
-        fileStorageService.storeMedia(video)
-                .thenAccept(videoDTO -> {
-                    setVideoUrl.accept(entity);
-                    saveEntity.accept(entity);
-                    log.info("Saved entity with video");
-                })
-                .exceptionally(throwable -> {
-                    log.error("Video upload or entity update failed", throwable);
-                    return null;
-                });
-    }
-
-    @Async
-    @Transactional(rollbackFor = {IOException.class, DataAccessException.class})
-    public <T> void saveMultipleVideoAndUpdateEntity(
+    public <T> void saveVideosAndUpdateEntity(
             List<MultipartFile> videos,
             List<T> entities,
             BiConsumer<T, String> setVideoUrl,
-            Consumer<List<T>> saveEntity
+            Consumer<List<T>> saveEntities
     ) throws IOException {
-        fileStorageService.storeMultipleMedia(videos)
-                .thenAccept(videoDTOs -> {
-                    for (int i = 0; i < entities.size(); i++) {
-                        if (i < videoDTOs.size()) {
-                            setVideoUrl.accept(entities.get(i), videoDTOs.get(i).getMediaUrl());
-                        }
+        if (videos == null || entities == null || setVideoUrl == null || saveEntities == null) {
+            CompletableFuture.failedFuture(new IllegalArgumentException("Inputs cannot be null"));
+            return;
+        }
+        if (videos.isEmpty() || entities.isEmpty()) {
+            log.info("No videos or entities provided; skipping processing");
+            CompletableFuture.completedFuture(null);
+            return;
+        }
+        // Handle single or multiple videos
+        CompletableFuture<List<ImageDTO>> videoUploadFuture = videos.size() == 1
+                ? fileStorageService.storeSingleImage(videos.getFirst()).thenApply(Collections::singletonList)
+                : fileStorageService.storedMultipleImage(videos);
+        videoUploadFuture.thenApply(videoDTOS -> {
+            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+            return transactionTemplate.execute(status -> {
+                try {
+                    for (int i = 0; i < entities.size() && i < videoDTOS.size(); i++) {
+                        setVideoUrl.accept(entities.get(i), videoDTOS.get(i).getImageUrl());
                     }
-                    saveEntity.accept(entities);
-                    log.info("Saved {} entities with videos", entities.size());
-                })
-                .exceptionally(throwable -> {
-                    log.error("Video upload or entity update failed", throwable);
+                    saveEntities.accept(entities);
+                    log.info("Saved {} entities with {} videos", entities.size(), videoDTOS.size());
                     return null;
-                });
+                } catch (Exception e) {
+                    log.error("Failed to update or save entities", e);
+                    throw new RuntimeException("Entity update/save failed", e);
+                }
+            });
+        }).exceptionally(throwable -> {
+            log.error("Video upload failed", throwable);
+            throw new RuntimeException("Video upload failed", throwable);
+        });
     }
 }
+
+
+

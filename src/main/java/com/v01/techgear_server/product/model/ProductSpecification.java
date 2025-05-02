@@ -17,7 +17,7 @@ import java.util.Objects;
 @Table(name = "specification")
 public class ProductSpecification implements Serializable {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long specId;
 
 	@Column(name = "spec_name")
@@ -26,8 +26,8 @@ public class ProductSpecification implements Serializable {
 	@Column(name = "spec_value")
 	private String specValue;
 
-	@Column(name="image_url")
-	private String imageUrl;
+	@Column(name = "guarantee")
+	private String guarantee;
 
 	@ManyToOne
 	@JoinColumn(name = "product_detail_id")

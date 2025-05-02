@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.v01.techgear_server.exception.ProductIndexingException;
 import com.v01.techgear_server.product.dto.ProductDTO;
+import com.v01.techgear_server.product.dto.ProductDetailDTO;
+import com.v01.techgear_server.product.model.Product;
+import com.v01.techgear_server.product.model.ProductDetail;
 import com.v01.techgear_server.product.repository.ProductRepository;
 import com.v01.techgear_server.product.search.ProductIndexingService;
 import com.v01.techgear_server.product.search.ProductSchemaService;
@@ -19,9 +22,8 @@ import org.typesense.api.Client;
 import org.typesense.model.ImportDocumentsParameters;
 import org.typesense.model.IndexAction;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -60,6 +62,9 @@ public class ProductIndexingServiceImpl implements ProductIndexingService {
         do {
             Pageable pageable = PageRequest.of(page, batchSize);
             productPage = productRepository.findAllForIndexing(pageable);
+
+            log.info("page: {}", productPage.get().map(ProductDTO::getFinalPrice).collect(Collectors.toList()));
+
             List<ProductDTO> products = productPage.getContent();
             log.info("Batch {}: Found {} products", page, products.size());
 
@@ -82,12 +87,27 @@ public class ProductIndexingServiceImpl implements ProductIndexingService {
         try {
             // Convert ProductDTO to Typesense documents
             List<Map<String, Object>> documents = products.stream().map(dto -> {
+                if (Objects.isNull(dto.getFinalPrice())) {
+                    Optional<BigDecimal> finalPriceOpt = Optional.ofNullable(productRepository.getFinalPriceForProduct(dto.getId()));
+                    finalPriceOpt.ifPresent(dto::setFinalPrice);
+                    dto.setFinalPrice(productRepository.getFinalPriceForProduct(dto.getId()));
+                }
+
+                if (Objects.isNull(dto.getProductTags()) || dto.getProductTags().isEmpty()) {
+                    Optional<Product> productOpt = productRepository.findByIdWithTags(dto.getId());
+                    productOpt.ifPresent(product -> dto.setProductTags(product.getTags()));
+                }
+
+
                 Map<String, Object> document = new HashMap<>(13);
                 document.put("id", dto.getId().toString());
                 document.put("productId", dto.getId());
                 document.put("name", dto.getProductName());
                 document.put("productDescription", dto.getProductDescription());
-                document.put("finalPrice", dto.getProductDetailPrice());
+
+                document.put("finalPrice", dto.getFinalPrice());
+                List<String> tags = dto.getProductTags() != null ? dto.getProductTags() : Collections.emptyList();
+                document.put("tags", tags);
                 document.put("minPrice", dto.getProductMinPrice());
                 document.put("maxPrice", dto.getProductMaxPrice());
                 document.put("availability", dto.getProductAvailability());
@@ -98,6 +118,9 @@ public class ProductIndexingServiceImpl implements ProductIndexingService {
                 document.put("category", dto.getProductCategory().toLowerCase());
                 return document;
             }).collect(Collectors.toList());
+            BigDecimal finalPrice = productRepository.getFinalPriceForProduct(products.getFirst().getId());
+
+            log.info("Final price: {}", finalPrice);
 
             // Set import parameters
             ImportDocumentsParameters parameters = new ImportDocumentsParameters();

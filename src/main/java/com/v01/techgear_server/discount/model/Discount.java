@@ -9,6 +9,7 @@ import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -50,12 +51,15 @@ public class Discount implements Serializable {
     private Integer discountLimit;
 
     @Column(name = "start_date")
-    private String startDate;
+    private LocalDateTime startDate;
 
     @Column(name = "expiry_date")
-    private String expiryDate;
+    private LocalDateTime expiryDate;
 
-    @JoinTable(name = "product_discount", joinColumns = @JoinColumn(name = "discount_id"), inverseJoinColumns = @JoinColumn(name = "product_id"))
+    @ManyToMany
+    @JoinTable(name = "product_discount",
+            joinColumns = @JoinColumn(name = "discount_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id"))
     private List<Product> products; // Relationship with Product
 
     @OneToMany(mappedBy = "discount", cascade = CascadeType.ALL)

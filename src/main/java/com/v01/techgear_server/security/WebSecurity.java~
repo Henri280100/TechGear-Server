@@ -89,8 +89,6 @@ public class WebSecurity {
 						.permitAll()
 						.requestMatchers("/api/v01/category/**")
 						.permitAll()
-						.requestMatchers("/api/v01/discount/**")
-						.permitAll()
 						.requestMatchers(GRAPHIQL_WHITELIST)
 						.permitAll()
 						.anyRequest()

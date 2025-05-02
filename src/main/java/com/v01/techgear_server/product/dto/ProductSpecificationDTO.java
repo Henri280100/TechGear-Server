@@ -21,6 +21,6 @@ public class ProductSpecificationDTO {
     @Schema(description = "Value of the specification")
     private String productSpecValue;
 
-    @Schema(description = "Image associated with the specification")
-    private String productSpecImage;
+    @Schema(description = "Guarantee period in months")
+    private String productSpecGuarantee;
 }

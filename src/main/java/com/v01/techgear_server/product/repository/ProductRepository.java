@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,14 +19,22 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     @Query("SELECT new com.v01.techgear_server.product.dto.ProductDTO(" +
             "p.productId, p.name, COALESCE(p.productDescription, ''), " +
-            "(SELECT pd.finalPrice FROM ProductDetail pd WHERE pd.product = p ORDER BY pd.releaseDate ASC LIMIT 1), " +
+            "(SELECT pd.finalPrice FROM ProductDetail pd WHERE pd.product.productId = p.productId), " +
             "p.minPrice, p.maxPrice, " +
             "LOWER(REPLACE(p.availability, '_', ' ')), p.stockLevel, p.brand, p.imageUrl, p.features, " +
             "p.category.categoryName) " +
             "FROM Product p")
     Page<ProductDTO> findAllForIndexing(Pageable pageable);
 
+    @Query("SELECT COALESCE((SELECT pd.finalPrice FROM ProductDetail pd WHERE pd.product.productId = p.productId), 0) FROM Product p WHERE p.productId = :productId")
+    BigDecimal getFinalPriceForProduct(@Param("productId") Long productId);
+    // get tag
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.tags WHERE p.productId = :productId")
+    Optional<Product> findByIdWithTags(@Param("productId") Long productId);
 
+
+
+    boolean existsBySlug(String slug);
 
     @Query("SELECT p FROM Product p WHERE LOWER(p.category.categoryName) IN :category")
     List<Product> findByCategoryInIgnoreCase(@Param("category") List<String> category);

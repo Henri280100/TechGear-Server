@@ -26,6 +26,9 @@ public class ProductDTO {
     @Schema(description = "Product description", example = "This is a description of the Apple iPhone")
     private String productDescription;
 
+    @Schema(description = "Product slug", example = "Asus ROG Strix")
+    private String productSlug;
+
     @Schema(description = "Product minimum price")
     private BigDecimal productMinPrice;
 
@@ -50,24 +53,23 @@ public class ProductDTO {
     @Schema(description = "Product category", example = "Electronics")
     private String productCategory;
 
-    @Schema(description = "Product detail price")
-    private BigDecimal productDetailPrice;
+    @Schema(description = "Product final price")
+    private BigDecimal finalPrice;
+
 
     @Schema(description = "Product Tags")
     @JsonProperty("productTags")
     private List<String> productTags = new ArrayList<>();
 
-    @Schema(description = "Product details")
-    private List<ProductDetailDTO> productDetails;
 
     public ProductDTO(Long id, String productName, String productDescription,
-                      BigDecimal productDetailPrice, BigDecimal productMinPrice, BigDecimal productMaxPrice,
+                      BigDecimal finalPrice, BigDecimal productMinPrice, BigDecimal productMaxPrice,
                       String productAvailability, int productStockLevel,
                       String productBrand, String productImage, String productFeatures, String productCategory) {
         this.id = id;
         this.productName = productName;
         this.productDescription = productDescription;
-        this.productDetailPrice = productDetailPrice != null ? productDetailPrice : BigDecimal.ZERO;
+        this.finalPrice = finalPrice != null ? finalPrice : BigDecimal.ZERO;
         this.productMinPrice = productMinPrice != null ? productMinPrice : BigDecimal.ZERO;
         this.productMaxPrice = productMaxPrice != null ? productMaxPrice : BigDecimal.ZERO;
         this.productAvailability = ProductAvailability.fromValue(productAvailability);
@@ -76,6 +78,5 @@ public class ProductDTO {
         this.productImage = productImage;
         this.productFeatures = productFeatures;
         this.productCategory = productCategory;
-        this.productTags = new ArrayList<>();
     }
 }

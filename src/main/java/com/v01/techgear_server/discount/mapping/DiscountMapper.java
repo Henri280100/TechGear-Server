@@ -56,4 +56,17 @@ public interface DiscountMapper extends BaseMapper<Discount, DiscountDTO> {
                 .toList();
     }
 
+    default void updateEntityFromDTO(DiscountDTO dto, Discount entity) {
+        if (dto == null || entity == null) {
+            return;
+        }
+        entity.setDiscountCode(dto.getDiscountCode());
+        entity.setDiscountName(dto.getDiscountName());
+        entity.setDiscountPercentage(dto.getDiscountPercentage());
+        entity.setIsDiscountActive(dto.getIsDiscountActive());
+        entity.setStartDate(dto.getStartDate());
+        entity.setExpiryDate(dto.getExpiryDate());
+        toDTO(entity);
+    }
+
 }

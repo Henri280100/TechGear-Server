@@ -44,7 +44,8 @@ public class ProductSchemaServiceImpl implements ProductSchemaService {
                                 new Field().name("brand").type(FieldTypes.STRING).facet(true),
                                 new Field().name("availability").type(FieldTypes.STRING).facet(true),
                                 new Field().name("features").type(FieldTypes.STRING).facet(false),
-                                new Field().name("image").type(FieldTypes.STRING).facet(false)
+                                new Field().name("image").type(FieldTypes.STRING).facet(false),
+                                new Field().name("tags").type(FieldTypes.STRING_ARRAY).facet(false)
                         )));
                 log.info("Product collection created successfully");
             } else {

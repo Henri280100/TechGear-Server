@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Builder
@@ -36,9 +38,6 @@ public class ProductDetailDTO {
     @Schema(description = "Product description")
     private String productDescription;
 
-    @Schema(description = "Technical specifications")
-    private String technicalSpecs;
-
     @Schema(description = "Product colors")
     private String colors;
 
@@ -63,5 +62,6 @@ public class ProductDetailDTO {
     @Schema(description = "Product status (New Arrival, Popular, etc.)")
     private ProductStatus productStatus;
 
-
+    @Schema(description = "Product Specification")
+    private List<ProductSpecificationDTO> specification = new ArrayList<>();
 }
