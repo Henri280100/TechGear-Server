@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.v01.techgear_server.common.dto.ApiResponseDTO;
+import com.v01.techgear_server.shared.dto.ApiResponseDTO;
 import com.v01.techgear_server.user.dto.SignUpResponse;
 import com.v01.techgear_server.user.dto.TokenDTO;
 import com.v01.techgear_server.enums.ApiResponseStatus;
@@ -30,7 +30,7 @@ import com.v01.techgear_server.user.model.PasswordResetToken;
 import com.v01.techgear_server.user.model.Token;
 import com.v01.techgear_server.user.model.User;
 import com.v01.techgear_server.user.repository.UserRepository;
-import com.v01.techgear_server.common.service.EmailService;
+import com.v01.techgear_server.shared.service.EmailService;
 import com.v01.techgear_server.user.service.TokenService;
 import com.v01.techgear_server.user.service.impl.AuthServiceImpl;
 import com.v01.techgear_server.utils.ApiResponseBuilder;

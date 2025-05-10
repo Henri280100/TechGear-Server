@@ -1,12 +1,12 @@
-package com.v01.techgear_server.common.mapping;
+package com.v01.techgear_server.shared.mapping;
 
 import java.util.*;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.v01.techgear_server.common.dto.ImageDTO;
-import com.v01.techgear_server.common.model.Image;
+import com.v01.techgear_server.shared.dto.ImageDTO;
+import com.v01.techgear_server.shared.model.Image;
 import com.v01.techgear_server.utils.BaseMapper;
 
 @Mapper(componentModel = "spring")

@@ -3,7 +3,7 @@ package com.v01.techgear_server.user.dto;
 import java.util.HashSet;
 import java.time.LocalDateTime;
 
-import com.v01.techgear_server.common.dto.ImageDTO;
+import com.v01.techgear_server.shared.dto.ImageDTO;
 import com.v01.techgear_server.enums.UserGenders;
 import com.v01.techgear_server.enums.UserTypes;
 

@@ -1,12 +1,10 @@
 package com.v01.techgear_server.product.mapping;
 
-import com.v01.techgear_server.common.dto.ImageDTO;
+import com.v01.techgear_server.shared.dto.ImageDTO;
 import com.v01.techgear_server.enums.ProductAvailability;
 import com.v01.techgear_server.product.dto.ProductDTO;
-import com.v01.techgear_server.product.dto.ProductDetailDTO;
 import com.v01.techgear_server.product.model.Product;
 import com.v01.techgear_server.product.model.ProductDetail;
-import com.v01.techgear_server.product.repository.ProductRepository;
 import com.v01.techgear_server.utils.BaseMapper;
 import org.mapstruct.*;
 import org.slf4j.Logger;

@@ -1,7 +1,7 @@
 package com.v01.techgear_server.utils;
 
-import com.v01.techgear_server.common.dto.ImageDTO;
-import com.v01.techgear_server.common.service.FileStorageService;
+import com.v01.techgear_server.shared.dto.ImageDTO;
+import com.v01.techgear_server.shared.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;

@@ -1,6 +1,6 @@
 package com.v01.techgear_server.user.dto;
 
-import com.v01.techgear_server.common.model.search.FacetCount;
+import com.v01.techgear_server.shared.model.search.FacetCount;
 import lombok.Builder;
 import lombok.Data;
 

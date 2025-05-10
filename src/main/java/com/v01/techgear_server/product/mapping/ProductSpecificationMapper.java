@@ -1,6 +1,6 @@
 package com.v01.techgear_server.product.mapping;
 
-import com.v01.techgear_server.common.mapping.ImageMapper;
+import com.v01.techgear_server.shared.mapping.ImageMapper;
 import com.v01.techgear_server.product.model.ProductSpecification;
 import com.v01.techgear_server.product.dto.ProductSpecificationDTO;
 import org.mapstruct.*;

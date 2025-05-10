@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.v01.techgear_server.constant.ErrorMessageConstants;
 import com.v01.techgear_server.user.dto.AccountDetailsDTO;
-import com.v01.techgear_server.common.dto.ImageDTO;
+import com.v01.techgear_server.shared.dto.ImageDTO;
 import com.v01.techgear_server.user.dto.UserAddressDTO;
 import com.v01.techgear_server.user.dto.UserDTO;
 import com.v01.techgear_server.user.dto.UserPhoneNoDTO;
@@ -25,7 +25,7 @@ import com.v01.techgear_server.exception.BadRequestException;
 import com.v01.techgear_server.exception.UserAddressNotFoundException;
 import com.v01.techgear_server.exception.UserNotFoundException;
 import com.v01.techgear_server.user.mapping.AccountDetailsMapper;
-import com.v01.techgear_server.common.mapping.ImageMapper;
+import com.v01.techgear_server.shared.mapping.ImageMapper;
 import com.v01.techgear_server.user.mapping.UserAddressMapper;
 import com.v01.techgear_server.user.mapping.UserMapper;
 import com.v01.techgear_server.user.mapping.UserPhoneNoMapper;
@@ -39,7 +39,7 @@ import com.v01.techgear_server.user.repository.RoleRepository;
 import com.v01.techgear_server.user.repository.UserAddressRepository;
 import com.v01.techgear_server.user.repository.UserPhoneNoRepository;
 import com.v01.techgear_server.user.repository.UserRepository;
-import com.v01.techgear_server.common.service.FileStorageService;
+import com.v01.techgear_server.shared.service.FileStorageService;
 import com.v01.techgear_server.user.service.UserService;
 import com.v01.techgear_server.utils.PhoneNumberValidator;
 

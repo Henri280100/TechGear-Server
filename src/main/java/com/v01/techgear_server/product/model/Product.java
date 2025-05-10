@@ -62,7 +62,7 @@ public class Product implements Serializable {
     @JoinColumn(name = "category_id")
     private ProductCategory category;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "product_tags", joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "tag")
     private List<String> tags = new ArrayList<>();

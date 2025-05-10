@@ -3,7 +3,7 @@ package com.v01.techgear_server.wishlist.mapping;
 import java.util.Collections;
 import java.util.List;
 
-import com.v01.techgear_server.common.mapping.ImageMapper;
+import com.v01.techgear_server.shared.mapping.ImageMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import com.v01.techgear_server.wishlist.dto.WishlistDTO;

@@ -7,7 +7,9 @@ import com.v01.techgear_server.product.repository.ProductRepository;
 import graphql.GraphQLException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
@@ -62,4 +64,6 @@ public class ProductQueryResolver {
         log.info("Fetching all product categories");
         return categoryRepository.findAll().getFirst();
     }
+
+
 }

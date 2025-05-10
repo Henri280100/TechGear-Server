@@ -1,6 +1,6 @@
 package com.v01.techgear_server.utils;
 
-import com.v01.techgear_server.common.dto.ApiResponseDTO;
+import com.v01.techgear_server.shared.dto.ApiResponseDTO;
 import com.v01.techgear_server.enums.ApiResponseStatus;
 
 public class ApiResponseBuilder {

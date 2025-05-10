@@ -1,5 +1,14 @@
 package com.v01.techgear_server.security;
 
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.v01.techgear_server.user.service.CustomOAuth2UserService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,36 +39,25 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
-import com.v01.techgear_server.user.service.CustomOAuth2UserService;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 
 @Configuration
 @Slf4j
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class WebSecurity {
-
+	
 	private final String[] SWAGGER_WHITELIST = {
-			"/swagger-ui/**",
-			"/v3/api-docs/**",
-			"/swagger-resources/**",
-			"/swagger-resources"
+			"/swagger-ui/**",           // quan trọng: cần `/**` để khớp toàn bộ đường dẫn tĩnh
+			"/swagger-ui.html",
+			"/v3/api-docs/**",          // cần `/**` để lấy tài liệu OpenAPI
+			"/v3/api-docs.yaml"
 	};
-
+	
 	private final String[] GRAPHIQL_WHITELIST = {
 			"/graphiql",
 			"/graphql"
 	};
-
+	
 	private final OAuth2LoginSuccessHandler OAuth2LoginSuccessHandler;
 	private final OAuth2LoginFailureHandler OAuth2LoginFailureHandler;
 	private final JWTtoUserConvertor jwTtoUserConvertor;
@@ -67,18 +65,18 @@ public class WebSecurity {
 	private final PasswordEncoder passwordEncoder;
 	private final UserDetailsManager userDetailsManager;
 	private final CustomAuthenticationProvider authProvider;
-    private final LogoutHandler logoutHandler;
+	private final LogoutHandler logoutHandler;
 	private final OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService;
-
-
+	
+	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.oauth2ResourceServer(oauth2 -> oauth2
 						.jwt(jwt -> jwt.jwtAuthenticationConverter(jwTtoUserConvertor)))
 				.csrf(AbstractHttpConfigurer::disable)
 				.authorizeHttpRequests(authorize -> authorize
-						.requestMatchers(SWAGGER_WHITELIST)
-						.permitAll()
+						.requestMatchers(SWAGGER_WHITELIST).permitAll()
+						.requestMatchers(GRAPHIQL_WHITELIST).permitAll()
 						.requestMatchers("/api/v01/auth/**")
 						.permitAll()
 						.requestMatchers("/api/v01/user/**")
@@ -90,8 +88,6 @@ public class WebSecurity {
 						.requestMatchers("/api/v01/category/**")
 						.permitAll()
 						.requestMatchers("/api/v01/discount/**")
-						.permitAll()
-						.requestMatchers(GRAPHIQL_WHITELIST)
 						.permitAll()
 						.anyRequest()
 						.authenticated())
@@ -124,33 +120,33 @@ public class WebSecurity {
 						.invalidateHttpSession(true)
 						.deleteCookies("JSESSIONID", "refreshToken")
 				);
-
+		
 		return http.build();
 	}
-
+	
 	@Bean
 	PermissionEvaluator permissionEvaluator() {
 		return new CustomPermissionEvaluator();
 	}
-
+	
 	@Bean
 	DefaultMethodSecurityExpressionHandler methodSecurityExpressionHandler() {
 		DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
 		expressionHandler.setPermissionEvaluator(permissionEvaluator());
 		return expressionHandler;
 	}
-
+	
 	@Bean
 	LogoutHandler customLogoutHandler() {
 		return new SecurityContextLogoutHandler();
 	}
-
+	
 	// Custom OAuth2 user service for Facebook and GG OAuth2 login
 	@Bean
 	OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService() {
 		return new CustomOAuth2UserService(); // Custom implementation of DefaultOAuth2UserService
 	}
-
+	
 	@Bean
 	AuthenticationManager authenticationManager(HttpSecurity security) throws Exception {
 		AuthenticationManagerBuilder authenticationManagerBuilder = security
@@ -158,56 +154,56 @@ public class WebSecurity {
 		authenticationManagerBuilder.authenticationProvider(authProvider);
 		return authenticationManagerBuilder.build();
 	}
-
+	
 	@Bean
 	@Primary
 	JwtDecoder jwtAccessTokenDecoder() {
 		return NimbusJwtDecoder.withPublicKey(keyUtils.getAccessTokenPublicKey())
 				.build();
 	}
-
+	
 	@Bean
 	@Primary
 	JwtEncoder jwtAccessTokenEncoder() {
 		JWK jwk = new RSAKey.Builder(keyUtils.getAccessTokenPublicKey())
 				.privateKey(keyUtils.getAccessTokenPrivateKey())
 				.build();
-
+		
 		JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
-
+		
 		return new NimbusJwtEncoder(jwks);
-
+		
 	}
-
+	
 	@Bean
 	@Qualifier("jwtRefreshTokenDecoder")
 	JwtDecoder jwtRefreshTokenDecoder() {
-
+		
 		return NimbusJwtDecoder.withPublicKey(keyUtils.getRefreshTokenPublicKey())
 				.build();
-
+		
 	}
-
+	
 	@Bean
 	@Qualifier("jwtRefreshTokenEncoder")
 	JwtEncoder jwtRefreshTokenEncoder() {
 		JWK jwk = new RSAKey.Builder(keyUtils.getRefreshTokenPublicKey())
-
+				
 				.privateKey(keyUtils.getRefreshTokenPrivateKey())
 				.build();
-
+		
 		JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
-
+		
 		return new NimbusJwtEncoder(jwks);
-
+		
 	}
-
+	
 	@Bean
 	@Qualifier("jwtRefreshTokenAuthProvider")
 	JwtAuthenticationProvider jwtRefreshTokenAuthProvider(JwtDecoder jwtDecoder) {
 		return new JwtAuthenticationProvider(jwtDecoder);
 	}
-
+	
 	@Bean
 	DaoAuthenticationProvider daoAuthenticationProvider() {
 		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -215,6 +211,6 @@ public class WebSecurity {
 		provider.setUserDetailsService(userDetailsManager);
 		return provider;
 	}
-
+	
 }
 

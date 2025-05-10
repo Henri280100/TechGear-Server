@@ -2,7 +2,7 @@ package com.v01.techgear_server.product.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.v01.techgear_server.common.model.search.FacetCount;
+import com.v01.techgear_server.shared.model.search.FacetCount;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

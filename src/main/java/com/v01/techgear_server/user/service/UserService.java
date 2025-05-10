@@ -6,7 +6,7 @@ import java.util.concurrent.CompletableFuture;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.v01.techgear_server.user.dto.AccountDetailsDTO;
-import com.v01.techgear_server.common.dto.ImageDTO;
+import com.v01.techgear_server.shared.dto.ImageDTO;
 import com.v01.techgear_server.user.dto.UserAddressDTO;
 import com.v01.techgear_server.user.dto.UserDTO;
 import com.v01.techgear_server.user.dto.UserPhoneNoDTO;

@@ -1,4 +1,4 @@
-package com.v01.techgear_server.common.model;
+package com.v01.techgear_server.shared.model;
 
 import com.v01.techgear_server.product.model.ProductDetail;
 import jakarta.persistence.*;

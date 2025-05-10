@@ -1,4 +1,4 @@
-package com.v01.techgear_server.common.service;
+package com.v01.techgear_server.shared.service;
 
 
 import com.v01.techgear_server.user.model.User;

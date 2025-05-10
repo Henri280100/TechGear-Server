@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.v01.techgear_server.common.dto.ApiResponseDTO;
+import com.v01.techgear_server.shared.dto.ApiResponseDTO;
 import com.v01.techgear_server.user.dto.UserDTO;
 import com.v01.techgear_server.user.mapping.UserMapper;
 import com.v01.techgear_server.user.service.UserService;

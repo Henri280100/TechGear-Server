@@ -1,7 +1,7 @@
 package com.v01.techgear_server.wishlist.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.v01.techgear_server.common.dto.ImageDTO;
+import com.v01.techgear_server.shared.dto.ImageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;

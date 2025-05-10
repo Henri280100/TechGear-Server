@@ -1,6 +1,6 @@
 package com.v01.techgear_server.product.model;
 
-import com.v01.techgear_server.common.model.Image;
+import com.v01.techgear_server.shared.model.Image;
 import com.v01.techgear_server.user.model.AccountDetails;
 import jakarta.persistence.*;
 import lombok.*;

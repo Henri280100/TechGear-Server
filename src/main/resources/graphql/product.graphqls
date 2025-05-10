@@ -13,6 +13,7 @@ type Product {
     features: String
 }
 
+
 type ProductCategory {
     id: ID!
     categoryName: String!
@@ -24,4 +25,8 @@ type Query {
     getProductByName(name: String!): Product
     getAllProducts: [Product]
     getAllCategories: [ProductCategory]
+}
+
+type Mutation {
+    updateProductImage(productId: ID!, imageUrl: String!): Product
 }

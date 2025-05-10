@@ -1,22 +1,26 @@
-package com.v01.techgear_server.common.service.impl;
+package com.v01.techgear_server.shared.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.v01.techgear_server.common.dto.ImageDTO;
-import com.v01.techgear_server.common.dto.ImageDimensionsDTO;
-import com.v01.techgear_server.common.dto.MediaDTO;
-import com.v01.techgear_server.common.mapping.MediaMapper;
-import com.v01.techgear_server.common.model.Media;
-import com.v01.techgear_server.common.service.FileStorageService;
+import com.v01.techgear_server.shared.dto.ImageDTO;
+import com.v01.techgear_server.shared.dto.ImageDimensionsDTO;
+import com.v01.techgear_server.shared.dto.MediaDTO;
+import com.v01.techgear_server.shared.mapping.MediaMapper;
+import com.v01.techgear_server.shared.model.Media;
+import com.v01.techgear_server.shared.service.FileStorageService;
 import com.v01.techgear_server.constant.ErrorMessageConstants;
 import com.v01.techgear_server.enums.ImageTypes;
 import com.v01.techgear_server.exception.FileUploadingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.imgscalr.Scalr;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -97,6 +101,14 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
         });
     }
 
+    private byte[] compressImage(MultipartFile image, int targetWidth) throws IOException {
+        BufferedImage bufferedImage = ImageIO.read(image.getInputStream());
+        BufferedImage resized = Scalr.resize(bufferedImage, targetWidth);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(resized, "jpg", baos);
+        return baos.toByteArray();
+    }
+
     @Override
     @Async
     public CompletableFuture<ImageDTO> storeSingleImage(MultipartFile file) {
@@ -104,7 +116,7 @@ public class CloudinaryFileStorageServiceImpl implements FileStorageService {
             return CompletableFuture.failedFuture(new IllegalArgumentException("File is null or empty"));
         }
         try {
-            byte[] fileBytes = file.getBytes(); // Read bytes in main thread
+            byte[] fileBytes = file.getBytes(); // Read bytes in the main thread
             return CompletableFuture.supplyAsync(() -> uploadImageBytes(fileBytes));
         } catch (IOException e) {
             log.error("Failed to read file: {}", file.getOriginalFilename(), e);

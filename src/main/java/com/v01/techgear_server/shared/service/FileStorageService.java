@@ -1,4 +1,4 @@
-package com.v01.techgear_server.common.service;
+package com.v01.techgear_server.shared.service;
 
 import java.io.IOException;
 import java.util.List;
@@ -6,9 +6,9 @@ import java.util.concurrent.CompletableFuture;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.v01.techgear_server.common.dto.ImageDTO;
+import com.v01.techgear_server.shared.dto.ImageDTO;
 
-import com.v01.techgear_server.common.dto.MediaDTO;
+import com.v01.techgear_server.shared.dto.MediaDTO;
 
 public interface FileStorageService {
     CompletableFuture<ImageDTO> storeSingleImage(MultipartFile file) throws IOException;

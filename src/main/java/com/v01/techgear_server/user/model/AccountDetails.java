@@ -3,7 +3,7 @@ package com.v01.techgear_server.user.model;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.v01.techgear_server.enums.UserGenders;
 import com.v01.techgear_server.enums.UserTypes;
-import com.v01.techgear_server.common.model.Image;
+import com.v01.techgear_server.shared.model.Image;
 import com.v01.techgear_server.invoice.model.Invoice;
 import com.v01.techgear_server.product.model.ProductRating;
 import com.v01.techgear_server.wishlist.model.Wishlist;

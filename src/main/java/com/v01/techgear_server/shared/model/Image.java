@@ -1,10 +1,8 @@
-package com.v01.techgear_server.common.model;
+package com.v01.techgear_server.shared.model;
 
 
 import com.v01.techgear_server.enums.ImageTypes;
-import com.v01.techgear_server.product.model.Product;
 import com.v01.techgear_server.product.model.ProductRating;
-import com.v01.techgear_server.product.model.ProductSpecification;
 import com.v01.techgear_server.user.model.AccountDetails;
 import com.v01.techgear_server.wishlist.model.Wishlist;
 import com.v01.techgear_server.wishlist.model.WishlistItems;

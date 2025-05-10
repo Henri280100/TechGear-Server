@@ -3,8 +3,8 @@ package com.v01.techgear_server.user.controller;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-import com.v01.techgear_server.common.dto.ApiResponseDTO;
-import com.v01.techgear_server.common.dto.ImageDTO;
+import com.v01.techgear_server.shared.dto.ApiResponseDTO;
+import com.v01.techgear_server.shared.dto.ImageDTO;
 import com.v01.techgear_server.user.dto.AccountDetailsDTO;
 import com.v01.techgear_server.user.dto.UserAddressDTO;
 import org.springframework.http.HttpStatus;

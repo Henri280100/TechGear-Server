@@ -78,6 +78,17 @@ public class ProductIndexingServiceImpl implements ProductIndexingService {
         log.info("Sync completed. Indexed {} of {} products", indexedCount, totalProducts);
     }
 
+    @Override
+    public void indexProduct(List<ProductDTO> products) {
+        indexProductBatch(products); // Delegate to batch indexing
+    }
+
+
+    @Override
+    public void indexSingleProduct(ProductDTO productDTO) {
+        indexProductBatch(Collections.singletonList(productDTO));
+    }
+
     private void indexProductBatch(List<ProductDTO> products) {
         if (products == null || products.isEmpty()) {
             log.warn("No products to index");
@@ -155,9 +166,6 @@ public class ProductIndexingServiceImpl implements ProductIndexingService {
         }
     }
 
-    @Override
-    public void indexProduct(List<ProductDTO> products) {
-        indexProductBatch(products); // Delegate to batch indexing
-    }
+
 
 }

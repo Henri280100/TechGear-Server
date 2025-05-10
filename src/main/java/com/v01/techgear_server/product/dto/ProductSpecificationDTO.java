@@ -1,6 +1,5 @@
 package com.v01.techgear_server.product.dto;
 
-import com.v01.techgear_server.common.dto.ImageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,6 +1,6 @@
 package com.v01.techgear_server.product.dto;
 
-import com.v01.techgear_server.common.model.search.SortOption;
+import com.v01.techgear_server.shared.model.search.SortOption;
 import com.v01.techgear_server.enums.ProductAvailability;
 import lombok.Builder;
 import lombok.Data;

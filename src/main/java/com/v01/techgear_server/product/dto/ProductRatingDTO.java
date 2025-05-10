@@ -2,7 +2,7 @@ package com.v01.techgear_server.product.dto;
 
 import java.time.LocalDateTime;
 
-import com.v01.techgear_server.common.dto.ImageDTO;
+import com.v01.techgear_server.shared.dto.ImageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.AllArgsConstructor;

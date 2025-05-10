@@ -1,9 +1,7 @@
 package com.v01.techgear_server.product.model;
 
-import com.v01.techgear_server.common.model.Image;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.proxy.HibernateProxy;
 
 import java.io.Serializable;
 import java.util.Objects;

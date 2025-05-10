@@ -8,18 +8,18 @@ import java.util.concurrent.CompletableFuture;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.v01.techgear_server.common.dto.ImageDTO;
+import com.v01.techgear_server.shared.dto.ImageDTO;
 import com.v01.techgear_server.product.dto.ProductRatingDTO;
 import com.v01.techgear_server.exception.BadRequestException;
 import com.v01.techgear_server.exception.ResourceNotFoundException;
 import com.v01.techgear_server.product.mapping.ProductRatingMapper;
 import com.v01.techgear_server.user.model.AccountDetails;
-import com.v01.techgear_server.common.model.Image;
+import com.v01.techgear_server.shared.model.Image;
 import com.v01.techgear_server.product.model.Product;
 import com.v01.techgear_server.user.repository.AccountDetailsRepository;
 import com.v01.techgear_server.product.repository.ProductRatingRepository;
 import com.v01.techgear_server.product.repository.ProductRepository;
-import com.v01.techgear_server.common.service.FileStorageService;
+import com.v01.techgear_server.shared.service.FileStorageService;
 import com.v01.techgear_server.product.service.ProductRatingService;
 
 import lombok.RequiredArgsConstructor;

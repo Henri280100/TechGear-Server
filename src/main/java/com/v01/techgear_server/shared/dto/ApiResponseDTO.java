@@ -1,4 +1,4 @@
-package com.v01.techgear_server.common.dto;
+package com.v01.techgear_server.shared.dto;
 
 import lombok.Getter;
 import lombok.Setter;

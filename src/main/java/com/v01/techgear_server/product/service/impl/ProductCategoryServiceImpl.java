@@ -1,7 +1,7 @@
 package com.v01.techgear_server.product.service.impl;
 
-import com.v01.techgear_server.common.dto.ImageDTO;
-import com.v01.techgear_server.common.service.FileStorageService;
+import com.v01.techgear_server.shared.dto.ImageDTO;
+import com.v01.techgear_server.shared.service.FileStorageService;
 import com.v01.techgear_server.exception.BadRequestException;
 import com.v01.techgear_server.exception.ResourceNotFoundException;
 import com.v01.techgear_server.exception.ValidationException;
@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service

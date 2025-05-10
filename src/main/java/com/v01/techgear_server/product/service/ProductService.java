@@ -4,6 +4,7 @@ import com.v01.techgear_server.product.dto.ProductDTO;
 import com.v01.techgear_server.product.dto.ProductDetailDTO;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -12,6 +13,9 @@ public interface ProductService {
     CompletableFuture<List<ProductDTO>> createProduct(List<ProductDTO> productDTOs, List<MultipartFile> images);
 
     CompletableFuture<ProductDTO> updateProduct(Long productId, ProductDTO productDTO, MultipartFile image);
+    CompletableFuture<ProductDTO> updateProductImage(Long productId, MultipartFile image) throws IOException;
+
+
 
     CompletableFuture<List<ProductDetailDTO>> createProductDetail(List<ProductDetailDTO> productDetailDTOs, List<MultipartFile> detailImages, List<MultipartFile> videos);
 

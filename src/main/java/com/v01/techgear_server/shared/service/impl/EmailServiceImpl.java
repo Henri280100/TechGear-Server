@@ -1,4 +1,4 @@
-package com.v01.techgear_server.common.service.impl;
+package com.v01.techgear_server.shared.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,7 +15,7 @@ import com.v01.techgear_server.user.model.ConfirmationTokens;
 import com.v01.techgear_server.user.model.User;
 import com.v01.techgear_server.user.repository.ConfirmationTokensRepository;
 import com.v01.techgear_server.user.repository.UserRepository;
-import com.v01.techgear_server.common.service.EmailService;
+import com.v01.techgear_server.shared.service.EmailService;
 import com.v01.techgear_server.user.service.RateLimiterService;
 import com.v01.techgear_server.utils.EncryptionUtil;
 

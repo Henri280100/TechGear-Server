@@ -1,4 +1,4 @@
-package com.v01.techgear_server.common.model.search;
+package com.v01.techgear_server.shared.model.search;
 
 import lombok.*;
 

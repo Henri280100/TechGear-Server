@@ -1,7 +1,7 @@
 package com.v01.techgear_server.product.search.impl;
 
-import com.v01.techgear_server.common.model.search.FacetCount;
-import com.v01.techgear_server.common.model.search.SortOption;
+import com.v01.techgear_server.shared.model.search.FacetCount;
+import com.v01.techgear_server.shared.model.search.SortOption;
 import com.v01.techgear_server.enums.ProductAvailability;
 import com.v01.techgear_server.exception.ProductSearchException;
 import com.v01.techgear_server.product.dto.ProductCategoryDTO;
@@ -92,7 +92,6 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                     .numTypos("2")
                     .exhaustiveSearch(false);
 
-            log.info("Filter Query: {}", "finalPrice:[0.0 TO 1000.0]");
             log.info("Search request: {}", request);
 
             validateSearchResponse(searchParameters, request);

@@ -1,11 +1,10 @@
-package com.v01.techgear_server.common.dto;
+package com.v01.techgear_server.shared.dto;
 
 import java.time.LocalDateTime;
 
 import com.v01.techgear_server.enums.ImageTypes;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

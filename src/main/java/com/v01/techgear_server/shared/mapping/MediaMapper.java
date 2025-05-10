@@ -1,12 +1,12 @@
-package com.v01.techgear_server.common.mapping;
+package com.v01.techgear_server.shared.mapping;
 
 import java.util.Collections;
 import java.util.List;
 
 import org.mapstruct.*;
 
-import com.v01.techgear_server.common.dto.MediaDTO;
-import com.v01.techgear_server.common.model.Media;
+import com.v01.techgear_server.shared.dto.MediaDTO;
+import com.v01.techgear_server.shared.model.Media;
 import com.v01.techgear_server.utils.BaseMapper;
 
 @Mapper(componentModel = "spring", uses = {})

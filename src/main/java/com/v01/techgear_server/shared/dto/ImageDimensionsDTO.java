@@ -1,4 +1,4 @@
-package com.v01.techgear_server.common.dto;
+package com.v01.techgear_server.shared.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
