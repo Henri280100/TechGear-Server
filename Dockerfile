@@ -66,17 +66,24 @@ RUN java -Djarmode=layertools -jar target/app.jar extract --destination target/e
 # most recent version of that tag when you build your Dockerfile.
 # If reproducability is important, consider using a specific digest SHA, like
 # eclipse-temurin@sha256:99cede493dfd88720b610eb8077c8688d3cca50003d76d1d539b0efc8cca72b4.
-FROM maven:3.9.9-eclipse-temurin-21-jammy AS build
+
+# Pull the latest version of the JRE image from the Docker Hub.
+# Alpine is a lightweight Linux distribution that is often used for containers.
+# Build stage
+FROM maven:3.9.9-eclipse-temurin-23-alpine AS build
 WORKDIR /app
 COPY pom.xml /app/
 COPY src /app/src/
 
 # Run the Maven build to create the jar file
-RUN mvn -f /app/pom.xml clean package -DskipTests
+RUN mvn clean package -DskipTests
+RUN mvn -f /app/pom.xml dependency:go-offline -DskipTests
+
 
 CMD ["mvn spring-boot:run"]
 
-FROM eclipse-temurin:21-jre-jammy AS final
+
+#FROM eclipse-temurin:21-jre-jammy AS final
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
 
@@ -98,17 +105,8 @@ COPY --from=extract build/target/extracted/dependencies/ ./
 COPY --from=extract build/target/extracted/spring-boot-loader/ ./
 COPY --from=extract build/target/extracted/snapshot-dependencies/ ./
 COPY --from=extract build/target/extracted/application/ ./
-# Copy the app files including the Firebase credentials
-COPY src/main/resources/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-a5ee079a6f.json /app/resources/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-a5ee079a6f.json
 
-COPY src/main/resources /app/src/main/resources
-
-# Make sure the directory exists
-RUN mkdir -p /app/resources/firebase-keys
-# Set the environment variable for Firebase credentials
-ENV GOOGLE_APPLICATION_CREDENTIALS="/app/resources/firebase-keys/techgearstorage-firebase-adminsdk-rc7gf-a5ee079a6f.json"
-
-
+FROM eclipse-temurin:23-jdk-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 

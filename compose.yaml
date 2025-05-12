@@ -11,58 +11,102 @@ services:
   server:
     build:
       context: .
-    
 
-# The commented out section below is an example of how to define a PostgreSQL
-# database that your application can use. `depends_on` tells Docker Compose to
-# start the database before your application. The `db-data` volume persists the
-# database data between container restarts. The `db-password` secret is used
-# to set the database password. You must create `db/password.txt` and add
-# a password of your choosing to it before running `docker-compose up`.
-  postgres-db:
-    image: postgres
-    container_name: postgres-db
-    restart: always
-    env_file: local.env
-    environment:
-      - POSTGRES_USER=$POSTGRESDB_USER
-      - POSTGRES_PASSWORD=$POSTGRESDB_ROOT_PASSWORD
-      - POSTGRES_DB=$POSTGRESDB_DATABASE
-    # ports:
-    #   - 5433:5432
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./schema/:/docker-entrypoint-initdb.d/
+
+  # The commented out section below is an example of how to define a PostgreSQL
+  # database that your application can use. `depends_on` tells Docker Compose to
+  # start the database before your application. The `db-data` volume persists the
+  # database data between container restarts. The `db-password` secret is used
+  # to set the database password. You must create `db/password.txt` and add
+  # a password of your choosing to it before running `docker-compose up`.
 
   spring-app:
-    image: docker-spring-boot-postgres:latest
-    container_name: spring-app
+    container_name: techgear-spring-app
     build:
       context: .
     restart: on-failure
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:$POSTGRESDB_DOCKER_PORT/$POSTGRESDB_DATABASE
-      SPRING_DATASOURCE_USERNAME: $POSTGRESDB_USER
-      SPRING_DATASOURCE_PASSWORD: $POSTGRESDB_ROOT_PASSWORD
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:$POSTGRES_DOCKER_PORT/techgeardb
+      SPRING_DATASOURCE_USERNAME: $POSTGRES_USER
+      SPRING_DATASOURCE_PASSWORD: $POSTGRES_PASSWORD
       SPRING.JPA.PROPERTIES.HIBERNATE.DIALECT: org.hibernate.dialect.PostgreSQLDialect
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID}
+      FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET}
+      TYPESENSE_HOST: typesense
+      TYPESENSE_PORT: 8108
+      TYPESENSE_PROTOCOL: http
+      TYPESENSE_CONNECTION_TIMEOUT_SECONDS: 30
+      TYPESENSE_API_KEY: bppTGdU4ZdgIJNyRWYi3hPC5C8xQ9IWLHWBYfkWjuCIbtjCp
+      REDIS_HOST: redis
+      REDIS_PORT: 6739
     ports:
-      - 8082:8082
+      - "8082:8082"
     depends_on:
       - postgres-db
-  
+      - kafka
+      - redis
+      - typesense
+
+  postgres-db:
+    image: postgres:17.5-alpine3.21
+    container_name: postgres-db
+    restart: always
+    env_file: .env
+    ports:
+      - $POSTGRES_LOCAL_PORT:$POSTGRES_DOCKER_PORT
+    environment:
+      - POSTGRES_USER=$POSTGRES_USER
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+      - POSTGRES_DB=$POSTGRES_DB
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./schema/:/docker-entrypoint-initdb.d/
+
   redis:
-    image: redis:7-alpine
-    ports: 
+    image: redis:8.0.0-alpine
+    ports:
       - $REDIS_LOCAL_PORT:$REDIS_DOCKER_PORT
     volumes:
-      - redis-data:/data  
+      - redis-data:/data
+
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: kafka
+    restart: always
+    ports:
+      - $KAFKA_LOCAL_PORT:$KAFKA_DOCKER_PORT
+    environment:
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENER_NAME: PLAINTEXT
+
+  typesense:
+    image: typesense/typesense:28.0
+    container_name: typesense
+    restart: on-failure
+    ports:
+      - "8105:8108"
+    environment:
+      - TYPESENSE_API_KEY=$TYPESENSE_API_KEY
+      - TYPESENSE_DATA_DIR=/data
+      - TYPESENSE_ENABLE_CORS=true
+    volumes:
+      - typesense-data:/data
+    command: '--data-dir /data --api-key=$TYPESENSE_API_KEY --enable-cors'
+
 
 volumes:
   postgres-data:
   redis-data:
-
-networks:
-  app-network: 
+  typesense-data:
 
