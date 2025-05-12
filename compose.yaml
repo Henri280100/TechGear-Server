@@ -26,8 +26,7 @@ services:
       context: .
     restart: on-failure
     environment:
-      SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:$POSTGRES_DOCKER_PORT/techgeardb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:$POSTGRES_LOCAL_PORT/techgeardb
       SPRING_DATASOURCE_USERNAME: $POSTGRES_USER
       SPRING_DATASOURCE_PASSWORD: $POSTGRES_PASSWORD
       SPRING.JPA.PROPERTIES.HIBERNATE.DIALECT: org.hibernate.dialect.PostgreSQLDialect
@@ -66,12 +65,23 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./schema/:/docker-entrypoint-initdb.d/
 
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-insight
+    restart: always
+    ports:
+      - "5540:5540"
+    volumes:
+      - redis-insight:/data
+
   redis:
     image: redis:8.0.0-alpine
     ports:
       - $REDIS_LOCAL_PORT:$REDIS_DOCKER_PORT
     volumes:
       - redis-data:/data
+
+
 
   kafka:
     image: bitnami/kafka:latest
@@ -109,4 +119,5 @@ volumes:
   postgres-data:
   redis-data:
   typesense-data:
+  redis-insight:
 
